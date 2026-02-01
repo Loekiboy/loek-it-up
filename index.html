@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loek it Up - Woordjes Leren</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo" onclick="showHome()">
+                <img src="images/logo.svg" alt="Loek it Up Logo" class="logo-image">
+                <span>Loek it Up</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" onclick="showHome()" data-view="home">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button class="nav-btn" onclick="showCreateList()" data-view="create">
+                    <i class="fas fa-plus"></i> Nieuwe Lijst
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home View -->
+            <div id="home-view" class="view active">
+                <div class="welcome-section">
+                    <div class="welcome-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h1>Welkom bij <span class="highlight">Loek it Up</span></h1>
+                    <p>De slimste manier om woordjes te leren!</p>
+                </div>
+                
+                <div class="lists-section">
+                    <h2><i class="fas fa-folder-open"></i> Mijn Woordenlijsten</h2>
+                    <div id="word-lists-container" class="word-lists-grid">
+                        <!-- Word lists will be dynamically added here -->
+                    </div>
+                    <div id="empty-state" class="empty-state">
+                        <i class="fas fa-book"></i>
+                        <h3>Nog geen woordenlijsten</h3>
+                        <p>Maak je eerste woordenlijst om te beginnen met leren!</p>
+                        <button class="btn btn-primary" onclick="showCreateList()">
+                            <i class="fas fa-plus"></i> Nieuwe Lijst
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create/Edit List View -->
+            <div id="create-view" class="view">
+                <div class="create-container">
+                    <h2><i class="fas fa-edit"></i> <span id="create-title">Nieuwe Woordenlijst</span></h2>
+                    
+                    <div class="form-group">
+                        <label for="list-title">Titel</label>
+                        <input type="text" id="list-title" placeholder="Bijv. Franse woordjes Hoofdstuk 3">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vak</label>
+                        <div class="subject-selector">
+                            <button class="subject-btn" data-subject="language" data-icon="fa-language">
+                                <i class="fas fa-language"></i> Talen
+                            </button>
+                            <button class="subject-btn" data-subject="nederlands" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Nederlands
+                            </button>
+                            <button class="subject-btn" data-subject="engels" data-icon="fa-flag-usa">
+                                <i class="fas fa-flag-usa"></i> Engels
+                            </button>
+                            <button class="subject-btn" data-subject="frans" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Frans
+                            </button>
+                            <button class="subject-btn" data-subject="duits" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Duits
+                            </button>
+                            <button class="subject-btn" data-subject="spaans" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Spaans
+                            </button>
+                            <button class="subject-btn" data-subject="italiaans" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Italiaans
+                            </button>
+                            <button class="subject-btn" data-subject="latijn" data-icon="fa-book-open">
+                                <i class="fas fa-book-open"></i> Latijn
+                            </button>
+                            <button class="subject-btn" data-subject="grieks" data-icon="fa-university">
+                                <i class="fas fa-university"></i> Grieks
+                            </button>
+                            <button class="subject-btn" data-subject="turks" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Turks
+                            </button>
+                            <button class="subject-btn" data-subject="arabisch" data-icon="fa-star-and-crescent">
+                                <i class="fas fa-star-and-crescent"></i> Arabisch
+                            </button>
+                            <button class="subject-btn" data-subject="science" data-icon="fa-flask">
+                                <i class="fas fa-flask"></i> Wetenschap
+                            </button>
+                            <button class="subject-btn" data-subject="math" data-icon="fa-calculator">
+                                <i class="fas fa-calculator"></i> Wiskunde
+                            </button>
+                            <button class="subject-btn" data-subject="history" data-icon="fa-landmark">
+                                <i class="fas fa-landmark"></i> Geschiedenis
+                            </button>
+                            <button class="subject-btn" data-subject="geography" data-icon="fa-globe-europe">
+                                <i class="fas fa-globe-europe"></i> Aardrijkskunde
+                            </button>
+                            <button class="subject-btn" data-subject="biology" data-icon="fa-dna">
+                                <i class="fas fa-dna"></i> Biologie
+                            </button>
+                            <button class="subject-btn" data-subject="art" data-icon="fa-palette">
+                                <i class="fas fa-palette"></i> Kunst
+                            </button>
+                            <button class="subject-btn" data-subject="music" data-icon="fa-music">
+                                <i class="fas fa-music"></i> Muziek
+                            </button>
+                            <button class="subject-btn" data-subject="other" data-icon="fa-book">
+                                <i class="fas fa-book"></i> Overig
+                            </button>
+                        </div>
+                        <input type="hidden" id="selected-subject" value="">
+                        <input type="hidden" id="selected-icon" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Talen</label>
+                        <div class="language-inputs">
+                            <div class="language-select-wrapper">
+                                <input type="text" class="language-search" id="lang-from-search" placeholder="Zoeken...">
+                                <select id="lang-from" aria-label="Taal van">
+                                    <option value="" selected disabled>Kies taal</option>
+                                    <option>Nederlands</option>
+                                    <option>Engels</option>
+                                    <option>Frans</option>
+                                    <option>Duits</option>
+                                    <option>Spaans</option>
+                                    <option>Italiaans</option>
+                                    <option>Portugees</option>
+                                    <option>Latijn</option>
+                                    <option>Grieks</option>
+                                    <option>Arabisch</option>
+                                    <option>Turks</option>
+                                    <option>Chinees</option>
+                                    <option>Japans</option>
+                                    <option>Koreaans</option>
+                                    <option>Russisch</option>
+                                    <option>Zweeds</option>
+                                    <option>Deens</option>
+                                    <option>Noors</option>
+                                    <option>Overig</option>
+                                </select>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                            <div class="language-select-wrapper">
+                                <input type="text" class="language-search" id="lang-to-search" placeholder="Zoeken...">
+                                <select id="lang-to" aria-label="Taal naar">
+                                    <option value="" selected disabled>Kies taal</option>
+                                    <option>Nederlands</option>
+                                    <option>Engels</option>
+                                    <option>Frans</option>
+                                    <option>Duits</option>
+                                    <option>Spaans</option>
+                                    <option>Italiaans</option>
+                                    <option>Portugees</option>
+                                    <option>Latijn</option>
+                                    <option>Grieks</option>
+                                    <option>Arabisch</option>
+                                    <option>Turks</option>
+                                    <option>Chinees</option>
+                                    <option>Japans</option>
+                                    <option>Koreaans</option>
+                                    <option>Russisch</option>
+                                    <option>Zweeds</option>
+                                    <option>Deens</option>
+                                    <option>Noors</option>
+                                    <option>Overig</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="import-section">
+                        <button class="btn btn-secondary" onclick="toggleImport()">
+                            <i class="fas fa-file-import"></i> Importeren
+                        </button>
+                        <div id="import-area" class="import-area hidden">
+                            <p class="import-hint">Plak hier woordjes gescheiden door tabs (van StudyGo, Quizlet, etc.)</p>
+                            <textarea id="import-text" placeholder="woord1&#9;vertaling1&#10;woord2&#9;vertaling2"></textarea>
+                            <button class="btn btn-primary" onclick="importWords()">
+                                <i class="fas fa-check"></i> Importeren
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="words-editor">
+                        <h3>Woordjes</h3>
+                        <div id="words-list" class="words-list">
+                            <!-- Word entries will be added here -->
+                        </div>
+                        <button class="btn btn-add-word" onclick="addWordEntry()">
+                            <i class="fas fa-plus"></i> Woord toevoegen
+                        </button>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="showHome()">Annuleren</button>
+                        <button class="btn btn-primary" onclick="saveList()">
+                            <i class="fas fa-save"></i> Opslaan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Detail View -->
+            <div id="list-view" class="view">
+                <div class="list-detail-container">
+                    <div class="list-header">
+                        <button class="btn-back" onclick="showHome()">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="list-info">
+                            <div class="list-icon">
+                                <i id="list-detail-icon" class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <h2 id="list-detail-title">Woordenlijst</h2>
+                                <p id="list-detail-meta">0 woordjes</p>
+                            </div>
+                        </div>
+                        <div class="list-actions">
+                            <button class="btn btn-icon" onclick="editCurrentList()" title="Bewerken">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-icon" onclick="exportCurrentList()" title="Exporteren">
+                                <i class="fas fa-file-export"></i>
+                            </button>
+                            <button class="btn btn-icon btn-danger" onclick="deleteCurrentList()" title="Verwijderen">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="study-modes">
+                        <h3>Kies een studiemodus</h3>
+                        <div class="modes-grid">
+                            <div class="mode-card" onclick="startStudyMode('steps')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <h4>Stampen</h4>
+                                <p>Per 4 woorden: woordkaartjes, meerkeuze en typen</p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('typing')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-keyboard"></i>
+                                </div>
+                                <h4>Typen</h4>
+                                <p>Typ alle vertalingen en leer door herhaling</p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('flashcards')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-clone"></i>
+                                </div>
+                                <h4>Woordkaartjes</h4>
+                                <p>Swipe door kaartjes en markeer wat je weet</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="words-preview">
+                        <h3>Woordjes in deze lijst</h3>
+                        <div id="words-preview-list" class="words-preview-list">
+                            <!-- Words will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study Settings Modal -->
+            <div id="settings-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-cog"></i> Instellingen</h3>
+                        <button class="btn-close" onclick="closeSettingsModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="setting-group">
+                            <label>Vraag richting</label>
+                            <div class="direction-selector">
+                                <button class="direction-btn active" data-direction="term-def">
+                                    <span id="dir-term-def">Term → Definitie</span>
+                                </button>
+                                <button class="direction-btn" data-direction="def-term">
+                                    <span id="dir-def-term">Definitie → Term</span>
+                                </button>
+                                <button class="direction-btn" data-direction="mixed">
+                                    <i class="fas fa-random"></i> Mix
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="typing-settings" class="typing-settings">
+                            <div class="setting-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="accept-slash-answers" checked>
+                                    <span class="checkmark"></span>
+                                    Accepteer beide antwoorden bij "/" (bijv. "licht/fel")
+                                </label>
+                            </div>
+                            <div class="setting-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="ignore-parentheses" checked>
+                                    <span class="checkmark"></span>
+                                    Negeer tekst tussen haakjes
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeSettingsModal()">Annuleren</button>
+                        <button class="btn btn-primary" onclick="confirmStartStudy()">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study View - Steps Mode -->
+            <div id="study-steps-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="steps-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="steps-progress-text">0/0</span>
+                        </div>
+                    </div>
+
+                    <div id="steps-content" class="study-content">
+                        <!-- Dynamic content for steps mode -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study View - Typing Mode -->
+            <div id="study-typing-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="typing-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="typing-progress-text">0/0</span>
+                        </div>
+                    </div>
+
+                    <div id="typing-content" class="study-content">
+                        <!-- Dynamic content for typing mode -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study View - Flashcards Mode -->
+            <div id="study-flashcards-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="flashcards-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="flashcards-progress-text">0/0</span>
+                        </div>
+                    </div>
+
+                    <div id="flashcards-content" class="study-content flashcards-content">
+                        <div class="flashcard-wrapper">
+                            <div id="flashcard" class="flashcard">
+                                <div class="flashcard-inner">
+                                    <div class="flashcard-front">
+                                        <p id="flashcard-term"></p>
+                                    </div>
+                                    <div class="flashcard-back">
+                                        <p id="flashcard-definition"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="flashcard-hint">Klik om om te draaien of druk op spatie</p>
+                        </div>
+                        <div class="flashcard-controls">
+                            <button class="btn-flashcard btn-wrong" onclick="markFlashcard(false)">
+                                <i class="fas fa-times"></i>
+                                <span>Nog leren (←)</span>
+                            </button>
+                            <button class="btn-flashcard btn-correct" onclick="markFlashcard(true)">
+                                <i class="fas fa-check"></i>
+                                <span>Goed (→)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confetti Canvas -->
+            <canvas id="confetti-canvas" class="hidden"></canvas>
+
+            <!-- Completion View -->
+            <div id="complete-view" class="view">
+                <div class="complete-container">
+                    <div class="complete-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h2>Gefeliciteerd!</h2>
+                    <p id="complete-message">Je hebt alle woordjes geleerd!</p>
+                    <div class="complete-stats">
+                        <div class="stat">
+                            <span class="stat-value" id="stat-correct">0</span>
+                            <span class="stat-label">Goed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="stat-wrong">0</span>
+                            <span class="stat-label">Fout</span>
+                        </div>
+                    </div>
+                    <div class="complete-actions">
+                        <button class="btn btn-secondary" onclick="showListDetail(currentListId)">
+                            <i class="fas fa-arrow-left"></i> Terug naar lijst
+                        </button>
+                        <button class="btn btn-primary" onclick="restartStudy()">
+                            <i class="fas fa-redo"></i> Opnieuw
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="correct-sound" preload="auto"></audio>
+    <audio id="complete-sound" preload="auto"></audio>
+
+    <script src="confetti.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
