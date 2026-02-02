@@ -4,6 +4,12 @@ let currentListId = null;
 let currentStudyMode = null;
 let editingListId = null;
 
+// Supabase auth
+let supabaseClient = null;
+let authUser = null;
+let authMode = 'login';
+let publicSearchTimer = null;
+
 // Study session state
 let studySession = {
     words: [],
@@ -84,6 +90,8 @@ function showCreateList() {
     document.getElementById('selected-icon').value = '';
     document.getElementById('import-area').classList.add('hidden');
     document.getElementById('import-text').value = '';
+    const publicToggle = document.getElementById('list-public');
+    if (publicToggle) publicToggle.checked = false;
     
     document.querySelectorAll('.subject-btn').forEach(btn => btn.classList.remove('active'));
     
@@ -142,7 +150,7 @@ function renderWordLists() {
                 </div>
                 <div>
                     <div class="card-title">${escapeHtml(list.title)}</div>
-                    <div class="card-meta">${list.words.length} woordjes</div>
+                    <div class="card-meta">${list.words.length} woordjes${list.isPublic ? ' • Openbaar' : ''}</div>
                 </div>
             </div>
             <div class="card-languages">
@@ -364,12 +372,13 @@ function importWords() {
 }
 
 // ===== Save List =====
-function saveList() {
+async function saveList() {
     const title = document.getElementById('list-title').value.trim();
     const langFrom = document.getElementById('lang-from').value.trim();
     const langTo = document.getElementById('lang-to').value.trim();
     const subject = document.getElementById('selected-subject').value;
     const icon = document.getElementById('selected-icon').value || 'fa-book';
+    const isPublic = document.getElementById('list-public')?.checked || false;
     const existingList = editingListId ? wordLists.find(l => l.id === editingListId) : null;
     const statsById = (existingList?.words || []).reduce((acc, w) => {
         acc[w.id] = w.stats || { correct: 0, wrong: 0 };
@@ -417,7 +426,8 @@ function saveList() {
                 langTo,
                 subject,
                 icon,
-                words
+                words,
+                isPublic
             };
         }
     } else {
@@ -429,12 +439,25 @@ function saveList() {
             subject,
             icon,
             words,
+            isPublic,
             createdAt: new Date().toISOString()
         };
         wordLists.push(newList);
     }
-    
-    saveData();
+
+    if (authUser && supabaseClient) {
+        try {
+            await saveListToRemote(editingListId || wordLists[wordLists.length - 1].id);
+            await loadRemoteLists();
+        } catch (err) {
+            console.error('Online opslaan mislukt, lokaal opgeslagen.', err);
+            saveData();
+            alert('Online opslaan mislukt. Je lijst is wel lokaal opgeslagen. Controleer je RLS policies.');
+        }
+    } else {
+        saveData();
+    }
+
     showHome();
 }
 
@@ -458,11 +481,14 @@ function editCurrentList() {
     const wordsList = document.getElementById('words-list');
     wordsList.innerHTML = '';
     list.words.forEach(word => addWordEntry(word.term, word.definition, word.id));
+
+    const publicToggle = document.getElementById('list-public');
+    if (publicToggle) publicToggle.checked = !!list.isPublic;
     
     showView('create-view');
 }
 
-function deleteCurrentList() {
+async function deleteCurrentList() {
     // allow fallback to dataset on container if currentListId was lost
     const container = document.querySelector('.list-detail-container');
     const id = currentListId || (container && container.dataset.listId);
@@ -488,7 +514,12 @@ function deleteCurrentList() {
         return;
     }
 
-    saveData();
+    if (authUser && supabaseClient) {
+        await deleteListFromRemote(id);
+        await loadRemoteLists();
+    } else {
+        saveData();
+    }
     // clear any stored active session for this list
     const active = JSON.parse(localStorage.getItem('activeStudySession') || '{}');
     if (active && active.listId === id) localStorage.removeItem('activeStudySession');
@@ -496,23 +527,309 @@ function deleteCurrentList() {
     showHome();
 }
 
-function exportCurrentList() {
+async function exportCurrentList() {
     const list = wordLists.find(l => l.id === currentListId);
     if (!list) return;
 
     const header = `Titel:\t${list.title}\nTalen:\t${list.langFrom} -> ${list.langTo}\n\n`;
     const content = list.words.map(w => `${w.term}\t${w.definition}`).join('\n');
-    const blob = new Blob([header + content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const text = header + content;
 
-    const a = document.createElement('a');
-    const safeTitle = list.title.replace(/[^a-z0-9\-_]+/gi, '_').toLowerCase();
-    a.href = url;
-    a.download = `${safeTitle || 'woordenlijst'}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+        await navigator.clipboard.writeText(text);
+        alert('Woordlijst gekopieerd naar je klembord.');
+    } catch (err) {
+        console.error('Kopiëren mislukt', err);
+        alert('Kopiëren naar klembord is mislukt. Probeer het in een veilige (https) omgeving.');
+    }
+}
+
+// ===== Supabase Auth & Sync =====
+function initSupabase() {
+    if (!window.supabase) return;
+
+    const SUPABASE_URL = 'https://sngiduythwiuthrtzmch.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuZ2lkdXl0aHdpdXRocnR6bWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNDY5MzUsImV4cCI6MjA4NTYyMjkzNX0.xNecbmT6VRPPhBVnW5WQv-QdJp4o2MDZq4tV-jsJXLI';
+
+    // Basic sanity-checks to avoid accidental DNS errors with placeholder values
+    if (SUPABASE_URL.includes('YOUR_PROJECT') || SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')) {
+        console.error('Supabase niet geconfigureerd — voeg SUPABASE_URL en SUPABASE_ANON_KEY toe in app.js');
+        document.getElementById('auth-login-btn')?.classList.add('hidden');
+        document.getElementById('auth-signup-btn')?.classList.add('hidden');
+        return;
+    }
+
+    // Create the client
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Helpful console note about security: anon key is public; use RLS to protect data
+    console.info('Supabase client initialized. Ensure you have created RLS policies (see README/SQL) to protect user data.');
+
+    supabaseClient.auth.getSession().then(({ data }) => {
+        authUser = data.session?.user || null;
+        updateAuthUI();
+        if (authUser) {
+            loadRemoteLists();
+        }
+    });
+
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+        authUser = session?.user || null;
+        updateAuthUI();
+        if (authUser) {
+            loadRemoteLists();
+        } else {
+            wordLists = JSON.parse(localStorage.getItem('wordLists')) || [];
+            renderWordLists();
+        }
+    });
+}
+
+function updateAuthUI() {
+    const loginBtn = document.getElementById('auth-login-btn');
+    const signupBtn = document.getElementById('auth-signup-btn');
+    const logoutBtn = document.getElementById('auth-logout-btn');
+    const userLabel = document.getElementById('auth-user');
+    const menuBtn = document.getElementById('auth-menu-btn');
+
+    if (authUser) {
+        if (loginBtn) loginBtn.classList.add('hidden');
+        if (signupBtn) signupBtn.classList.add('hidden');
+        if (logoutBtn) logoutBtn.classList.remove('hidden');
+        if (userLabel) {
+            userLabel.textContent = authUser.email;
+            userLabel.classList.remove('hidden');
+        }
+        if (menuBtn) menuBtn.classList.add('logged-in');
+    } else {
+        if (loginBtn) loginBtn.classList.remove('hidden');
+        if (signupBtn) signupBtn.classList.remove('hidden');
+        if (logoutBtn) logoutBtn.classList.add('hidden');
+        if (userLabel) {
+            userLabel.textContent = '';
+            userLabel.classList.add('hidden');
+        }
+        if (menuBtn) menuBtn.classList.remove('logged-in');
+    }
+}
+
+function toggleAuthMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('auth-menu');
+    if (!menu) return;
+    menu.classList.toggle('hidden');
+}
+
+function closeAuthMenu() {
+    const menu = document.getElementById('auth-menu');
+    if (!menu) return;
+    menu.classList.add('hidden');
+}
+
+function openAuthModal(mode) {
+    authMode = mode;
+    closeAuthMenu();
+    document.getElementById('auth-modal').classList.remove('hidden');
+    document.getElementById('auth-title').innerHTML = mode === 'signup'
+        ? '<i class="fas fa-user-plus"></i> Account maken'
+        : '<i class="fas fa-user"></i> Inloggen';
+    document.getElementById('auth-submit-btn').innerHTML = mode === 'signup'
+        ? '<i class="fas fa-check"></i> Registreren'
+        : '<i class="fas fa-check"></i> Inloggen';
+    document.getElementById('auth-error').classList.add('hidden');
+}
+
+function closeAuthModal() {
+    document.getElementById('auth-modal').classList.add('hidden');
+}
+
+async function submitAuth() {
+    if (!supabaseClient) return;
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errorEl = document.getElementById('auth-error');
+
+    if (!email || !password) {
+        errorEl.textContent = 'Vul e-mail en wachtwoord in.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    let result;
+    if (authMode === 'signup') {
+        result = await supabaseClient.auth.signUp({ email, password });
+    } else {
+        result = await supabaseClient.auth.signInWithPassword({ email, password });
+    }
+
+    if (result.error) {
+        errorEl.textContent = result.error.message;
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    closeAuthModal();
+    closeAuthMenu();
+}
+
+async function logout() {
+    if (!supabaseClient) return;
+    await supabaseClient.auth.signOut();
+}
+
+async function loadRemoteLists() {
+    if (!supabaseClient || !authUser) return;
+    const { data, error } = await supabaseClient
+        .from('word_lists')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Load lists failed', error);
+        alert('Online lijsten laden is mislukt. Controleer je Supabase RLS policies.');
+        return;
+    }
+
+    wordLists = (data || []).map(row => ({
+        id: row.id,
+        title: row.title,
+        langFrom: row.lang_from,
+        langTo: row.lang_to,
+        subject: row.subject,
+        icon: row.icon,
+        words: row.words || [],
+        isPublic: row.is_public,
+        createdAt: row.created_at
+    }));
+
+    saveData();
+    renderWordLists();
+}
+
+async function saveListToRemote(listId) {
+    if (!supabaseClient || !authUser) return;
+    const list = wordLists.find(l => l.id === listId);
+    if (!list) return;
+
+    const searchText = list.words.map(w => `${w.term} ${w.definition}`).join(' ').slice(0, 2000);
+
+    const { error } = await supabaseClient
+        .from('word_lists')
+        .upsert({
+            id: list.id,
+            user_id: authUser.id,
+            title: list.title,
+            lang_from: list.langFrom,
+            lang_to: list.langTo,
+            subject: list.subject,
+            icon: list.icon,
+            words: list.words,
+            is_public: !!list.isPublic,
+            search_text: searchText,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
+    if (error) {
+        console.error('Save list failed', error);
+        throw error;
+    }
+}
+
+async function deleteListFromRemote(listId) {
+    if (!supabaseClient || !authUser) return;
+    await supabaseClient
+        .from('word_lists')
+        .delete()
+        .eq('id', listId)
+        .eq('user_id', authUser.id);
+}
+
+function debouncedPublicSearch() {
+    clearTimeout(publicSearchTimer);
+    publicSearchTimer = setTimeout(() => {
+        searchPublicLists();
+    }, 250);
+}
+
+async function searchPublicLists() {
+    const input = document.getElementById('public-search-input');
+    const results = document.getElementById('public-search-results');
+    if (!input || !results) return;
+
+    const query = input.value.trim();
+    if (!query) {
+        results.innerHTML = '';
+        return;
+    }
+
+    if (!supabaseClient) {
+        results.innerHTML = '<p class="public-search-empty">Log in om te zoeken.</p>';
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from('word_lists')
+        .select('id,title,lang_from,lang_to,subject,icon,words,user_id')
+        .eq('is_public', true)
+        .or(`title.ilike.%${query}%,search_text.ilike.%${query}%`)
+        .order('updated_at', { ascending: false })
+        .limit(20);
+
+    if (error) {
+        results.innerHTML = '<p class="public-search-empty">Zoeken mislukt.</p>';
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        results.innerHTML = '<p class="public-search-empty">Geen resultaten.</p>';
+        return;
+    }
+
+    results.innerHTML = data.map(list => `
+        <div class="public-list-card">
+            <div class="public-list-info">
+                <div class="public-list-title">${escapeHtml(list.title)}</div>
+                <div class="public-list-meta">${escapeHtml(list.lang_from)} → ${escapeHtml(list.lang_to)} • ${list.words?.length || 0} woordjes</div>
+            </div>
+            <button class="btn btn-primary" onclick="importPublicList('${list.id}')">
+                <i class="fas fa-plus"></i> Importeer
+            </button>
+        </div>
+    `).join('');
+}
+
+async function importPublicList(listId) {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient
+        .from('word_lists')
+        .select('*')
+        .eq('id', listId)
+        .single();
+
+    if (error || !data) return;
+
+    const newList = {
+        id: generateId(),
+        title: `${data.title} (kopie)`,
+        langFrom: data.lang_from,
+        langTo: data.lang_to,
+        subject: data.subject,
+        icon: data.icon,
+        words: data.words || [],
+        isPublic: false,
+        createdAt: new Date().toISOString()
+    };
+
+    wordLists.push(newList);
+
+    if (authUser) {
+        await saveListToRemote(newList.id);
+        await loadRemoteLists();
+    } else {
+        saveData();
+        renderWordLists();
+    }
 }
 
 // ===== Study Mode Settings =====
@@ -1712,6 +2029,8 @@ function escapeHtml(text) {
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
     renderWordLists();
+
+    initSupabase();
     
     // Setup language search filters
     setupLanguageSearch();
@@ -1721,6 +2040,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Apply import from URL if present
     applyImportFromUrl();
+
+    // Close auth menu when clicking outside
+    document.addEventListener('click', (event) => {
+        const menu = document.getElementById('auth-menu');
+        const btn = document.getElementById('auth-menu-btn');
+        if (!menu || !btn) return;
+        if (menu.classList.contains('hidden')) return;
+        if (menu.contains(event.target) || btn.contains(event.target)) return;
+        closeAuthMenu();
+    });
     
     // Re-attach flashcard click handler
     const flashcard = document.getElementById('flashcard');

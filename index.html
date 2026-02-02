@@ -24,6 +24,23 @@
                     <i class="fas fa-plus"></i> Nieuwe Lijst
                 </button>
             </nav>
+            <div class="auth-controls">
+                <button id="auth-menu-btn" class="auth-avatar-btn" onclick="toggleAuthMenu(event)" aria-label="Account">
+                    <img src="images/fav.png" alt="Account" class="auth-avatar-img">
+                </button>
+                <div id="auth-menu" class="auth-menu hidden">
+                    <div id="auth-user" class="auth-user hidden"></div>
+                    <button id="auth-login-btn" class="btn btn-secondary" onclick="openAuthModal('login')">
+                        <i class="fas fa-sign-in-alt"></i> Inloggen
+                    </button>
+                    <button id="auth-signup-btn" class="btn btn-primary" onclick="openAuthModal('signup')">
+                        <i class="fas fa-user-plus"></i> Account maken
+                    </button>
+                    <button id="auth-logout-btn" class="btn btn-secondary hidden" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Uitloggen
+                    </button>
+                </div>
+            </div>
         </header>
 
         <!-- Main Content -->
@@ -40,6 +57,13 @@
                 
                 <div class="lists-section">
                     <h2><i class="fas fa-folder-open"></i> Mijn Woordenlijsten</h2>
+                    <div class="public-search">
+                        <div class="public-search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="public-search-input" name="public-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoek openbare woordenlijsten (titel of woord)..." oninput="debouncedPublicSearch()">
+                        </div>
+                        <div id="public-search-results" class="public-search-results"></div>
+                    </div>
                     <div id="word-lists-container" class="word-lists-grid">
                         <!-- Word lists will be dynamically added here -->
                     </div>
@@ -112,7 +136,7 @@
                         <label>Talen</label>
                         <div class="language-inputs">
                             <div class="language-select-wrapper">
-                                <input type="text" class="language-search" id="lang-from-search" placeholder="Zoeken...">
+                                <input type="text" class="language-search" id="lang-from-search" name="lang-from-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoeken...">
                                 <select id="lang-from" aria-label="Taal van">
                                     <option value="" selected disabled>Kies taal</option>
                                     <option>Nederlands</option>
@@ -138,7 +162,7 @@
                             </div>
                             <i class="fas fa-arrow-right"></i>
                             <div class="language-select-wrapper">
-                                <input type="text" class="language-search" id="lang-to-search" placeholder="Zoeken...">
+                                <input type="text" class="language-search" id="lang-to-search" name="lang-to-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoeken...">
                                 <select id="lang-to" aria-label="Taal naar">
                                     <option value="" selected disabled>Kies taal</option>
                                     <option>Nederlands</option>
@@ -163,6 +187,14 @@
                                 </select>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="list-public">
+                            <span class="checkmark"></span>
+                            Openbaar maken (anderen kunnen deze lijst vinden)
+                        </label>
                     </div>
 
                     <div class="import-section">
@@ -328,6 +360,35 @@
                 </div>
             </div>
 
+            <!-- Auth Modal -->
+            <div id="auth-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="auth-title"><i class="fas fa-user"></i> Inloggen</h3>
+                        <button class="btn-close" onclick="closeAuthModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="auth-email">E-mail</label>
+                            <input type="text" id="auth-email" placeholder="jij@mail.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-password">Wachtwoord</label>
+                            <input type="password" id="auth-password" placeholder="••••••••">
+                        </div>
+                        <p id="auth-error" class="auth-error hidden"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeAuthModal()">Annuleren</button>
+                        <button id="auth-submit-btn" class="btn btn-primary" onclick="submitAuth()">
+                            <i class="fas fa-check"></i> Ga door
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Study View - Steps Mode -->
             <div id="study-steps-view" class="view study-view">
                 <div class="study-container">
@@ -455,6 +516,7 @@
     <audio id="correct-sound" preload="auto"></audio>
     <audio id="complete-sound" preload="auto"></audio>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="confetti.js"></script>
     <script src="app.js"></script>
 </body>
