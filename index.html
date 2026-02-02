@@ -253,8 +253,23 @@
                         </div>
                     </div>
 
+                    <div id="resume-banner" class="resume-banner hidden">
+                        <div class="resume-info">
+                            <i class="fas fa-play-circle"></i>
+                            <span id="resume-text">Je hebt een sessie openstaan.</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="resumeStudy()">
+                            <i class="fas fa-play"></i> Hervatten
+                        </button>
+                    </div>
+
                     <div class="words-preview">
-                        <h3>Woordjes in deze lijst</h3>
+                        <div class="words-preview-header">
+                            <h3>Woordjes in deze lijst</h3>
+                            <button class="btn btn-secondary btn-select-all" onclick="toggleSelectAllWords()">
+                                <i class="fas fa-check-double"></i> Selecteer alles
+                            </button>
+                        </div>
                         <div id="words-preview-list" class="words-preview-list">
                             <!-- Words will be shown here -->
                         </div>
@@ -422,6 +437,7 @@
                             <span class="stat-label">Fout</span>
                         </div>
                     </div>
+                    <div class="complete-summary" id="complete-summary"></div>
                     <div class="complete-actions">
                         <button class="btn btn-secondary" onclick="showListDetail(currentListId)">
                             <i class="fas fa-arrow-left"></i> Terug naar lijst

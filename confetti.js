@@ -75,6 +75,13 @@ function createConfetti() {
     const canvas = document.getElementById('confetti-canvas');
     if (!canvas) return;
 
+    if (confettiAnimationId) {
+        cancelAnimationFrame(confettiAnimationId);
+        confettiAnimationId = null;
+    }
+
+    confettiPieces = [];
+
     canvas.classList.remove('hidden');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -82,9 +89,9 @@ function createConfetti() {
     const ctx = canvas.getContext('2d');
     
     // Create confetti pieces
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 220; i++) {
         const x = Math.random() * canvas.width;
-        const y = -20;
+        const y = Math.random() * -canvas.height * 0.2;
         confettiPieces.push(new Confetti(x, y));
     }
 
@@ -103,6 +110,7 @@ function createConfetti() {
         } else {
             canvas.classList.add('hidden');
             confettiPieces = [];
+            confettiAnimationId = null;
         }
     }
 
