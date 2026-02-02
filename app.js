@@ -450,33 +450,43 @@ function initStepsMode() {
 
     studySession.words = shuffleArray([...list.words]);
     studySession.learnedWords = [];
-    studySession.currentBatch = [];
+    studySession.activeSlots = [];
     studySession.nextWordIndex = 0;
-    studySession.currentPhase = 'flashcard';
-    studySession.batchIndex = 0;
-    studySession.choiceQueue = [];
-    studySession.typingQueue = [];
+    studySession.slotIndex = 0;
+    studySession.roundVisits = 0;
+    studySession.currentWordId = null;
     studySession.wordProgress = {};
 
     studySession.words.forEach(word => {
         studySession.wordProgress[word.id] = {
-            typingNeedsExtra: 0
+            phase: 'flashcard',
+            done: false
         };
     });
 
-    fillStampenBatch();
+    fillActiveSlots();
 
     showView('study-steps-view');
     updateStepsProgress();
     showNextStepQuestion();
 }
 
-function fillStampenBatch() {
-    while (studySession.currentBatch.length < 4 && studySession.nextWordIndex < studySession.words.length) {
+function fillActiveSlots() {
+    while (studySession.activeSlots.length < 4 && studySession.nextWordIndex < studySession.words.length) {
         const nextWord = studySession.words[studySession.nextWordIndex];
-        studySession.currentBatch.push(nextWord);
+        studySession.activeSlots.push(nextWord.id);
         studySession.nextWordIndex++;
     }
+}
+
+function replaceCompletedSlots() {
+    const remaining = studySession.activeSlots.filter(wordId =>
+        wordId && !studySession.wordProgress[wordId].done
+    );
+    studySession.activeSlots = remaining;
+    fillActiveSlots();
+    studySession.slotIndex = 0;
+    studySession.roundVisits = 0;
 }
 
 function updateStepsProgress() {
@@ -494,63 +504,68 @@ function showNextStepQuestion() {
         return;
     }
 
-    if (studySession.currentBatch.length === 0) {
-        fillStampenBatch();
+    if (studySession.activeSlots.length === 0) {
+        fillActiveSlots();
     }
 
-    if (studySession.currentPhase === 'flashcard') {
-        if (studySession.batchIndex >= studySession.currentBatch.length) {
-            studySession.currentPhase = 'choice';
-            studySession.choiceQueue = studySession.currentBatch.map(w => w.id);
-            showNextStepQuestion();
+    if (studySession.roundVisits >= studySession.activeSlots.length) {
+        replaceCompletedSlots();
+    }
+
+    const wordId = getNextActiveWordId();
+    if (!wordId) {
+        replaceCompletedSlots();
+        const retryWordId = getNextActiveWordId();
+        if (!retryWordId) {
+            showComplete();
             return;
         }
+        return showNextStepQuestion();
+    }
 
-        const word = studySession.currentBatch[studySession.batchIndex];
-        const qa = getQuestion(word);
+    const word = studySession.words.find(w => w.id === wordId);
+    if (!word) {
+        showNextStepQuestion();
+        return;
+    }
+
+    const progress = studySession.wordProgress[wordId];
+    const qa = getQuestion(word);
+    studySession.currentWordId = wordId;
+
+    if (progress.phase === 'flashcard') {
         showStepFlashcard(word, qa);
         return;
     }
 
-    if (studySession.currentPhase === 'choice') {
-        if (studySession.choiceQueue.length === 0) {
-            studySession.currentPhase = 'typing';
-            studySession.typingQueue = studySession.currentBatch.map(w => w.id);
-            showNextStepQuestion();
-            return;
-        }
-
-        const wordId = studySession.choiceQueue[0];
-        const word = studySession.currentBatch.find(w => w.id === wordId);
-        if (!word) {
-            studySession.choiceQueue.shift();
-            showNextStepQuestion();
-            return;
-        }
-        const qa = getQuestion(word);
+    if (progress.phase === 'choice') {
         showStepChoice(word, qa);
         return;
     }
 
-    if (studySession.currentPhase === 'typing') {
-        if (studySession.typingQueue.length === 0) {
-            fillStampenBatch();
-            studySession.currentPhase = 'flashcard';
-            studySession.batchIndex = 0;
-            showNextStepQuestion();
-            return;
-        }
-
-        const wordId = studySession.typingQueue[0];
-        const word = studySession.currentBatch.find(w => w.id === wordId);
-        if (!word) {
-            studySession.typingQueue.shift();
-            showNextStepQuestion();
-            return;
-        }
-        const qa = getQuestion(word);
+    if (progress.phase === 'typing') {
         showStepTyping(word, qa);
     }
+}
+
+function getNextActiveWordId() {
+    const totalSlots = studySession.activeSlots.length;
+    if (totalSlots === 0) return null;
+
+    let tries = 0;
+    while (tries < totalSlots) {
+        const idx = studySession.slotIndex % totalSlots;
+        const wordId = studySession.activeSlots[idx];
+        studySession.slotIndex = (idx + 1) % totalSlots;
+        studySession.roundVisits++;
+        tries++;
+
+        if (wordId && !studySession.wordProgress[wordId].done) {
+            return wordId;
+        }
+    }
+
+    return null;
 }
 
 function showStepFlashcard(word, qa) {
@@ -585,7 +600,10 @@ function flipStepCard() {
 }
 
 function completeStepFlashcard() {
-    studySession.batchIndex++;
+    const wordId = studySession.currentWordId;
+    if (wordId && studySession.wordProgress[wordId]) {
+        studySession.wordProgress[wordId].phase = 'choice';
+    }
     showNextStepQuestion();
 }
 
@@ -606,18 +624,20 @@ function showStepChoice(word, qa) {
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="choice-options">
                 ${options.map((opt) => `
-                    <button class="choice-btn" onclick="checkStepChoice(this, '${escapeHtml(opt).replace(/'/g, "\\'")}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                    <button class="choice-btn" onclick="checkStepChoice('${word.id}', this, '${escapeHtml(opt).replace(/'/g, "\\'")}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
                         ${escapeHtml(opt)}
                     </button>
                 `).join('')}
             </div>
+            <div id="step-choice-feedback"></div>
         </div>
     `;
 }
 
-function checkStepChoice(btn, selected, correct) {
+function checkStepChoice(wordId, btn, selected, correct) {
     const isCorrect = checkAnswer(selected, correct);
     const buttons = document.querySelectorAll('.choice-btn');
+    const feedback = document.getElementById('step-choice-feedback');
 
     buttons.forEach(b => {
         b.disabled = true;
@@ -630,23 +650,25 @@ function checkStepChoice(btn, selected, correct) {
         btn.classList.add('correct');
         studySession.correctCount++;
         playCorrectSound();
-        studySession.choiceQueue.shift();
+        if (studySession.wordProgress[wordId]) {
+            studySession.wordProgress[wordId].phase = 'typing';
+        }
     } else {
         btn.classList.add('wrong');
         studySession.wrongCount++;
-        const wordId = studySession.choiceQueue.shift();
-        studySession.choiceQueue.push(wordId);
+        if (feedback) {
+            feedback.innerHTML = `
+                <div class="correct-answer-display">
+                    Het juiste antwoord was: <strong>${escapeHtml(correct)}</strong>
+                </div>
+            `;
+        }
     }
 
-    setTimeout(() => showNextStepQuestion(), 700);
+    setTimeout(() => showNextStepQuestion(), 900);
 }
 
 function showStepTyping(word, qa) {
-    const progress = studySession.wordProgress[word.id];
-    const extraNeeded = progress.typingNeedsExtra > 0
-        ? `<p class="extra-hint">Nog ${progress.typingNeedsExtra}x goed typen</p>`
-        : '';
-
     const content = document.getElementById('steps-content');
     content.innerHTML = `
         <div class="question-card">
@@ -654,7 +676,6 @@ function showStepTyping(word, qa) {
                 <i class="fas fa-keyboard"></i> Typen
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
-            ${extraNeeded}
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-typing-input"
                        placeholder="Type je antwoord..." autofocus
@@ -683,57 +704,41 @@ function checkStepTyping(wordId, correct) {
         input.classList.add('correct');
         studySession.correctCount++;
         playCorrectSound();
-
-        if (progress.typingNeedsExtra > 0) {
-            progress.typingNeedsExtra--;
-        }
-
-        if (progress.typingNeedsExtra === 0) {
-            markWordLearned(wordId);
-            studySession.typingQueue.shift();
-            updateStepsProgress();
-            setTimeout(() => showNextStepQuestion(), 600);
-            return;
-        }
-
-        feedback.innerHTML = `
-            <div class="feedback-message correct">
-                <i class="fas fa-check-circle"></i> Goed! Nog ${progress.typingNeedsExtra}x
-            </div>
-        `;
-        input.value = '';
-        input.focus();
+        markWordLearned(wordId);
+        updateStepsProgress();
+        setTimeout(() => showNextStepQuestion(), 600);
+        return;
     } else {
         input.classList.add('wrong');
         studySession.wrongCount++;
-        
-        // Move word to end of queue with 4-word delay
-        const currentWord = studySession.currentBatch.find(w => w.id === wordId);
-        if (currentWord) {
-            studySession.typingQueue.shift();
-            studySession.typingQueue.push(wordId);
-            
-            // Store that this word needs 2 extra correct tries
-            progress.typingNeedsExtra = 2;
+        if (feedback) {
+            feedback.innerHTML = `
+                <div class="feedback-message wrong">
+                    <i class="fas fa-times-circle"></i> Fout.
+                </div>
+                <div class="correct-answer-display">
+                    Het juiste antwoord was: <strong>${escapeHtml(correct)}</strong>
+                </div>
+                <button class="btn btn-primary btn-next" onclick="continueStepTyping()">
+                    <i class="fas fa-arrow-right"></i> Ga verder
+                </button>
+            `;
         }
-
-        feedback.innerHTML = `
-            <div class="feedback-message wrong">
-                <i class="fas fa-times-circle"></i> Fout. Je krijgt dit woord later opnieuw.
-            </div>
-        `;
-        input.value = '';
-        input.focus();
-        
-        setTimeout(() => showNextStepQuestion(), 800);
+        input.disabled = true;
     }
+}
+
+function continueStepTyping() {
+    showNextStepQuestion();
 }
 
 function markWordLearned(wordId) {
     if (!studySession.learnedWords.includes(wordId)) {
         studySession.learnedWords.push(wordId);
-        studySession.currentBatch = studySession.currentBatch.filter(w => w.id !== wordId);
-        fillStampenBatch();
+    }
+    if (studySession.wordProgress[wordId]) {
+        studySession.wordProgress[wordId].phase = 'done';
+        studySession.wordProgress[wordId].done = true;
     }
 }
 
@@ -749,7 +754,8 @@ function initTypingMode() {
         studySession.typingProgress[word.id] = {
             correctInARow: 0,
             needsExtraCorrect: 0,
-            completed: false
+            completed: false,
+            cooldown: 0
         };
     });
     
@@ -768,18 +774,21 @@ function updateTypingProgress() {
 }
 
 function showNextTypingQuestion() {
-    // Find next incomplete word
-    const incompleteWord = studySession.words.find(w => 
-        !studySession.typingProgress[w.id].completed
-    );
-    
-    if (!incompleteWord) {
+    let nextWord = getNextTypingWord();
+
+    if (!nextWord) {
+        reduceTypingCooldowns();
+        nextWord = getNextTypingWord();
+    }
+
+    if (!nextWord) {
         showComplete();
         return;
     }
     
-    const qa = getQuestion(incompleteWord);
-    const progress = studySession.typingProgress[incompleteWord.id];
+    reduceTypingCooldowns();
+    const qa = getQuestion(nextWord);
+    const progress = studySession.typingProgress[nextWord.id];
     const extraHint = progress.needsExtraCorrect > 0 
         ? `<p class="extra-hint">Nog ${progress.needsExtraCorrect}x goed typen</p>` 
         : '';
@@ -795,8 +804,8 @@ function showNextTypingQuestion() {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="typing-input" 
                        placeholder="Type je antwoord..." autofocus
-                       onkeydown="if(event.key==='Enter') checkTypingAnswer('${incompleteWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                <button class="btn btn-primary typing-submit" onclick="checkTypingAnswer('${incompleteWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter') checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                <button class="btn btn-primary typing-submit" onclick="checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
                     <i class="fas fa-check"></i> Controleer
                 </button>
             </div>
@@ -847,48 +856,42 @@ function checkTypingAnswer(wordId, correct) {
     } else {
         input.classList.add('wrong');
         studySession.wrongCount++;
-        
-        // Move to end with 4-word delay
-        const incompleteWord = studySession.words.find(w => 
-            !studySession.typingProgress[w.id].completed
-        );
-        
-        if (incompleteWord && incompleteWord.id === wordId) {
-            // Move this word to end of incomplete list
-            const reordered = [];
-            let foundWord = false;
-            
-            for (const w of studySession.words) {
-                if (!studySession.typingProgress[w.id].completed) {
-                    if (w.id === wordId && !foundWord) {
-                        foundWord = true;
-                    } else {
-                        reordered.push(w);
-                    }
-                }
-            }
-            
-            if (foundWord) {
-                reordered.push(studySession.words.find(w => w.id === wordId));
-            }
-            
-            // Reorder words array so wrong word appears later
-            const completed = studySession.words.filter(w => studySession.typingProgress[w.id].completed);
-            studySession.words = completed.concat(reordered);
-            
-            progress.needsExtraCorrect = 2;
-        }
+        progress.needsExtraCorrect = 2;
+        progress.cooldown = Math.max(progress.cooldown, 4);
 
         feedback.innerHTML = `
             <div class="feedback-message wrong">
-                <i class="fas fa-times-circle"></i> Fout. Je krijgt dit woord later opnieuw.
+                <i class="fas fa-times-circle"></i> Fout.
             </div>
+            <div class="correct-answer-display">
+                Het juiste antwoord was: <strong>${escapeHtml(correct)}</strong>
+            </div>
+            <button class="btn btn-primary btn-next" onclick="continueTyping()">
+                <i class="fas fa-arrow-right"></i> Ga verder
+            </button>
         `;
-        input.value = '';
-        input.focus();
-        
-        setTimeout(() => showNextTypingQuestion(), 800);
+        input.disabled = true;
     }
+}
+
+function continueTyping() {
+    showNextTypingQuestion();
+}
+
+function getNextTypingWord() {
+    return studySession.words.find(w => {
+        const progress = studySession.typingProgress[w.id];
+        return !progress.completed && progress.cooldown === 0;
+    });
+}
+
+function reduceTypingCooldowns() {
+    studySession.words.forEach(w => {
+        const progress = studySession.typingProgress[w.id];
+        if (progress.cooldown > 0) {
+            progress.cooldown--;
+        }
+    });
 }
 
 // ===== FLASHCARDS MODE =====
@@ -1052,6 +1055,7 @@ function showCurrentFlashcard() {
     
     const word = studySession.flashcardsDeck[0];
     const qa = getQuestion(word);
+    const list = wordLists.find(l => l.id === currentListId);
     
     const flashcard = document.getElementById('flashcard');
     flashcard.classList.remove('flipped');
@@ -1060,6 +1064,13 @@ function showCurrentFlashcard() {
     
     document.getElementById('flashcard-term').textContent = qa.question;
     document.getElementById('flashcard-definition').textContent = qa.answer;
+
+    const frontLabel = list ? (qa.isTermToDef ? list.langFrom : list.langTo) : 'WOORD';
+    const backLabel = list ? (qa.isTermToDef ? list.langTo : list.langFrom) : 'BETEKENIS';
+    const frontEl = document.getElementById('flashcard-label-front');
+    const backEl = document.getElementById('flashcard-label-back');
+    if (frontEl) frontEl.textContent = frontLabel || 'WOORD';
+    if (backEl) backEl.textContent = backLabel || 'BETEKENIS';
 }
 
 function toggleFlashcard() {
@@ -1150,6 +1161,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Setup language search filters
     setupLanguageSearch();
+
+    // Setup keyboard controls
+    setupKeyboardControls();
+
+    // Apply import from URL if present
+    applyImportFromUrl();
     
     // Re-attach flashcard click handler
     const flashcard = document.getElementById('flashcard');
@@ -1157,6 +1174,136 @@ document.addEventListener('DOMContentLoaded', () => {
         flashcard.addEventListener('click', toggleFlashcard);
     }
 });
+
+function applyImportFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('import') !== '1') return;
+
+    const title = params.get('title') ? decodeURIComponent(params.get('title')) : '';
+    const langFrom = params.get('langFrom') ? decodeURIComponent(params.get('langFrom')) : '';
+    const langTo = params.get('langTo') ? decodeURIComponent(params.get('langTo')) : '';
+    const dataRaw = params.get('data') ? decodeURIComponent(params.get('data')) : '';
+
+    showCreateList();
+
+    if (title) {
+        document.getElementById('list-title').value = title;
+    }
+
+    setSelectValue('lang-from', langFrom);
+    setSelectValue('lang-to', langTo);
+
+    // Update search inputs
+    const fromSearch = document.getElementById('lang-from-search');
+    const toSearch = document.getElementById('lang-to-search');
+    if (fromSearch && langFrom) fromSearch.value = langFrom;
+    if (toSearch && langTo) toSearch.value = langTo;
+
+    const wordsList = document.getElementById('words-list');
+    wordsList.innerHTML = '';
+
+    const pairs = dataRaw.split('\n').map(line => line.split('\t')).filter(p => p.length >= 2);
+    if (pairs.length === 0) {
+        addWordEntry();
+        return;
+    }
+
+    pairs.forEach(([term, definition]) => {
+        addWordEntry(term.trim(), definition.trim());
+    });
+
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function setSelectValue(selectId, value) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const options = Array.from(select.options);
+    const match = options.find(o => o.textContent.toLowerCase() === (value || '').toLowerCase());
+    if (match) {
+        select.value = match.textContent;
+    }
+}
+
+function setupKeyboardControls() {
+    document.addEventListener('keydown', (e) => {
+        const settingsModal = document.getElementById('settings-modal');
+        if (settingsModal && !settingsModal.classList.contains('hidden')) return;
+
+        const activeElement = document.activeElement;
+        const isTypingField = activeElement && ['INPUT', 'TEXTAREA'].includes(activeElement.tagName) && !activeElement.disabled;
+        if (isTypingField) return;
+
+        const stepsView = document.getElementById('study-steps-view');
+        const typingView = document.getElementById('study-typing-view');
+
+        if (stepsView && stepsView.classList.contains('active')) {
+            handleStepsKeyboard(e);
+        }
+
+        if (typingView && typingView.classList.contains('active')) {
+            handleTypingKeyboard(e);
+        }
+    });
+}
+
+function handleStepsKeyboard(e) {
+    const choiceButtons = document.querySelectorAll('.choice-options .choice-btn');
+    if (choiceButtons.length > 0) {
+        const index = getNumberKeyIndex(e);
+        if (index !== null && choiceButtons[index]) {
+            e.preventDefault();
+            choiceButtons[index].click();
+            return;
+        }
+    }
+
+    const flipCard = document.getElementById('step-flip-card');
+    const nextBtn = document.getElementById('step-next-btn');
+    if (flipCard) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            flipStepCard();
+            return;
+        }
+        if (e.code === 'Enter' && nextBtn && !nextBtn.classList.contains('hidden')) {
+            e.preventDefault();
+            nextBtn.click();
+        }
+    }
+
+    const typingInput = document.getElementById('step-typing-input');
+    const typingContinueBtn = document.querySelector('#step-typing-feedback .btn-next');
+    if (typingInput && typingInput.disabled && typingContinueBtn && e.code === 'Enter') {
+        e.preventDefault();
+        typingContinueBtn.click();
+    }
+}
+
+function handleTypingKeyboard(e) {
+    const typingInput = document.getElementById('typing-input');
+    const typingContinueBtn = document.querySelector('#typing-feedback .btn-next');
+    if (typingInput && typingInput.disabled && typingContinueBtn && e.code === 'Enter') {
+        e.preventDefault();
+        typingContinueBtn.click();
+    }
+}
+
+function getNumberKeyIndex(e) {
+    const keyMap = {
+        'Digit1': 0,
+        'Digit2': 1,
+        'Digit3': 2,
+        'Digit4': 3,
+        'Numpad1': 0,
+        'Numpad2': 1,
+        'Numpad3': 2,
+        'Numpad4': 3
+    };
+    return keyMap[e.code] ?? null;
+}
 
 function setupLanguageSearch() {
     const langFromSearch = document.getElementById('lang-from-search');

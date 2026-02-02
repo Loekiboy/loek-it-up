@@ -1,0 +1,105 @@
+/* StudyGo Extractor - Extensie Styles */
+
+/* Kopieer knop */
+.studygo-extractor-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFB700 100%);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(255, 183, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+.studygo-extractor-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 183, 0, 0.5);
+}
+
+.studygo-extractor-btn:active {
+    transform: translateY(0);
+}
+
+.studygo-extractor-btn .btn-logo {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Klein logo knop op woordenlijst pagina */
+.studygo-extractor-logo-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99999;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.studygo-extractor-logo-btn .logo-btn-img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+/* Notificatie */
+.studygo-extractor-notification {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 99999;
+    background: #4CAF50;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.studygo-extractor-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.studygo-extractor-notification.error {
+    background: #f44336;
+}
+
+.studygo-extractor-notification .notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.studygo-extractor-notification .notification-icon {
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 6px;
+}

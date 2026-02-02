@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loek it Up - Woordjes Leren</title>
+    <link rel="icon" href="images/fav.png" type="image/png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -12,7 +13,7 @@
         <!-- Header -->
         <header class="header">
             <div class="logo" onclick="showHome()">
-                <img src="images/logo.svg" alt="Loek it Up Logo" class="logo-image">
+                <img src="images/logo-site.png" alt="Loek it Up Logo" class="logo-image">
                 <span>Loek it Up</span>
             </div>
             <nav class="nav">
@@ -31,7 +32,7 @@
             <div id="home-view" class="view active">
                 <div class="welcome-section">
                     <div class="welcome-icon">
-                        <i class="fas fa-book-open"></i>
+                        <img src="images/fav.png" alt="Loek it Up Mascot">
                     </div>
                     <h1>Welkom bij <span class="highlight">Loek it Up</span></h1>
                     <p>De slimste manier om woordjes te leren!</p>
@@ -66,9 +67,6 @@
                     <div class="form-group">
                         <label>Vak</label>
                         <div class="subject-selector">
-                            <button class="subject-btn" data-subject="language" data-icon="fa-language">
-                                <i class="fas fa-language"></i> Talen
-                            </button>
                             <button class="subject-btn" data-subject="nederlands" data-icon="fa-flag">
                                 <i class="fas fa-flag"></i> Nederlands
                             </button>
@@ -93,32 +91,14 @@
                             <button class="subject-btn" data-subject="grieks" data-icon="fa-university">
                                 <i class="fas fa-university"></i> Grieks
                             </button>
-                            <button class="subject-btn" data-subject="turks" data-icon="fa-flag">
-                                <i class="fas fa-flag"></i> Turks
+                            <button class="subject-btn" data-subject="natuurkunde" data-icon="fa-atom">
+                                <i class="fas fa-atom"></i> Natuurkunde
                             </button>
-                            <button class="subject-btn" data-subject="arabisch" data-icon="fa-star-and-crescent">
-                                <i class="fas fa-star-and-crescent"></i> Arabisch
+                            <button class="subject-btn" data-subject="scheikunde" data-icon="fa-flask">
+                                <i class="fas fa-flask"></i> Scheikunde
                             </button>
-                            <button class="subject-btn" data-subject="science" data-icon="fa-flask">
-                                <i class="fas fa-flask"></i> Wetenschap
-                            </button>
-                            <button class="subject-btn" data-subject="math" data-icon="fa-calculator">
-                                <i class="fas fa-calculator"></i> Wiskunde
-                            </button>
-                            <button class="subject-btn" data-subject="history" data-icon="fa-landmark">
-                                <i class="fas fa-landmark"></i> Geschiedenis
-                            </button>
-                            <button class="subject-btn" data-subject="geography" data-icon="fa-globe-europe">
-                                <i class="fas fa-globe-europe"></i> Aardrijkskunde
-                            </button>
-                            <button class="subject-btn" data-subject="biology" data-icon="fa-dna">
+                            <button class="subject-btn" data-subject="biologie" data-icon="fa-dna">
                                 <i class="fas fa-dna"></i> Biologie
-                            </button>
-                            <button class="subject-btn" data-subject="art" data-icon="fa-palette">
-                                <i class="fas fa-palette"></i> Kunst
-                            </button>
-                            <button class="subject-btn" data-subject="music" data-icon="fa-music">
-                                <i class="fas fa-music"></i> Muziek
                             </button>
                             <button class="subject-btn" data-subject="other" data-icon="fa-book">
                                 <i class="fas fa-book"></i> Overig
@@ -395,10 +375,13 @@
                             <div id="flashcard" class="flashcard">
                                 <div class="flashcard-inner">
                                     <div class="flashcard-front">
-                                        <p id="flashcard-term"></p>
+                                        <span id="flashcard-label-front" class="flashcard-label">WOORD</span>
+                                        <p id="flashcard-term" class="flashcard-text"></p>
+                                        <span class="flashcard-subhint">Tik om te draaien</span>
                                     </div>
                                     <div class="flashcard-back">
-                                        <p id="flashcard-definition"></p>
+                                        <span id="flashcard-label-back" class="flashcard-label">BETEKENIS</span>
+                                        <p id="flashcard-definition" class="flashcard-text"></p>
                                     </div>
                                 </div>
                             </div>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vocabula - Latijn Trainer</title>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            touch-action: pan-y;
+            overflow-x: hidden;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .perspective-2000 { perspective: 2000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+
+        @keyframes flyOutRight {
+            to { transform: translateX(200vw) rotate(30deg); opacity: 0; }
+        }
+        @keyframes flyOutLeft {
+            to { transform: translateX(-200vw) rotate(-30deg); opacity: 0; }
+        }
+
+        .animate-fly-right { animation: flyOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .animate-fly-left { animation: flyOutLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .chapter-num {
+            font-size: 0.95rem !important;
+        }
+
+        .screen-transition {
+            transition: background-color 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const VOCABULARY_RAW = {
+            "I": [{ original: "esse", translation: "zijn, fui" }, { original: "non", translation: "niet" }, { original: "enim", translation: "want" }, { original: "et", translation: "en, ook" }, { original: "cur", translation: "waarom" }, { original: "quoque", translation: "ook" }, { original: "sed", translation: "maar" }, { original: "neque...neque / nec...nec", translation: "noch...noch / niet... en ook niet" }, { original: "audire", translation: "horen, luisteren" }, { original: "omnis", translation: "geheel" }],
+            "II": [{ original: "omnes, omnia", translation: "allen, alles, alle" }, { original: "ubi", translation: "waar" }, { original: "femina", translation: "vrouw" }, { original: "autem", translation: "echter, maar" }, { original: "tum", translation: "dan, toen" }, { original: "dicere", translation: "zeggen, dixi" }, { original: "novus", translation: "nieuw" }, { original: "navis", translation: "schip, naves" }, { original: "mare", translation: "zee, maria" }, { original: "stare", translation: "staan, steti" }],
+            "III": [{ original: "etiam", translation: "ook, zelfs" }, { original: "nam", translation: "want" }, { original: "servus", translation: "slaaf" }, { original: "serva", translation: "slavin" }, { original: "videre", translation: "zien, vidi" }, { original: "dea", translation: "godin" }, { original: "mater", translation: "moeder, matres" }, { original: "urbs", translation: "stad, urbes" }, { original: "quid", translation: "wat, waarom" }, { original: "facere", translation: "doen, feci" }],
+            "IV": [{ original: "iam", translation: "al, reeds" }, { original: "in +acc", translation: "in, naar (binnen in)" }, { original: "in +abl", translation: "in, op" }, { original: "ad +acc", translation: "naar, bij" }, { original: "deus", translation: "god" }, { original: "magnus", translation: "groot" }, { original: "ita", translation: "zo" }, { original: "ibi", translation: "daar" }, { original: "posse", translation: "kunnen, potui" }, { original: "caput", translation: "hoofd, capita" }],
+            "V": [{ original: "vocare", translation: "roepen, noemen" }, { original: "venire", translation: "komen, veni" }, { original: "-ne", translation: "vraagteken achtervoegsel" }, { original: "quis", translation: "wie" }, { original: "vos", translation: "jullie" }, { original: "is, ea, id", translation: "die, deze, hij, zij het" }, { original: "tu", translation: "jij, je, u" }, { original: "ego", translation: "ik" }, { original: "homo", translation: "man, mens, homines" }, { original: "vir", translation: "man, viri" }],
+            "VI": [{ original: "filius", translation: "zoon" }, { original: "ire", translation: "gaan, ii" }, { original: "ferre", translation: "dragen, brengen, tuli" }, { original: "nunc", translation: "nu" }, { original: "petere", translation: "(op)zoeken, vragen, aanvallen" }, { original: "amor", translation: "liefde, amores" }, { original: "mons", translation: "berg, montes" }, { original: "inter +acc", translation: "tussen" }, { original: "-que", translation: "en" }, { original: "alii..alii", translation: "sommigen...anderen" }],
+            "VII": [{ original: "dare", translation: "geven, dedi" }, { original: "movere", translation: "bewegen, movi" }, { original: "post +acc", translation: "na, achter" }, { original: "nox", translation: "nacht, noctes" }, { original: "multus", translation: "veel" }, { original: "nos", translation: "wij" }, { original: "habere", translation: "hebben, habui" }, { original: "pater", translation: "vader, matres" }, { original: "sic", translation: "zo" }, { original: "cognoscere", translation: "leren kennen, cognovi" }],
+            "VIII": [{ original: "cupere", translation: "willen, verlangen" }, { original: "tamen", translation: "toch" }, { original: "capere", translation: "(in)nemen, pakken, cepi" }, { original: "ceteri", translation: "overige(n)" }, { original: "a, ab +abl", translation: "vanaf, weg van" }, { original: "de +abl", translation: "vanaf, over" }, { original: "an", translation: "of" }, { original: "ducere", translation: "leiden, brengen, duxi" }, { original: "cum +abl", translation: "samen met" }, { original: "cum +ind", translation: "wanneer, als, toen" }],
+            "IX": [{ original: "e, ex +abl", translation: "uit, sinds" }, { original: "credere", translation: "geloven, credidi" }, { original: "numquam", translation: "nooit" }, { original: "miles", translation: "soldaat, milites" }, { original: "ecce", translation: "kijk" }, { original: "sine +abl", translation: "zonder" }, { original: "mors", translation: "(de) dood, mortes" }, { original: "modus", translation: "manier" }, { original: "tandem", translation: "ten slotte, eindelijk" }, { original: "ille, illa, illud", translation: "hij, zij, het, die, dat" }],
+            "X": [{ original: "atque, ac", translation: "en, en ook" }, { original: "bonus", translation: "goed" }, { original: "unus", translation: "één" }, { original: "tenere", translation: "vasthouden, bezetten, tenui" }, { original: "meus", translation: "mijn" }, { original: "os", translation: "mond, gezicht, ora" }, { original: "hic", translation: "hier" }, { original: "ipse, ipsa, ipsum", translation: "zelf" }, { original: "suus", translation: "zijn, haar, hun" }, { original: "noster", translation: "ons, onze" }],
+            "XI": [{ original: "nullus", translation: "geen" }, { original: "hic, haec, hoc", translation: "hij, zij, het, dit, deze" }, { original: "vester", translation: "jullie, uw" }, { original: "longus", translation: "lang" }, { original: "vale", translation: "vaarwel, doei" }, { original: "solus", translation: "alleen" }, { original: "tuus", translation: "jouw, uw" }, { original: "adhuc", translation: "nog, nog steeds" }, { original: "num", translation: "toch zeker niet" }, { original: "semper", translation: "altijd" }],
+            "XII": [{ original: "duo", translation: "twee" }, { original: "causa", translation: "reden, oorzaak" }, { original: "adesse", translation: "aanwezig zijn, adfui" }, { original: "ut", translation: "zoals, zodra" }, { original: "aqua", translation: "water" }, { original: "dux", translation: "leider, duces" }, { original: "malus", translation: "slecht" }, { original: "totus", translation: "(ge)heel" }, { original: "tunc", translation: "dan, toen, vervolgens" }, { original: "nemo", translation: "niemand" }],
+            "XIII": [{ original: "pro +abl", translation: "voor" }, { original: "quia", translation: "omdat" }, { original: "quod", translation: "omdat" }, { original: "nisi", translation: "als niet, tenzij, behalve" }, { original: "dum", translation: "terwijl, zolang als" }, { original: "si", translation: "als, indien" }, { original: "postquam", translation: "nadat" }, { original: "iste, ista, istud", translation: "die, dat" }, { original: "sicut", translation: "zoals" }, { original: "qui, quae, quod", translation: "die, dat / wie, welk" }],
+            "XIV": [{ original: "licet mihi", translation: "het is mij toegestaan, licuit" }, { original: "sub +abl/acc", translation: "(tot) onder" }, { original: "pauci", translation: "weinig(en), enkele(n)" }, { original: "vivere", translation: "leven, vixi" }, { original: "agere", translation: "brengen, leiden, doen, egi" }, { original: "mittere", translation: "sturen, laten gaan, misi" }, { original: "vel", translation: "of" }, { original: "ne", translation: "niet (bij imperativus)" }],
+            "XV": [{ original: "populus", translation: "volk" }, { original: "mortuus", translation: "dood, gestorven" }, { original: "ars", translation: "kunst, artes" }, { original: "imperium", translation: "macht, heerschappij, rijk" }, { original: "pax", translation: "vrede, paces" }, { original: "fortuna", translation: "lot, toeval" }, { original: "amicus", translation: "vriend" }, { original: "dominus", translation: "meester, baas" }, { original: "accidere", translation: "gebeuren, accedi" }, { original: "ignis", translation: "vuur, ignes" }],
+            "XVI": [{ original: "princeps", translation: "vorst, leider" }, { original: "gloria", translation: "roem" }, { original: "gens", translation: "volk, stam, gentes" }, { original: "genus", translation: "geslacht, stamboom, genera" }, { original: "hora", translation: "uur" }, { original: "virtus", translation: "moed" }, { original: "arma", translation: "wapens" }, { original: "ponere", translation: "plaatsen, posui" }, { original: "filia", translation: "dochter" }, { original: "corpus", translation: "lichaam, corpora" }],
+            "XVII": [{ original: "gladius", translation: "zwaard" }, { original: "vita", translation: "(het) leven" }, { original: "ara", translation: "altaar" }, { original: "tempus", translation: "tijd, tempora" }, { original: "narrare", translation: "vertellen" }, { original: "fatum", translation: "lot(geval)" }, { original: "pugna", translation: "gevecht" }, { original: "hostis", translation: "vijand, hostes" }, { original: "altus", translation: "hoog" }, { original: "coniunx", translation: "echtgenoot/note, coniuges" }],
+            "XVIII": [{ original: "vulnus", translation: "wond, vulnera" }, { original: "pes", translation: "voet, pedes" }, { original: "rex", translation: "koning, reges" }, { original: "trahere", translation: "trekker, traxi" }, { original: "nomen", translation: "naam, nomina" }, { original: "laetus", translation: "blij" }, { original: "aedificare", translation: "bouwen" }, { original: "accipere", translation: "aannemen, accepi" }, { original: "animus, anima", translation: "geest, adem, leven" }, { original: "adire", translation: "gaan naar, adii" }],
+            "XIX": [{ original: "cena", translation: "maaltijd" }, { original: "centum", translation: "honderd" }, { original: "tollere", translation: "oppakken, sustuli" }, { original: "templum", translation: "tempel" }, { original: "sedere", translation: "zitten, sedi" }, { original: "terra", translation: "aarde" }, { original: "regere", translation: "regeren, rexi" }, { original: "(ad)iuvare", translation: "helpen, (ad)iuvi" }, { original: "iuvenis", translation: "jongeman, iuvenes" }, { original: "via", translation: "weg" }],
+            "XX": [{ original: "amare", translation: "liefhebben" }, { original: "sol", translation: "zon, soles" }, { original: "ventus", translation: "wind" }, { original: "iubere", translation: "bevelen, iussi" }, { original: "cogitare", translation: "denken (aan)" }, { original: "clamare", translation: "roepen" }, { original: "currere", translation: "rennen, cucurri" }, { original: "fugere", translation: "vluchten, fugi" }, { original: "senex", translation: "oude man, seneces" }, { original: "puer", translation: "jongen, pueri" }, { original: "timere", translation: "vrezen, timui" }],
+            "XXI": [{ original: "bellum", translation: "oorlog" }, { original: "eheu, heu", translation: "ach, helaas" }, { original: "cadere", translation: "vallen, cecidi" }, { original: "at", translation: "maar" }, { original: "consistere", translation: "blijven staan, constiti" }, { original: "rogare", translation: "vragen" }, { original: "respondere", translation: "antwoorden, respondi" }, { original: "iterum", translation: "opnieuw" }, { original: "appropinquare +dat", translation: "naderen" }, { original: "quaerere", translation: "zoeken, quaesivi" }],
+            "XXII": [{ original: "subito", translation: "plotseling" }, { original: "umbra", translation: "schaduw, schim" }, { original: "apparere", translation: "verschijnen, apparui" }, { original: "patria", translation: "vaderland" }, { original: "regnum", translation: "koninkrijk" }, { original: "manere", translation: "blijven, wachten, mansi" }, { original: "lacrimare", translation: "huilen" }, { original: "procul", translation: "ver weg" }, { original: "dormire", translation: "slapen, dormui" }, { original: "quo", translation: "waarheen" }],
+            "XXIII": [{ original: "nescire", translation: "niet weten, nescii" }, { original: "tectum", translation: "dak, huis" }, { original: "somnus", translation: "slaap" }, { original: "interea", translation: "ondertussen" }, { original: "sentire", translation: "voelen, merken, sensi" }, { original: "non iam", translation: "niet meer" }, { original: "nubes", translation: "wolk, nubis" }, { original: "statim", translation: "meteen" }, { original: "unda", translation: "golf" }],
+            "XXIV": [{ original: "caelum", translation: "hemel" }, { original: "puella", translation: "meisje" }, { original: "circum +acc", translation: "rondom" }, { original: "huc", translation: "hierheen" }, { original: "fortasse", translation: "misschien" }, { original: "regina", translation: "koningin" }, { original: "deinde", translation: " vervolgens" }, { original: "relinquere", translation: "verlaten, reliqui" }, { original: "ante +acc", translation: "voor" }, { original: "parare", translation: "(zich) klaarmaken" }],
+            "XXV": [{ original: "donum", translation: "cadeau" }, { original: "forma", translation: "vorm, uiterlijk" }, { original: "cor", translation: "hart, corda" }, { original: "intrare", translation: "binnengaan" }, { original: "sedes", translation: "zetel, stoel" }, { original: "tegere", translation: "bedekken, texi" }, { original: "ubique", translation: "overal" }, { original: "hospes", translation: "gast, hospites" }, { original: "vinum", translation: "wijn" }, { original: "memoria", translation: "herinnering" }],
+            "XXVI": [{ original: "carmen", translation: "lied, carmina" }, { original: "lumen", translation: "licht, lumina" }, { original: "bibere", translation: "drinken, bibi" }, { original: "sermo", translation: "gesprek" }, { original: "postremo", translation: "tenslotte" }, { original: "oculus", translation: "oog" }, { original: "incipere", translation: "beginnen, incipui" }, { original: "dolor", translation: "verdriet, dolores" }, { original: "vix", translation: "bijna niet, nauwelijks" }, { original: "annus", translation: "jaar" }],
+            "XXVII": [{ original: "nondum", translation: "nog niet" }, { original: "itaque", translation: "dus, daarom" }, { original: "equus", translation: "paard" }, { original: "clam", translation: "stiekem, in het geheim" }, { original: "ora", translation: "kust" }, { original: "navigare", translation: "varen" }, { original: "murus", translation: "muur" }, { original: "castra", translation: "legerkamp" }, { original: "aperire", translation: "openen, aperui" }, { original: "flamma", translation: "vlam, vuur" }]
+        };
+
+        const ROMAN_NUMERALS = Object.keys(VOCABULARY_RAW);
+
+        function App() {
+            console.log('App component loaded');
+            const [view, setView] = React.useState('home');
+            const [selectedChapters, setSelectedChapters] = React.useState(["I"]);
+            const [learningQueue, setLearningQueue] = React.useState([]);
+            const [currentIndex, setCurrentIndex] = React.useState(0);
+            const [isFlipped, setIsFlipped] = React.useState(false);
+            const [wrongAnswers, setWrongAnswers] = React.useState([]);
+            const [isExporting, setIsExporting] = React.useState(false);
+            
+            const [dragX, setDragX] = React.useState(0);
+            const [isDragging, setIsDragging] = React.useState(false);
+            const [animState, setAnimState] = React.useState(null);
+            
+            const [isSlicing, setIsSlicing] = React.useState(false);
+            const [sliceMode, setSliceMode] = React.useState(null);
+
+            const toggleChapter = (num, mode = null) => {
+                setSelectedChapters(prev => {
+                    const active = prev.includes(num);
+                    const finalMode = mode || (active ? 'remove' : 'add');
+                    if (finalMode === 'add' && !active) return [...prev, num];
+                    if (finalMode === 'remove' && active) return prev.filter(c => c !== num);
+                    return prev;
+                });
+            };
+
+            const startLearning = (retryWrong = false) => {
+                let queue = [];
+                if (retryWrong) {
+                    queue = [...wrongAnswers];
+                } else {
+                    selectedChapters.forEach(chap => {
+                        if (VOCABULARY_RAW[chap]) queue = [...queue, ...VOCABULARY_RAW[chap]];
+                    });
+                    queue = queue.sort(() => Math.random() - 0.5);
+                }
+                if (queue.length === 0) return;
+                setLearningQueue(queue);
+                setWrongAnswers([]);
+                setCurrentIndex(0);
+                setIsFlipped(false);
+                setView('learn');
+                setDragX(0);
+                setAnimState(null);
+            };
+
+            const handleAnswer = (correct) => {
+                if (animState) return;
+
+                
+                // Forceer direct de kleur op basis van het antwoord
+                setDragX(correct ? 200 : -200); 
+                setAnimState(correct ? 'fly-right' : 'fly-left');
+                
+                setTimeout(() => {
+                    const currentWord = learningQueue[currentIndex];
+                    if (!correct) setWrongAnswers(prev => [...prev, currentWord]);
+                    
+                    if (currentIndex + 1 < learningQueue.length) {
+                        setCurrentIndex(prev => prev + 1);
+                        setIsFlipped(false);
+                        setAnimState(null);
+                        setDragX(0);
+                    } else {
+                        setView('result');
+                        setAnimState(null);
+                        setDragX(0);
+                    }
+                }, 300);
+            };
+
+            // Touch Handlers
+            const handleTouchStart = (e) => {
+                if(animState) return;
+                
+                setIsDragging(true);
+                window.startX = e.touches[0].clientX;
+            };
+
+            const handleTouchMove = (e) => {
+                if(!isDragging || animState) return;
+                const currentX = e.touches[0].clientX;
+                const diff = currentX - window.startX;
+                setDragX(diff);
+            };
+
+            const handleTouchEnd = () => {
+                if(!isDragging) return;
+                setIsDragging(false);
+                if (dragX > 80) handleAnswer(true);
+                else if (dragX < -80) handleAnswer(false);
+                else setDragX(0);
+            };
+
+            // Keyboard listener
+            React.useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (view !== 'learn' || animState) return;
+                    
+                    if (e.code === 'Space') { 
+                        e.preventDefault(); 
+                        
+                        setIsFlipped(f => !f); 
+                    }
+                    if (e.code === 'ArrowRight') {
+                        e.preventDefault();
+                        handleAnswer(true);
+                    }
+                    if (e.code === 'ArrowLeft') {
+                        e.preventDefault();
+                        handleAnswer(false);
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [view, animState, currentIndex, isFlipped, learningQueue]);
+
+            React.useEffect(() => {
+                if (view !== 'result' || learningQueue.length === 0) return;
+                const total = learningQueue.length;
+                const correctCount = total - wrongAnswers.length;
+                const score = Math.round((correctCount / total) * 100);
+                
+            }, [view, learningQueue.length, wrongAnswers.length]);
+
+            const getBgColor = () => {
+                if (animState === 'fly-right') return 'bg-emerald-500';
+                if (animState === 'fly-left') return 'bg-rose-500';
+                if (isDragging || Math.abs(dragX) > 10) {
+                   if (dragX > 20) return 'bg-emerald-500';
+                   if (dragX < -20) return 'bg-rose-500';
+                }
+                return 'bg-slate-50';
+            };
+
+            const getCardTextSize = (text) => {
+                if (text.length > 40) return 'text-xl md:text-2xl';
+                if (text.length > 25) return 'text-2xl md:text-4xl';
+                if (text.length > 15) return 'text-4xl md:text-6xl';
+                return 'text-5xl md:text-7xl';
+            };
+
+            if (view === 'home') {
+                return (
+                    <div className="min-h-screen flex flex-col p-6 md:p-10 max-w-[1200px] mx-auto overflow-hidden">
+                        <header className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+                            <div className="text-center md:text-left">
+                                <h1 className="text-5xl md:text-7xl font-[900] text-slate-900 tracking-tighter">Vocabula</h1>
+                                <p className="text-slate-400 font-bold text-sm mt-1">Selecteer hoofdstukken om te starten</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => setIsExporting(true)} className="px-4 py-2 bg-white border-2 border-slate-100 rounded-xl font-black text-slate-400 hover:text-indigo-600 transition-all text-xs uppercase tracking-widest">Export</button>
+                                <button onClick={() => setSelectedChapters([...ROMAN_NUMERALS])} className="px-4 py-2 bg-white border-2 border-slate-100 rounded-xl font-black text-slate-400 hover:text-indigo-600 transition-all text-xs uppercase tracking-widest">Alles</button>
+                            </div>
+                        </header>
+
+                        <div 
+                            className="flex-grow overflow-y-auto no-scrollbar grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 p-6 bg-slate-100/50 rounded-[2.5rem] border-2 border-slate-50"
+                            onMouseDown={() => setIsSlicing(true)}
+                            onMouseUp={() => { setIsSlicing(false); setSliceMode(null); }}
+                            onMouseLeave={() => { setIsSlicing(false); setSliceMode(null); }}
+                        >
+                            {ROMAN_NUMERALS.map(num => {
+                                const active = selectedChapters.includes(num);
+                                return (
+                                    <div
+                                        key={num}
+                                        onMouseDown={() => {
+                                            const m = active ? 'remove' : 'add';
+                                            setSliceMode(m);
+                                            toggleChapter(num, m);
+                                        }}
+                                        onMouseEnter={() => isSlicing && toggleChapter(num, sliceMode)}
+                                        className={`chapter-card aspect-square rounded-xl font-black flex items-center justify-center cursor-pointer select-none transition-all chapter-num ${
+                                            active 
+                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 scale-105' 
+                                            : 'bg-white text-slate-300 hover:text-slate-400 border border-slate-100'
+                                        }`}
+                                    >
+                                        {num}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <footer className="mt-8 flex justify-center">
+                            <button 
+                                onClick={() => startLearning()}
+                                className="w-full max-w-lg py-6 bg-slate-900 text-white rounded-[2rem] font-black text-2xl shadow-xl hover:bg-slate-800 active:scale-95 transition-all uppercase tracking-tight"
+                            >
+                                Start ({selectedChapters.length})
+                            </button>
+                        </footer>
+
+                        {isExporting && (
+                            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+                                <div className="bg-white w-full max-w-xl rounded-[2.5rem] p-8 flex flex-col h-[60vh] shadow-2xl">
+                                    <h2 className="text-2xl font-black text-slate-900 mb-6">Quizlet Export</h2>
+                                    <textarea 
+                                        className="flex-grow p-4 bg-slate-50 rounded-xl font-mono text-slate-500 text-xs outline-none border-2 border-slate-100"
+                                        readOnly
+                                        value={selectedChapters.map(c => VOCABULARY_RAW[c].map(w => `${w.original}\t${w.translation}`).join('\n')).join('\n')}
+                                    />
+                                    <button onClick={() => setIsExporting(false)} className="mt-6 py-4 bg-indigo-600 text-white rounded-xl font-black text-lg">Klaar</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            if (view === 'learn') {
+                const current = learningQueue[currentIndex];
+                return (
+                    <div className={`h-screen flex flex-col p-4 md:p-10 relative overflow-hidden screen-transition ${getBgColor()}`}>
+                        <header className="flex justify-between items-center max-w-5xl mx-auto w-full z-50 mb-4">
+                            <button onClick={() => setView('home')} className="bg-white/80 backdrop-blur p-4 rounded-xl text-slate-400 shadow-sm transition-all active:scale-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                            <div className="flex flex-col items-center">
+                                <span className={`text-2xl font-black transition-colors ${ (isDragging && Math.abs(dragX) > 20) || animState ? 'text-white' : 'text-slate-900'}`}>{currentIndex + 1} / {learningQueue.length}</span>
+                                <div className="w-40 h-2 bg-slate-200/50 rounded-full mt-2 overflow-hidden">
+                                    <div className="h-full bg-white transition-all duration-300" style={{width: `${(currentIndex / learningQueue.length) * 100}%`}}></div>
+                                </div>
+                            </div>
+                            <div className="w-12"></div>
+                        </header>
+
+                        <main 
+                            className="flex-grow flex items-center justify-center perspective-2000 z-40"
+                            style={{ touchAction: 'none' }}
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            onMouseDown={(e) => { if(!animState) {  setIsDragging(true); window.startX = e.clientX; } }}
+                            onMouseMove={(e) => { if(isDragging && !animState) setDragX(e.clientX - window.startX); }}
+                            onMouseUp={() => { if(isDragging) handleTouchEnd(); }}
+                        >
+                            <div 
+                                onClick={() => {
+                                    if (!isDragging && Math.abs(dragX) < 5) {
+                                        
+                                        setIsFlipped(!isFlipped);
+                                    }
+                                }}
+                                className={`w-full max-w-2xl aspect-[4/5] sm:aspect-[3/2] transform-style-3d transition-transform duration-300 relative cursor-pointer ${isFlipped ? 'rotate-y-180' : ''} ${animState === 'fly-right' ? 'animate-fly-right' : ''} ${animState === 'fly-left' ? 'animate-fly-left' : ''}`}
+                                style={{ transform: isDragging || animState ? `translateX(${dragX}px) rotate(${dragX * 0.05}deg) ${isFlipped ? 'rotateY(180deg)' : ''}` : (isFlipped ? 'rotateY(180deg)' : '') }}
+                            >
+                                {/* Voorzijde */}
+                                <div className={`absolute inset-0 bg-white rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-center backface-hidden border-8 transition-colors ${dragX > 20 ? 'border-emerald-400' : dragX < -20 ? 'border-rose-400' : 'border-white'}`}>
+                                    <div className="absolute top-8 text-indigo-400 font-black text-xs tracking-[0.2em] uppercase">LATIJN</div>
+                                    <div className="p-8 text-center">
+                                        <h2 className={`${getCardTextSize(current.original)} font-black text-slate-900 leading-tight`}>
+                                            {current.original}
+                                        </h2>
+                                    </div>
+                                    <p className="absolute bottom-8 text-slate-300 font-bold text-xs uppercase tracking-widest">Tik om te draaien</p>
+                                </div>
+                                {/* Achterzijde */}
+                                <div className={`absolute inset-0 bg-indigo-600 rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-center backface-hidden rotate-y-180 p-8 border-8 transition-colors ${dragX > 20 ? 'border-emerald-400' : dragX < -20 ? 'border-rose-400' : 'border-indigo-500'}`}>
+                                    <div className="absolute top-8 text-white/40 font-black text-xs tracking-[0.2em] uppercase">BETEKENIS</div>
+                                    <div className="text-center">
+                                        <h2 className={`${getCardTextSize(current.translation)} font-bold text-white leading-tight`}>
+                                            {current.translation}
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+
+                        <div className={`flex gap-4 mt-6 max-w-2xl mx-auto w-full transition-all duration-300 ${isFlipped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+                            <button onClick={() => handleAnswer(false)} className="flex-1 py-5 bg-white text-rose-500 rounded-2xl font-black text-xl shadow-lg active:scale-95 border-b-4 border-rose-100">FOUT</button>
+                            <button onClick={() => handleAnswer(true)} className="flex-1 py-5 bg-white text-emerald-600 rounded-2xl font-black text-xl shadow-lg active:scale-95 border-b-4 border-emerald-100">GOED</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'result') {
+                const total = learningQueue.length;
+                const correctCount = total - wrongAnswers.length;
+                const score = Math.round((correctCount/total)*100);
+                return (
+                    <div className="h-screen flex flex-col items-center justify-center p-8 bg-white">
+                        <div className="text-center mb-8">
+                            <h2 className={`text-[8rem] md:text-[12rem] font-black leading-none tracking-tighter ${score > 50 ? 'text-indigo-600' : 'text-rose-500'}`}>{score}%</h2>
+                            <p className="text-2xl font-black text-slate-400 uppercase tracking-widest">{correctCount} / {total} correct</p>
+                        </div>
+
+                        {wrongAnswers.length > 0 && (
+                            <div className="w-full max-w-lg h-48 overflow-y-auto no-scrollbar bg-slate-50 rounded-[2rem] p-6 mb-8 border-2 border-slate-100">
+                                {wrongAnswers.map((w, i) => (
+                                    <div key={i} className="flex justify-between py-3 border-b border-slate-100 last:border-0">
+                                        <span className="font-black text-slate-800">{w.original}</span>
+                                        <span className="text-slate-400 text-sm font-bold">{w.translation}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="w-full max-w-sm flex flex-col gap-4">
+                            {wrongAnswers.length > 0 && (
+                                <button onClick={() => startLearning(true)} className="py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg hover:bg-indigo-700 transition-all">Herhaal fouten</button>
+                            )}
+                            <button onClick={() => setView('home')} className="py-5 bg-slate-900 text-white rounded-2xl font-black text-xl hover:bg-slate-800 transition-all">Klaar</button>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+        
+        // Fallback if React fails
+        setTimeout(() => {
+            if (!document.getElementById('root').innerHTML) {
+                document.getElementById('root').innerHTML = '<div style="padding: 20px; font-family: Arial;">Site laden mislukt. Controleer internetverbinding voor externe scripts.</div>';
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

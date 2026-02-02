@@ -1,0 +1,104 @@
+/* Loek it Up Importer - Styles */
+
+.loek-importer-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #ffd93d, #ffb703);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2d2a26;
+    box-shadow: 0 10px 24px rgba(255, 183, 0, 0.35);
+    transition: all 0.25s ease;
+}
+
+.loek-importer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(255, 183, 0, 0.45);
+}
+
+.loek-importer-btn:active {
+    transform: translateY(0);
+}
+
+.loek-importer-btn .btn-icon {
+    font-size: 16px;
+}
+
+.loek-importer-btn .btn-text {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+}
+
+.loek-importer-fab {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 99999;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: #ffd93d;
+    color: #2d2a26;
+    font-size: 24px;
+    font-weight: 800;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loek-importer-fab:hover {
+    background: #f5c800;
+}
+
+.loek-importer-notification {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    z-index: 99999;
+    background: #2d2a26;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 12px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loek-importer-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.loek-importer-notification.error {
+    background: #d32f2f;
+}
+
+.loek-importer-notification .notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.loek-importer-notification .notification-icon {
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
