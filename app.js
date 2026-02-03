@@ -9,6 +9,7 @@ let supabaseClient = null;
 let authUser = null;
 let authMode = 'login';
 let publicSearchTimer = null;
+const CLOUD_SETTINGS_KEY = 'cloudEnabled';
 
 // Study session state
 let studySession = {
@@ -150,7 +151,7 @@ function renderWordLists() {
                 </div>
                 <div>
                     <div class="card-title">${escapeHtml(list.title)}</div>
-                    <div class="card-meta">${list.words.length} woordjes${list.isPublic ? ' • Openbaar' : ''}</div>
+                    <div class="card-meta">${list.words.length} woordjes${isCloudEnabled() && list.isPublic ? ' • Openbaar' : ''}</div>
                 </div>
             </div>
             <div class="card-languages">
@@ -378,7 +379,7 @@ async function saveList() {
     const langTo = document.getElementById('lang-to').value.trim();
     const subject = document.getElementById('selected-subject').value;
     const icon = document.getElementById('selected-icon').value || 'fa-book';
-    const isPublic = document.getElementById('list-public')?.checked || false;
+    const isPublic = isCloudEnabled() ? (document.getElementById('list-public')?.checked || false) : false;
     const existingList = editingListId ? wordLists.find(l => l.id === editingListId) : null;
     const statsById = (existingList?.words || []).reduce((acc, w) => {
         acc[w.id] = w.stats || { correct: 0, wrong: 0 };
@@ -483,7 +484,7 @@ function editCurrentList() {
     list.words.forEach(word => addWordEntry(word.term, word.definition, word.id));
 
     const publicToggle = document.getElementById('list-public');
-    if (publicToggle) publicToggle.checked = !!list.isPublic;
+    if (publicToggle) publicToggle.checked = isCloudEnabled() ? !!list.isPublic : false;
     
     showView('create-view');
 }
@@ -546,6 +547,7 @@ async function exportCurrentList() {
 
 // ===== Supabase Auth & Sync =====
 function initSupabase() {
+    if (!isCloudEnabled()) return;
     if (!window.supabase) return;
 
     const SUPABASE_URL = 'https://sngiduythwiuthrtzmch.supabase.co';
@@ -614,6 +616,7 @@ function updateAuthUI() {
 }
 
 function toggleAuthMenu(event) {
+    if (!isCloudEnabled()) return;
     event.stopPropagation();
     const menu = document.getElementById('auth-menu');
     if (!menu) return;
@@ -627,6 +630,7 @@ function closeAuthMenu() {
 }
 
 function openAuthModal(mode) {
+    if (!isCloudEnabled()) return;
     authMode = mode;
     closeAuthMenu();
     document.getElementById('auth-modal').classList.remove('hidden');
@@ -643,7 +647,56 @@ function closeAuthModal() {
     document.getElementById('auth-modal').classList.add('hidden');
 }
 
+function openAppSettings() {
+    const modal = document.getElementById('app-settings-modal');
+    const toggle = document.getElementById('cloud-enabled-toggle');
+    if (toggle) toggle.checked = isCloudEnabled();
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeAppSettings() {
+    const modal = document.getElementById('app-settings-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function saveAppSettings() {
+    const toggle = document.getElementById('cloud-enabled-toggle');
+    const enabled = !!toggle?.checked;
+    setCloudEnabled(enabled);
+    closeAppSettings();
+}
+
+function isCloudEnabled() {
+    return localStorage.getItem(CLOUD_SETTINGS_KEY) === 'true';
+}
+
+function setCloudEnabled(enabled) {
+    localStorage.setItem(CLOUD_SETTINGS_KEY, enabled ? 'true' : 'false');
+    applyCloudState();
+}
+
+function applyCloudState() {
+    const enabled = isCloudEnabled();
+    document.body.classList.toggle('cloud-disabled', !enabled);
+
+    if (!enabled) {
+        // Reset cloud state
+        supabaseClient = null;
+        authUser = null;
+        closeAuthMenu();
+        updateAuthUI();
+
+        const publicInput = document.getElementById('public-search-input');
+        const publicResults = document.getElementById('public-search-results');
+        if (publicInput) publicInput.value = '';
+        if (publicResults) publicResults.innerHTML = '';
+    } else {
+        initSupabase();
+    }
+}
+
 async function submitAuth() {
+    if (!isCloudEnabled()) return;
     if (!supabaseClient) return;
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
@@ -673,6 +726,7 @@ async function submitAuth() {
 }
 
 async function logout() {
+    if (!isCloudEnabled()) return;
     if (!supabaseClient) return;
     await supabaseClient.auth.signOut();
 }
@@ -746,6 +800,7 @@ async function deleteListFromRemote(listId) {
 }
 
 function debouncedPublicSearch() {
+    if (!isCloudEnabled()) return;
     clearTimeout(publicSearchTimer);
     publicSearchTimer = setTimeout(() => {
         searchPublicLists();
@@ -753,6 +808,7 @@ function debouncedPublicSearch() {
 }
 
 async function searchPublicLists() {
+    if (!isCloudEnabled()) return;
     const input = document.getElementById('public-search-input');
     const results = document.getElementById('public-search-results');
     if (!input || !results) return;
@@ -800,6 +856,7 @@ async function searchPublicLists() {
 }
 
 async function importPublicList(listId) {
+    if (!isCloudEnabled()) return;
     if (!supabaseClient) return;
     const { data, error } = await supabaseClient
         .from('word_lists')
@@ -2030,7 +2087,7 @@ function escapeHtml(text) {
 document.addEventListener('DOMContentLoaded', () => {
     renderWordLists();
 
-    initSupabase();
+    applyCloudState();
     
     // Setup language search filters
     setupLanguageSearch();

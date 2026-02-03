@@ -23,8 +23,11 @@
                 <button class="nav-btn" onclick="showCreateList()" data-view="create">
                     <i class="fas fa-plus"></i> Nieuwe Lijst
                 </button>
+                <button class="nav-btn" onclick="openAppSettings()" data-view="settings">
+                    <i class="fas fa-cog"></i> Instellingen
+                </button>
             </nav>
-            <div class="auth-controls">
+            <div class="auth-controls cloud-only">
                 <button id="auth-menu-btn" class="auth-avatar-btn" onclick="toggleAuthMenu(event)" aria-label="Account">
                     <img src="images/fav.png" alt="Account" class="auth-avatar-img">
                 </button>
@@ -57,7 +60,7 @@
                 
                 <div class="lists-section">
                     <h2><i class="fas fa-folder-open"></i> Mijn Woordenlijsten</h2>
-                    <div class="public-search">
+                    <div class="public-search cloud-only">
                         <div class="public-search-bar">
                             <i class="fas fa-search"></i>
                             <input type="text" id="public-search-input" name="public-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoek openbare woordenlijsten (titel of woord)..." oninput="debouncedPublicSearch()">
@@ -189,11 +192,13 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="checkbox-label">
+                    <div class="form-group cloud-only">
+                        <label class="toggle-label">
                             <input type="checkbox" id="list-public">
-                            <span class="checkmark"></span>
-                            Openbaar maken (anderen kunnen deze lijst vinden)
+                            <span class="toggle-switch">
+                                <span class="toggle-slider"></span>
+                            </span>
+                            <span class="toggle-text">Openbaar maken (anderen kunnen deze lijst vinden)</span>
                         </label>
                     </div>
 
@@ -336,17 +341,21 @@
 
                         <div id="typing-settings" class="typing-settings">
                             <div class="setting-group">
-                                <label class="checkbox-label">
+                                <label class="toggle-label">
                                     <input type="checkbox" id="accept-slash-answers" checked>
-                                    <span class="checkmark"></span>
-                                    Accepteer beide antwoorden bij "/" (bijv. "licht/fel")
+                                    <span class="toggle-switch">
+                                        <span class="toggle-slider"></span>
+                                    </span>
+                                    <span class="toggle-text">Accepteer beide antwoorden bij "/" (bijv. "licht/fel")</span>
                                 </label>
                             </div>
                             <div class="setting-group">
-                                <label class="checkbox-label">
+                                <label class="toggle-label">
                                     <input type="checkbox" id="ignore-parentheses" checked>
-                                    <span class="checkmark"></span>
-                                    Negeer tekst tussen haakjes
+                                    <span class="toggle-switch">
+                                        <span class="toggle-slider"></span>
+                                    </span>
+                                    <span class="toggle-text">Negeer tekst tussen haakjes</span>
                                 </label>
                             </div>
                         </div>
@@ -360,8 +369,38 @@
                 </div>
             </div>
 
+            <!-- App Settings Modal -->
+            <div id="app-settings-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-cog"></i> Instellingen</h3>
+                        <button class="btn-close" onclick="closeAppSettings()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="setting-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="cloud-enabled-toggle">
+                                <span class="toggle-switch">
+                                    <span class="toggle-slider"></span>
+                                </span>
+                                <span class="toggle-text">Cloud functies (Supabase) inschakelen</span>
+                            </label>
+                            <p class="setting-hint">Hiermee krijg je inloggen, openbare lijsten en online sync.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeAppSettings()">Sluiten</button>
+                        <button class="btn btn-primary" onclick="saveAppSettings()">
+                            <i class="fas fa-save"></i> Opslaan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Auth Modal -->
-            <div id="auth-modal" class="modal hidden">
+            <div id="auth-modal" class="modal hidden cloud-only">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 id="auth-title"><i class="fas fa-user"></i> Inloggen</h3>
