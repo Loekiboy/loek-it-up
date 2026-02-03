@@ -10,6 +10,7 @@ let authUser = null;
 let authMode = 'login';
 let publicSearchTimer = null;
 const CLOUD_SETTINGS_KEY = 'cloudEnabled';
+const DARK_MODE_SETTINGS_KEY = 'darkModeEnabled';
 
 // Study session state
 let studySession = {
@@ -348,6 +349,13 @@ document.querySelectorAll('.subject-btn').forEach(btn => {
         btn.classList.add('active');
         document.getElementById('selected-subject').value = btn.dataset.subject;
         document.getElementById('selected-icon').value = btn.dataset.icon;
+
+        const fromSearch = document.getElementById('lang-from-search');
+        const toSearch = document.getElementById('lang-to-search');
+        const langFromSelect = document.getElementById('lang-from');
+        const langToSelect = document.getElementById('lang-to');
+        if (langFromSelect) filterLanguageSelect(fromSearch?.value || '', langFromSelect);
+        if (langToSelect) filterLanguageSelect(toSearch?.value || '', langToSelect);
     });
 });
 
@@ -496,6 +504,13 @@ function editCurrentList() {
 
     const publicToggle = document.getElementById('list-public');
     if (publicToggle) publicToggle.checked = isCloudEnabled() ? !!list.isPublic : false;
+
+    const fromSearch = document.getElementById('lang-from-search');
+    const toSearch = document.getElementById('lang-to-search');
+    const langFromSelect = document.getElementById('lang-from');
+    const langToSelect = document.getElementById('lang-to');
+    if (langFromSelect) filterLanguageSelect(fromSearch?.value || '', langFromSelect);
+    if (langToSelect) filterLanguageSelect(toSearch?.value || '', langToSelect);
     
     showView('create-view');
 }
@@ -662,6 +677,8 @@ function openAppSettings() {
     const modal = document.getElementById('app-settings-modal');
     const toggle = document.getElementById('cloud-enabled-toggle');
     if (toggle) toggle.checked = isCloudEnabled();
+    const darkToggle = document.getElementById('dark-mode-toggle');
+    if (darkToggle) darkToggle.checked = isDarkModeEnabled();
     if (modal) modal.classList.remove('hidden');
 }
 
@@ -674,7 +691,24 @@ function saveAppSettings() {
     const toggle = document.getElementById('cloud-enabled-toggle');
     const enabled = !!toggle?.checked;
     setCloudEnabled(enabled);
+
+    const darkToggle = document.getElementById('dark-mode-toggle');
+    setDarkModeEnabled(!!darkToggle?.checked);
     closeAppSettings();
+}
+
+function isDarkModeEnabled() {
+    return localStorage.getItem(DARK_MODE_SETTINGS_KEY) === 'true';
+}
+
+function setDarkModeEnabled(enabled) {
+    localStorage.setItem(DARK_MODE_SETTINGS_KEY, enabled ? 'true' : 'false');
+    applyTheme();
+}
+
+function applyTheme() {
+    const enabled = isDarkModeEnabled();
+    document.body.classList.toggle('dark', enabled);
 }
 
 function isCloudEnabled() {
@@ -1028,6 +1062,85 @@ function getQuestion(word) {
         : { question: word.definition, answer: word.term, isTermToDef: false };
 }
 
+function normalizeForSimilarity(text) {
+    return (text || '')
+        .toString()
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function levenshteinDistance(a, b) {
+    const s = normalizeForSimilarity(a);
+    const t = normalizeForSimilarity(b);
+    if (s === t) return 0;
+    if (!s.length) return t.length;
+    if (!t.length) return s.length;
+
+    const m = s.length;
+    const n = t.length;
+    const dp = new Array(n + 1);
+    for (let j = 0; j <= n; j++) dp[j] = j;
+
+    for (let i = 1; i <= m; i++) {
+        let prev = dp[0];
+        dp[0] = i;
+        const si = s.charCodeAt(i - 1);
+        for (let j = 1; j <= n; j++) {
+            const tmp = dp[j];
+            const cost = si === t.charCodeAt(j - 1) ? 0 : 1;
+            dp[j] = Math.min(
+                dp[j] + 1,
+                dp[j - 1] + 1,
+                prev + cost
+            );
+            prev = tmp;
+        }
+    }
+
+    return dp[n];
+}
+
+function similarityScore(a, b) {
+    const s = normalizeForSimilarity(a);
+    const t = normalizeForSimilarity(b);
+    const maxLen = Math.max(s.length, t.length);
+    if (maxLen === 0) return 1;
+    const dist = levenshteinDistance(s, t);
+    return 1 - (dist / maxLen);
+}
+
+function pickSimilarWrongOptions(correctAnswer, candidates, count) {
+    const correctNorm = normalizeForSimilarity(correctAnswer);
+    const unique = [];
+    const seen = new Set();
+
+    candidates.forEach(c => {
+        const value = (c || '').toString();
+        const norm = normalizeForSimilarity(value);
+        if (!norm) return;
+        if (norm === correctNorm) return;
+        if (seen.has(norm)) return;
+        seen.add(norm);
+        unique.push({ value, score: similarityScore(value, correctAnswer) });
+    });
+
+    unique.sort((a, b) => b.score - a.score);
+    const top = unique.slice(0, Math.max(10, count));
+    const picked = top.slice(0, count).map(x => x.value);
+
+    if (picked.length < count) {
+        const rest = unique.slice(top.length);
+        while (picked.length < count && rest.length > 0) {
+            picked.push(rest.shift().value);
+        }
+    }
+
+    return picked.slice(0, count);
+}
+
 // ===== STEPS MODE (STAMPEN) =====
 function initStepsMode() {
     const list = wordLists.find(l => l.id === currentListId);
@@ -1081,12 +1194,17 @@ function replaceCompletedSlots() {
 }
 
 function updateStepsProgress() {
-    const total = studySession.words.length;
+    const baseTotal = studySession.words.length;
+    const reviewTotal = new Set(studySession.stepsWrongWords || []).size;
+    const total = baseTotal + (reviewTotal > 0 ? reviewTotal : 0);
+
     const learned = studySession.learnedWords.length;
-    const percent = (learned / total) * 100;
+    const reviewDone = studySession.stepsReviewMode ? (studySession.stepsReviewIndex || 0) : 0;
+    const done = Math.min(total, learned + reviewDone);
+    const percent = total > 0 ? (done / total) * 100 : 0;
 
     document.getElementById('steps-progress').style.width = `${percent}%`;
-    document.getElementById('steps-progress-text').textContent = `${learned}/${total}`;
+    document.getElementById('steps-progress-text').textContent = `${done}/${total}`;
 }
 
 function showNextStepQuestion() {
@@ -1232,9 +1350,8 @@ function completeStepFlashcard() {
 function showStepChoice(word, qa) {
     const list = wordLists.find(l => l.id === currentListId);
     const otherWords = list.words.filter(w => w.id !== word.id);
-    const wrongOptions = shuffleArray(otherWords).slice(0, 3).map(w =>
-        qa.isTermToDef ? w.definition : w.term
-    );
+    const candidateStrings = otherWords.map(w => (qa.isTermToDef ? w.definition : w.term));
+    const wrongOptions = pickSimilarWrongOptions(qa.answer, candidateStrings, 3);
     const options = shuffleArray([qa.answer, ...wrongOptions]);
 
     const content = document.getElementById('steps-content');
@@ -1430,6 +1547,7 @@ function startStepsReviewTyping() {
     studySession.stepsReviewMode = true;
     studySession.stepsReviewQueue = shuffleArray([...new Set(studySession.stepsWrongWords)]);
     studySession.stepsReviewIndex = 0;
+    updateStepsProgress();
     showNextStepsReviewQuestion();
 }
 
@@ -1518,6 +1636,7 @@ function checkStepReviewTyping(wordId, correct) {
 
 function continueStepReviewTyping() {
     studySession.stepsReviewIndex++;
+    updateStepsProgress();
     showNextStepsReviewQuestion();
 }
 
@@ -1549,12 +1668,17 @@ function initTypingMode() {
 }
 
 function updateTypingProgress() {
-    const total = studySession.words.length;
+    const baseTotal = studySession.words.length;
+    const reviewTotal = new Set(studySession.typingWrongWords || []).size;
+    const total = baseTotal + (reviewTotal > 0 ? reviewTotal : 0);
+
     const completed = Object.values(studySession.typingProgress).filter(p => p.completed).length;
-    const percent = (completed / total) * 100;
+    const reviewDone = studySession.typingReviewMode ? (studySession.typingReviewIndex || 0) : 0;
+    const done = Math.min(total, completed + reviewDone);
+    const percent = total > 0 ? (done / total) * 100 : 0;
     
     document.getElementById('typing-progress').style.width = `${percent}%`;
-    document.getElementById('typing-progress-text').textContent = `${completed}/${total}`;
+    document.getElementById('typing-progress-text').textContent = `${done}/${total}`;
 }
 
 function showNextTypingQuestion() {
@@ -1698,6 +1822,7 @@ function startTypingReview() {
     studySession.typingReviewMode = true;
     studySession.typingReviewQueue = shuffleArray([...new Set(studySession.typingWrongWords)]);
     studySession.typingReviewIndex = 0;
+    updateTypingProgress();
     showNextTypingReviewQuestion();
 }
 
@@ -1786,6 +1911,7 @@ function checkTypingReview(wordId, correct) {
 
 function continueTypingReview() {
     studySession.typingReviewIndex++;
+    updateTypingProgress();
     showNextTypingReviewQuestion();
 }
 
@@ -2098,6 +2224,7 @@ function escapeHtml(text) {
 document.addEventListener('DOMContentLoaded', () => {
     renderWordLists();
 
+    applyTheme();
     applyCloudState();
     
     // Setup language search filters
@@ -2209,6 +2336,13 @@ function handleStepsKeyboard(e) {
             choiceButtons[index].click();
             return;
         }
+
+        const choiceNextBtn = document.querySelector('#step-choice-feedback .btn-next');
+        if (choiceNextBtn && e.code === 'Enter') {
+            e.preventDefault();
+            choiceNextBtn.click();
+            return;
+        }
     }
 
     const flipCard = document.getElementById('step-flip-card');
@@ -2231,6 +2365,13 @@ function handleStepsKeyboard(e) {
         e.preventDefault();
         typingContinueBtn.click();
     }
+
+    const reviewInput = document.getElementById('step-review-input');
+    const reviewContinueBtn = document.querySelector('#step-review-feedback .btn-next');
+    if (reviewInput && reviewInput.disabled && reviewContinueBtn && e.code === 'Enter') {
+        e.preventDefault();
+        reviewContinueBtn.click();
+    }
 }
 
 function handleTypingKeyboard(e) {
@@ -2239,6 +2380,13 @@ function handleTypingKeyboard(e) {
     if (typingInput && typingInput.disabled && typingContinueBtn && e.code === 'Enter') {
         e.preventDefault();
         typingContinueBtn.click();
+    }
+
+    const reviewInput = document.getElementById('typing-review-input');
+    const reviewContinueBtn = document.querySelector('#typing-review-feedback .btn-next');
+    if (reviewInput && reviewInput.disabled && reviewContinueBtn && e.code === 'Enter') {
+        e.preventDefault();
+        reviewContinueBtn.click();
     }
 }
 
@@ -2275,9 +2423,60 @@ function setupLanguageSearch() {
     }
 }
 
+function getSubjectLanguageLabel() {
+    const subject = document.getElementById('selected-subject')?.value || '';
+    const map = {
+        nederlands: 'Nederlands',
+        engels: 'Engels',
+        frans: 'Frans',
+        duits: 'Duits',
+        spaans: 'Spaans',
+        italiaans: 'Italiaans',
+        latijn: 'Latijn',
+        grieks: 'Grieks'
+    };
+    return map[subject] || null;
+}
+
+function applyLanguageSubjectFilter(selectElement) {
+    const subjectLang = getSubjectLanguageLabel();
+    const options = selectElement.querySelectorAll('option');
+    const allowed = subjectLang ? ['nederlands', subjectLang.toLowerCase()] : null;
+
+    options.forEach(option => {
+        if (option.value === '') {
+            option.style.display = 'block';
+            return;
+        }
+
+        if (!allowed) {
+            option.style.display = 'block';
+            return;
+        }
+
+        const text = option.textContent.toLowerCase();
+        option.style.display = allowed.includes(text) ? 'block' : 'none';
+    });
+
+    if (subjectLang) {
+        const current = (selectElement.value || '').toLowerCase();
+        const target = selectElement.id === 'lang-from'
+            ? subjectLang
+            : (subjectLang.toLowerCase() === 'nederlands' ? 'Nederlands' : 'Nederlands');
+        if (current && !allowed.includes(current)) {
+            selectElement.value = target;
+        }
+    }
+}
+
 function filterLanguageSelect(searchTerm, selectElement) {
     const options = selectElement.querySelectorAll('option');
-    const term = searchTerm.toLowerCase();
+    const term = (searchTerm || '').toLowerCase().trim();
+
+    if (!term) {
+        applyLanguageSubjectFilter(selectElement);
+        return;
+    }
 
     options.forEach(option => {
         if (option.value === '') {
@@ -2299,12 +2498,11 @@ function buildTypingDiff(userAnswer, correctAnswer) {
     const correct = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses);
 
     const maxLen = Math.max(user.length, correct.length);
-    const showDetailed = maxLen <= 3;
-
-    if (!showDetailed) {
+    if (maxLen === 0) {
         return `
             <div class="correct-answer-display">
-                Het juiste antwoord was: <strong>${escapeHtml(correct)}</strong>
+                <div>Jij typte: <strong>(leeg)</strong></div>
+                <div>Juiste antwoord: <strong>(leeg)</strong></div>
             </div>
         `;
     }

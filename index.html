@@ -74,8 +74,10 @@
                         <i class="fas fa-book"></i>
                         <h3>Nog geen woordenlijsten</h3>
                         <p>Maak je eerste woordenlijst om te beginnen met leren!</p>
-                        <button class="btn btn-primary" onclick="showCreateList()">
-                            <i class="fas fa-plus"></i> Nieuwe Lijst
+                        <button class="empty-add-btn" onclick="showCreateList()" aria-label="Nieuwe lijst maken">
+                            <span class="empty-add-inner">
+                                <i class="fas fa-plus"></i>
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -388,6 +390,17 @@
                                 <span class="toggle-text">Cloud functies (Supabase) inschakelen</span>
                             </label>
                             <p class="setting-hint">Hiermee krijg je inloggen, openbare lijsten en online sync.</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="dark-mode-toggle">
+                                <span class="toggle-switch">
+                                    <span class="toggle-slider"></span>
+                                </span>
+                                <span class="toggle-text">Dark mode</span>
+                            </label>
+                            <p class="setting-hint">Zet een donker thema aan voor de hele app.</p>
                         </div>
                     </div>
                     <div class="modal-footer">
