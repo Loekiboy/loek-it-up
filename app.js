@@ -66,9 +66,20 @@ function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
     
+    const viewKey = viewId.replace('-view', '');
+    
+    // Update header nav buttons
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.view === viewId.replace('-view', '')) {
+        if (btn.dataset.view === viewKey) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Update mobile nav buttons
+    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.view === viewKey) {
             btn.classList.add('active');
         }
     });

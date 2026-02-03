@@ -190,6 +190,58 @@ body {
     width: 100%;
 }
 
+/* ===== Mobile Bottom Navigation ===== */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 70px;
+    background: var(--white);
+    border-top: 1px solid var(--bg-light);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+    justify-content: space-around;
+    align-items: stretch;
+    z-index: 150;
+}
+
+.mobile-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border: none;
+    background: transparent;
+    color: var(--text-medium);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.5rem;
+}
+
+.mobile-nav-btn i {
+    font-size: 1.35rem;
+}
+
+.mobile-nav-btn:hover {
+    color: var(--primary-yellow-dark);
+    background: var(--bg-light);
+}
+
+.mobile-nav-btn.active {
+    color: var(--primary-yellow-dark);
+    background: var(--primary-yellow-light);
+}
+
+.mobile-nav-btn span {
+    line-height: 1;
+}
+
 /* ===== Views ===== */
 .view {
     display: none;
@@ -1867,6 +1919,32 @@ body {
         gap: 1rem;
     }
 
+    .logo {
+        font-size: 1.35rem;
+    }
+
+    .logo-image {
+        height: 44px;
+        max-width: 130px;
+    }
+
+    .nav {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .nav-btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 140px;
+    }
+
+    .auth-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
     .main-content {
         padding: 1rem;
     }
@@ -1877,6 +1955,14 @@ body {
 
     .word-lists-grid {
         grid-template-columns: 1fr;
+    }
+
+    .word-list-card {
+        padding: 1.25rem;
+    }
+
+    .create-container {
+        padding: 1.25rem;
     }
 
     .language-inputs {
@@ -1899,6 +1985,40 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .list-header {
+        flex-wrap: wrap;
+        padding: 1.25rem;
+        gap: 0.75rem;
+    }
+
+    .list-info {
+        flex: 1 1 100%;
+    }
+
+    .list-actions {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .words-preview-header {
+        flex-wrap: wrap;
+        align-items: stretch;
+    }
+
+    .btn-select-all {
+        width: 100%;
+    }
+
+    .resume-banner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .resume-banner .btn {
+        width: 100%;
+    }
+
     .choice-options {
         grid-template-columns: 1fr;
     }
@@ -1911,6 +2031,8 @@ body {
     .btn-flashcard {
         flex-direction: row;
         justify-content: center;
+        width: 100%;
+        max-width: 520px;
     }
 
     .complete-stats {
@@ -1923,5 +2045,655 @@ body {
 
     .direction-btn {
         min-width: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .mobile-nav {
+        display: flex;
+    }
+
+    .main-content {
+        padding-bottom: 90px;
+    }
+
+    .header .nav {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.75rem;
+        padding-bottom: 90px;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .logo-image {
+        height: 40px;
+        max-width: 120px;
+    }
+
+    .nav {
+        gap: 0.4rem;
+    }
+
+    .nav-btn {
+        min-width: 0;
+        padding: 0.65rem 0.85rem;
+        font-size: 0.9rem;
+    }
+
+    .welcome-section {
+        padding: 1.5rem 0.75rem;
+        border-radius: 18px;
+        margin-bottom: 1.5rem;
+    }
+
+    .welcome-section h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-section p {
+        font-size: 1rem;
+    }
+
+    .welcome-icon img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .word-list-card {
+        padding: 1rem;
+    }
+
+    .word-list-card .card-header {
+        gap: 0.75rem;
+    }
+
+    .word-list-card .card-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+
+    .word-list-card .card-title {
+        font-size: 1rem;
+    }
+
+    .empty-state {
+        padding: 2rem 1rem;
+        margin: 1.5rem auto;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.3rem;
+    }
+
+    .create-container {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    .create-container h2 {
+        font-size: 1.3rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        font-size: 0.95rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .form-group input,
+    .form-group select {
+        font-size: 16px;
+        padding: 0.8rem 0.9rem;
+    }
+
+    .subject-selector {
+        max-height: 260px;
+        gap: 0.6rem;
+        padding: 0.2rem;
+    }
+
+    .subject-btn {
+        flex: 1 1 calc(50% - 0.6rem);
+        justify-content: center;
+        padding: 0.65rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .subject-btn i {
+        font-size: 1rem;
+    }
+
+    .language-select-wrapper {
+        gap: 0.35rem;
+    }
+
+    .language-search,
+    .language-inputs input,
+    .language-inputs select {
+        font-size: 16px;
+        padding: 0.75rem 0.85rem;
+    }
+
+    .language-inputs i {
+        font-size: 1.1rem;
+    }
+
+    .import-area textarea {
+        min-height: 120px;
+        font-size: 0.9rem;
+    }
+
+    .btn-add-word {
+        padding: 0.9rem;
+        font-size: 0.95rem;
+        border-width: 1px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 0.65rem;
+        margin-top: 1.5rem;
+        border-top: 1px solid var(--bg-light);
+        padding-top: 1.25rem;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+    }
+
+    .word-entry {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.4rem;
+    }
+
+    .word-entry input {
+        padding: 0.7rem;
+        font-size: 16px;
+    }
+
+    .word-entry .entry-number {
+        width: auto;
+        text-align: left;
+        font-size: 0.9rem;
+    }
+
+    .word-entry .btn-remove {
+        width: 100%;
+        height: 42px;
+        background: var(--white);
+        border: 1px solid var(--bg-cream);
+        font-size: 0.9rem;
+    }
+
+    .public-search-bar {
+        padding: 0.6rem 0.8rem;
+        gap: 0.6rem;
+    }
+
+    .public-search-bar i {
+        font-size: 1rem;
+    }
+
+    .public-search-bar input {
+        font-size: 16px;
+    }
+
+    .public-list-card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.9rem 1rem;
+        gap: 0.8rem;
+    }
+
+    .public-list-card .btn {
+        width: 100%;
+        padding: 0.8rem 1.25rem;
+    }
+
+    .list-header {
+        padding: 1rem;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-back {
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
+    }
+
+    .list-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+
+    .list-info h2 {
+        font-size: 1.35rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .list-info p {
+        font-size: 0.85rem;
+    }
+
+    .list-actions {
+        gap: 0.35rem;
+    }
+
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
+    }
+
+    .modes-grid {
+        gap: 0.85rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .mode-card {
+        padding: 1.25rem 1rem;
+    }
+
+    .mode-icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 0.85rem;
+        font-size: 1.5rem;
+    }
+
+    .mode-card h4 {
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .mode-card p {
+        font-size: 0.8rem;
+    }
+
+    .words-preview-header {
+        flex-direction: column;
+        gap: 0.65rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .words-preview-header h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .btn-select-all {
+        width: 100%;
+        padding: 0.75rem 1rem;
+    }
+
+    .preview-word-item {
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+            "sel term"
+            "sel def";
+        row-gap: 0.3rem;
+        padding: 0.75rem 0.85rem;
+    }
+
+    .preview-select {
+        grid-area: sel;
+        align-self: start;
+        margin-top: 3px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .preview-word-item .term {
+        grid-area: term;
+        font-size: 0.95rem;
+    }
+
+    .preview-word-item .definition {
+        grid-area: def;
+        font-size: 0.9rem;
+    }
+
+    .resume-banner {
+        padding: 1rem;
+        margin: 1rem 0 1.5rem;
+        gap: 0.75rem;
+    }
+
+    .resume-info {
+        font-size: 0.95rem;
+        gap: 0.6rem;
+    }
+
+    .resume-banner .btn {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+    }
+
+    .modal {
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        width: calc(100% - 1rem);
+        max-height: 90vh;
+        border-radius: 18px 18px 0 0;
+        max-width: 100%;
+    }
+
+    .modal-header {
+        padding: 1rem 1.25rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1.2rem;
+    }
+
+    .btn-close {
+        width: 34px;
+        height: 34px;
+        font-size: 0.95rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+        background: var(--white);
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 0.6rem;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+    }
+
+    .setting-group {
+        margin-bottom: 1rem;
+        padding: 0.9rem;
+    }
+
+    .toggle-label {
+        padding: 0.65rem 0.9rem;
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    .toggle-switch {
+        width: 50px;
+        height: 29px;
+        flex-shrink: 0;
+    }
+
+    .toggle-slider {
+        width: 24px;
+        height: 24px;
+    }
+
+    .toggle-label input:checked + .toggle-switch .toggle-slider {
+        transform: translateX(21px);
+    }
+
+    .toggle-text {
+        font-size: 0.9rem;
+    }
+
+    .setting-hint {
+        margin-top: 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .choice-options {
+        gap: 0.8rem;
+        margin-top: 1rem;
+    }
+
+    .choice-btn {
+        padding: 1.1rem 0.85rem;
+        font-size: 0.95rem;
+        border-width: 1px;
+    }
+
+    .direction-selector {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .direction-btn {
+        padding: 0.75rem 0.9rem;
+        font-size: 0.9rem;
+        min-width: auto;
+    }
+
+    .study-container {
+        padding: 1rem;
+        min-height: auto;
+    }
+
+    .study-header {
+        margin-bottom: 1.25rem;
+        gap: 0.75rem;
+    }
+
+    .progress-container {
+        gap: 0.75rem;
+    }
+
+    .progress-bar {
+        height: 6px;
+    }
+
+    .question-card {
+        padding: 1.25rem 1rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .question-type-label {
+        padding: 0.4rem 0.85rem;
+        font-size: 0.8rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .question-word {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .flip-card {
+        height: 210px;
+        margin: 0 auto 1.2rem;
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+        padding: 1.1rem;
+        font-size: 1.3rem;
+    }
+
+    .flip-hint {
+        font-size: 0.85rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .flashcard {
+        max-width: 100%;
+        height: 240px;
+    }
+
+    .flashcard-front,
+    .flashcard-back {
+        padding: 1.35rem;
+        border-width: 3px;
+        border-radius: 20px;
+    }
+
+    .flashcard-label {
+        top: 0.9rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.25em;
+    }
+
+    .flashcard-text {
+        font-size: clamp(1.4rem, 3.5vw, 2rem);
+    }
+
+    .flashcard-subhint {
+        bottom: 0.9rem;
+        font-size: 0.7rem;
+    }
+
+    .flashcard-hint {
+        margin-top: 0.85rem;
+        font-size: 0.8rem;
+    }
+
+    .flashcard-controls {
+        gap: 0.85rem;
+    }
+
+    .btn-flashcard {
+        padding: 1rem 1.25rem;
+        font-size: 0.95rem;
+    }
+
+    .btn-flashcard i {
+        font-size: 1.3rem;
+    }
+
+    .btn-flashcard span {
+        font-size: 0.8rem;
+    }
+
+    .typing-input-container {
+        margin-top: 0.9rem;
+    }
+
+    .typing-input {
+        padding: 0.85rem 1rem;
+        font-size: 1.05rem;
+        border-width: 1px;
+    }
+
+    .typing-submit {
+        margin-top: 0.9rem;
+        padding: 0.85rem 1.25rem;
+    }
+
+    .feedback-message {
+        margin-top: 0.85rem;
+        padding: 0.85rem;
+        font-size: 0.95rem;
+    }
+
+    .correct-answer-display {
+        font-size: 0.9rem;
+    }
+
+    .feedback-actions {
+        margin-top: 0.85rem;
+        gap: 0.6rem;
+    }
+
+    .feedback-actions .btn {
+        height: 42px;
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-intended {
+        padding: 0.7rem 1.2rem;
+        height: 42px;
+        font-size: 0.9rem;
+    }
+
+    .complete-container {
+        padding: 2.5rem 1rem;
+        max-width: 100%;
+    }
+
+    .complete-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+    }
+
+    .complete-container h2 {
+        font-size: 1.65rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .complete-container p {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .complete-summary {
+        margin: 1.25rem 0;
+        padding: 0.85rem;
+    }
+
+    .summary-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+        font-size: 0.9rem;
+        padding-bottom: 0.4rem;
+    }
+
+    .summary-term {
+        font-size: 0.9rem;
+    }
+
+    .summary-def {
+        font-size: 0.85rem;
+    }
+
+    .complete-stats {
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+
+    .complete-actions {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .complete-actions .btn {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
     }
 }
