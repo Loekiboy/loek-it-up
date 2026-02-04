@@ -56,6 +56,12 @@ let flashcardSwipe = {
 
 let flashcardAnimating = false;
 let flashcardHandlersAttached = false;
+let flashcardState = {
+    dragX: 0,
+    isDragging: false,
+    animState: null,
+    isFlipped: false
+};
 
 // ===== Save Data =====
 function saveData() {
@@ -1950,6 +1956,7 @@ function initFlashcardsMode() {
     studySession.flashcardsWrong = [];
     studySession.flashcardsCorrect = [];
     studySession.currentIndex = 0;
+    flashcardState = { dragX: 0, isDragging: false, animState: null, isFlipped: false };
     
     showView('study-flashcards-view');
     updateFlashcardsProgress();
@@ -1965,9 +1972,10 @@ function handleFlashcardKeys(e) {
     if (!document.getElementById('study-flashcards-view').classList.contains('active')) {
         return;
     }
+    if (flashcardState.animState) return;
     
-    switch (e.key) {
-        case ' ':
+    switch (e.code) {
+        case 'Space':
         case 'ArrowUp':
         case 'ArrowDown':
             e.preventDefault();
@@ -1986,7 +1994,7 @@ function handleFlashcardKeys(e) {
 
 function ensureFlashcardSwipeHandlers() {
     if (flashcardHandlersAttached) return;
-    const flashcard = document.getElementById('flashcard');
+    const flashcard = document.getElementById('flashcard-card');
     if (!flashcard) return;
 
     // Mouse events
@@ -2015,12 +2023,15 @@ function onFlashcardPointerDown(e) {
     flashcardSwipe.currentX = flashcardSwipe.startX;
     flashcardSwipe.currentY = flashcardSwipe.startY;
     flashcardSwipe.startTime = Date.now();
+    flashcardState.isDragging = true;
+    flashcardState.dragX = 0;
 }
 
 function onFlashcardPointerMove(e) {
     if (!flashcardSwipe.active) return;
     
-    const flashcard = document.getElementById('flashcard');
+    const flashcard = document.getElementById('flashcard-card');
+    const flashcardsView = document.getElementById('study-flashcards-view');
     flashcardSwipe.currentX = e.clientX || e.touches?.[0]?.clientX || 0;
     flashcardSwipe.currentY = e.clientY || e.touches?.[0]?.clientY || 0;
     
@@ -2030,17 +2041,26 @@ function onFlashcardPointerMove(e) {
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
         e.preventDefault?.();
         const rotate = Math.max(Math.min(deltaX / 20, 15), -15);
-        const scale = 1 - Math.abs(deltaX) / 1000;
-        flashcard.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg) scale(${Math.max(0.8, scale)})`;
-        flashcard.style.opacity = Math.max(0.3, 1 - Math.abs(deltaX) / 500);
+        const scale = 1 - Math.abs(deltaX) / 1200;
+        flashcardState.dragX = deltaX;
+        flashcard.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg) scale(${Math.max(0.85, scale)})`;
+
+        flashcard.classList.toggle('drag-right', deltaX > 20);
+        flashcard.classList.toggle('drag-left', deltaX < -20);
+        if (flashcardsView) {
+            flashcardsView.classList.toggle('flash-bg-right', deltaX > 20);
+            flashcardsView.classList.toggle('flash-bg-left', deltaX < -20);
+        }
     }
 }
 
 function onFlashcardPointerUp(e) {
     if (!flashcardSwipe.active) return;
     flashcardSwipe.active = false;
+    flashcardState.isDragging = false;
 
-    const flashcard = document.getElementById('flashcard');
+    const flashcard = document.getElementById('flashcard-card');
+    const flashcardsView = document.getElementById('study-flashcards-view');
     const deltaX = flashcardSwipe.currentX - flashcardSwipe.startX;
     const deltaY = flashcardSwipe.currentY - flashcardSwipe.startY;
     const duration = Date.now() - flashcardSwipe.startTime;
@@ -2052,13 +2072,20 @@ function onFlashcardPointerUp(e) {
                               Math.abs(deltaX) > Math.abs(deltaY) && 
                               duration < maxDuration;
 
-    flashcard.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+    flashcard.style.transition = 'transform 0.25s ease';
 
     if (isSignificantSwipe) {
+        flashcard.classList.remove('drag-left', 'drag-right');
+        if (flashcardsView) {
+            flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
+        }
         markFlashcard(deltaX > 0);
     } else {
         flashcard.style.transform = 'translateX(0) rotate(0) scale(1)';
-        flashcard.style.opacity = '1';
+        flashcard.classList.remove('drag-left', 'drag-right');
+        if (flashcardsView) {
+            flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
+        }
         setTimeout(() => {
             flashcard.style.transition = '';
         }, 250);
@@ -2067,10 +2094,15 @@ function onFlashcardPointerUp(e) {
 
 function onFlashcardPointerCancel() {
     flashcardSwipe.active = false;
-    const flashcard = document.getElementById('flashcard');
+    flashcardState.isDragging = false;
+    const flashcard = document.getElementById('flashcard-card');
+    const flashcardsView = document.getElementById('study-flashcards-view');
     if (flashcard) {
         flashcard.style.transform = '';
-        flashcard.style.opacity = '1';
+        flashcard.classList.remove('drag-left', 'drag-right');
+    }
+    if (flashcardsView) {
+        flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
     }
 }
 
@@ -2078,12 +2110,13 @@ function updateFlashcardsProgress() {
     const total = studySession.flashcardsDeck.length + 
                   studySession.flashcardsCorrect.length + 
                   studySession.flashcardsWrong.length;
-    const correct = studySession.flashcardsCorrect.length;
-    const percent = (correct / total) * 100;
+    const answered = studySession.flashcardsCorrect.length + studySession.flashcardsWrong.length;
+    const percent = total > 0 ? (answered / total) * 100 : 0;
+    const current = Math.min(total, answered + (studySession.flashcardsDeck.length > 0 ? 1 : 0));
     
     document.getElementById('flashcards-progress').style.width = `${percent}%`;
     document.getElementById('flashcards-progress-text').textContent = 
-        `${correct}/${total} goed`;
+        `${current}/${total}`;
 }
 
 function showCurrentFlashcard() {
@@ -2105,12 +2138,19 @@ function showCurrentFlashcard() {
     const qa = getQuestion(word);
     const list = wordLists.find(l => l.id === currentListId);
     
-    const flashcard = document.getElementById('flashcard');
+    const flashcard = document.getElementById('flashcard-card');
+    const flashcardsView = document.getElementById('study-flashcards-view');
+    const actions = document.getElementById('flashcard-actions');
     flashcard.classList.remove('flipped');
-    flashcard.classList.remove('swipe-left', 'swipe-right');
+    flashcard.classList.remove('swipe-left', 'swipe-right', 'animate-fly-left', 'animate-fly-right');
+    flashcard.classList.remove('drag-left', 'drag-right');
     flashcard.style.transform = '';
-    flashcard.style.opacity = '1';
     flashcard.style.transition = '';
+    if (flashcardsView) {
+        flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
+    }
+    if (actions) actions.classList.remove('is-visible');
+    flashcardState.isFlipped = false;
     
     document.getElementById('flashcard-term').textContent = qa.question;
     document.getElementById('flashcard-definition').textContent = qa.answer;
@@ -2124,7 +2164,11 @@ function showCurrentFlashcard() {
 }
 
 function toggleFlashcard() {
-    document.getElementById('flashcard').classList.toggle('flipped');
+    const flashcard = document.getElementById('flashcard-card');
+    const actions = document.getElementById('flashcard-actions');
+    flashcard.classList.toggle('flipped');
+    flashcardState.isFlipped = flashcard.classList.contains('flipped');
+    if (actions) actions.classList.toggle('is-visible', flashcardState.isFlipped);
 }
 
 function markFlashcard(correct) {
@@ -2133,9 +2177,15 @@ function markFlashcard(correct) {
     if (flashcardAnimating) return;
     flashcardAnimating = true;
 
-    const flashcard = document.getElementById('flashcard');
-    flashcard.classList.remove('swipe-left', 'swipe-right');
-    flashcard.classList.add(correct ? 'swipe-right' : 'swipe-left');
+    const flashcard = document.getElementById('flashcard-card');
+    const flashcardsView = document.getElementById('study-flashcards-view');
+    flashcard.classList.remove('drag-left', 'drag-right', 'swipe-left', 'swipe-right');
+    flashcard.classList.add(correct ? 'animate-fly-right' : 'animate-fly-left');
+    if (flashcardsView) {
+        flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
+    }
+
+    flashcardState.animState = correct ? 'fly-right' : 'fly-left';
 
     setTimeout(() => {
         const word = studySession.flashcardsDeck.shift();
@@ -2152,6 +2202,7 @@ function markFlashcard(correct) {
         recordAnswer(word.id, correct);
         saveActiveSession();
 
+        flashcardState.animState = null;
         updateFlashcardsProgress();
         showCurrentFlashcard();
         flashcardAnimating = false;
@@ -2159,7 +2210,7 @@ function markFlashcard(correct) {
 }
 
 // Flashcard click handler
-document.getElementById('flashcard')?.addEventListener('click', toggleFlashcard);
+document.getElementById('flashcard-card')?.addEventListener('click', toggleFlashcard);
 
 // ===== Complete & Exit =====
 function showComplete() {

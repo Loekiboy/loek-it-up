@@ -485,46 +485,41 @@
 
             <!-- Study View - Flashcards Mode -->
             <div id="study-flashcards-view" class="view study-view">
-                <div class="study-container">
-                    <div class="study-header">
-                        <button class="btn-back" onclick="exitStudy()">
+                <div class="flashcard-screen">
+                    <header class="flashcard-header">
+                        <button class="flashcard-close" onclick="exitStudy()" aria-label="Sluiten">
                             <i class="fas fa-times"></i>
                         </button>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div id="flashcards-progress" class="progress-fill"></div>
+                        <div class="flashcard-progress">
+                            <span id="flashcards-progress-text" class="flashcard-progress-text">0/0</span>
+                            <div class="flashcard-progress-bar">
+                                <div id="flashcards-progress" class="flashcard-progress-fill"></div>
                             </div>
-                            <span id="flashcards-progress-text">0/0</span>
                         </div>
-                    </div>
+                        <div class="flashcard-header-spacer"></div>
+                    </header>
 
-                    <div id="flashcards-content" class="study-content flashcards-content">
-                        <div class="flashcard-wrapper">
-                            <div id="flashcard" class="flashcard">
-                                <div class="flashcard-inner">
-                                    <div class="flashcard-front">
-                                        <span id="flashcard-label-front" class="flashcard-label">WOORD</span>
-                                        <p id="flashcard-term" class="flashcard-text"></p>
-                                        <span class="flashcard-subhint">Tik om te draaien</span>
-                                    </div>
-                                    <div class="flashcard-back">
-                                        <span id="flashcard-label-back" class="flashcard-label">BETEKENIS</span>
-                                        <p id="flashcard-definition" class="flashcard-text"></p>
-                                    </div>
+                    <main class="flashcard-stage" id="flashcard-stage">
+                        <div id="flashcard-card" class="flashcard-card" onclick="toggleFlashcard()">
+                            <div class="flashcard-face flashcard-face-front">
+                                <span id="flashcard-label-front" class="flashcard-chip">WOORD</span>
+                                <div class="flashcard-text-wrap">
+                                    <p id="flashcard-term" class="flashcard-text"></p>
+                                </div>
+                                <span class="flashcard-subhint">Tik om te draaien</span>
+                            </div>
+                            <div class="flashcard-face flashcard-face-back">
+                                <span id="flashcard-label-back" class="flashcard-chip">BETEKENIS</span>
+                                <div class="flashcard-text-wrap">
+                                    <p id="flashcard-definition" class="flashcard-text"></p>
                                 </div>
                             </div>
-                            <p class="flashcard-hint">Klik om om te draaien of druk op spatie</p>
                         </div>
-                        <div class="flashcard-controls">
-                            <button class="btn-flashcard btn-wrong" onclick="markFlashcard(false)">
-                                <i class="fas fa-times"></i>
-                                <span>Nog leren (←)</span>
-                            </button>
-                            <button class="btn-flashcard btn-correct" onclick="markFlashcard(true)">
-                                <i class="fas fa-check"></i>
-                                <span>Goed (→)</span>
-                            </button>
-                        </div>
+                    </main>
+
+                    <div id="flashcard-actions" class="flashcard-actions">
+                        <button class="flashcard-action flashcard-action-wrong" onclick="markFlashcard(false)">FOUT</button>
+                        <button class="flashcard-action flashcard-action-right" onclick="markFlashcard(true)">GOED</button>
                     </div>
                 </div>
             </div>
