@@ -381,26 +381,54 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="setting-group">
-                            <label class="toggle-label">
-                                <input type="checkbox" id="cloud-enabled-toggle">
-                                <span class="toggle-switch">
-                                    <span class="toggle-slider"></span>
-                                </span>
-                                <span class="toggle-text">Cloud functies (Supabase) inschakelen</span>
-                            </label>
-                            <p class="setting-hint">Hiermee krijg je inloggen, openbare lijsten en online sync.</p>
+                        <div class="settings-tabs">
+                            <button class="tab-btn active" data-tab="general" onclick="setAppSettingsTab('general')">
+                                <i class="fas fa-sliders-h"></i> Algemeen
+                            </button>
+                            <button class="tab-btn" data-tab="themes" onclick="setAppSettingsTab('themes')">
+                                <i class="fas fa-palette"></i> Thema's
+                            </button>
                         </div>
 
-                        <div class="setting-group">
-                            <label class="toggle-label">
-                                <input type="checkbox" id="dark-mode-toggle">
-                                <span class="toggle-switch">
-                                    <span class="toggle-slider"></span>
-                                </span>
-                                <span class="toggle-text">Dark mode</span>
-                            </label>
-                            <p class="setting-hint">Zet een donker thema aan voor de hele app.</p>
+                        <div class="tab-panels">
+                            <div class="tab-panel active" id="tab-general">
+                                <div class="setting-group">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="cloud-enabled-toggle">
+                                        <span class="toggle-switch">
+                                            <span class="toggle-slider"></span>
+                                        </span>
+                                        <span class="toggle-text">Cloud functies inschakelen</span>
+                                    </label>
+                                    <p class="setting-hint">Hiermee krijg je inloggen, openbare lijsten en online sync.</p>
+                                </div>
+                            </div>
+
+                            <div class="tab-panel" id="tab-themes">
+                                <div class="setting-group">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="dark-mode-toggle">
+                                        <span class="toggle-switch">
+                                            <span class="toggle-slider"></span>
+                                        </span>
+                                        <span class="toggle-text">Dark mode</span>
+                                    </label>
+                                    <p class="setting-hint">Zet een donker thema aan voor de hele app.</p>
+                                </div>
+
+                                <div class="setting-group">
+                                    <label for="accent-color-input">Accentkleur</label>
+                                    <div id="preset-colors" class="preset-colors-grid">
+                                        <!-- Preset colors will be rendered here -->
+                                    </div>
+                                    <div class="color-picker-row">
+                                        <input type="color" id="accent-color-picker" value="#FFD93D" aria-label="Accentkleur kiezen">
+                                        <input type="text" id="accent-color-input" value="#FFD93D" maxlength="7" aria-label="Accentkleur hex">
+                                        <button class="btn btn-secondary btn-small" onclick="resetAccentColor()">Standaard</button>
+                                    </div>
+                                    <p class="setting-hint">Deze kleur vervangt alle gele accenten in de app.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

@@ -11,6 +11,19 @@ let authMode = 'login';
 let publicSearchTimer = null;
 const CLOUD_SETTINGS_KEY = 'cloudEnabled';
 const DARK_MODE_SETTINGS_KEY = 'darkModeEnabled';
+const ACCENT_COLOR_SETTINGS_KEY = 'accentColor';
+const LAST_SETTINGS_TAB_KEY = 'lastSettingsTab';
+const DEFAULT_ACCENT_COLOR = '#FFD93D';
+const PRESET_COLORS = [
+    '#FFD93D', // Geel (default)
+    '#FF6B6B', // Rood
+    '#4ECDC4', // Turquoise
+    '#95E1D3', // Mint
+    '#A8E6CF', // Groen
+    '#FFB6B9', // Roze
+    '#C7CEEA', // Paars
+    '#FFA07A'  // Oranje
+];
 
 // Study session state
 let studySession = {
@@ -60,7 +73,8 @@ let flashcardState = {
     dragX: 0,
     isDragging: false,
     animState: null,
-    isFlipped: false
+    isFlipped: false,
+    ignoreNextClick: false
 };
 
 // ===== Save Data =====
@@ -685,6 +699,14 @@ function openAppSettings() {
     if (toggle) toggle.checked = isCloudEnabled();
     const darkToggle = document.getElementById('dark-mode-toggle');
     if (darkToggle) darkToggle.checked = isDarkModeEnabled();
+    const colorPicker = document.getElementById('accent-color-picker');
+    const colorInput = document.getElementById('accent-color-input');
+    const accent = getAccentColor();
+    if (colorPicker) colorPicker.value = accent;
+    if (colorInput) colorInput.value = accent;
+    renderPresetColors();
+    const lastTab = localStorage.getItem(LAST_SETTINGS_TAB_KEY) || 'general';
+    setAppSettingsTab(lastTab);
     if (modal) modal.classList.remove('hidden');
 }
 
@@ -700,7 +722,22 @@ function saveAppSettings() {
 
     const darkToggle = document.getElementById('dark-mode-toggle');
     setDarkModeEnabled(!!darkToggle?.checked);
+
+    const colorPicker = document.getElementById('accent-color-picker');
+    const colorInput = document.getElementById('accent-color-input');
+    const chosen = (colorPicker?.value || colorInput?.value || '').trim();
+    if (chosen) {
+        setAccentColor(chosen);
+    }
     closeAppSettings();
+}
+
+function setAppSettingsTab(tab) {
+    const tabs = document.querySelectorAll('.settings-tabs .tab-btn');
+    const panels = document.querySelectorAll('.tab-panels .tab-panel');
+    tabs.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    panels.forEach(panel => panel.classList.toggle('active', panel.id === `tab-${tab}`));
+    localStorage.setItem(LAST_SETTINGS_TAB_KEY, tab);
 }
 
 function isDarkModeEnabled() {
@@ -715,6 +752,195 @@ function setDarkModeEnabled(enabled) {
 function applyTheme() {
     const enabled = isDarkModeEnabled();
     document.body.classList.toggle('dark', enabled);
+    applyAccentColor(getAccentColor());
+}
+
+function normalizeHexColor(value) {
+    if (!value) return null;
+    const hex = value.trim();
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) return hex.toUpperCase();
+    if (/^#[0-9A-Fa-f]{3}$/.test(hex)) {
+        return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`.toUpperCase();
+    }
+    return null;
+}
+
+function getAccentColor() {
+    return normalizeHexColor(localStorage.getItem(ACCENT_COLOR_SETTINGS_KEY)) || DEFAULT_ACCENT_COLOR;
+}
+
+function setAccentColor(value) {
+    const normalized = normalizeHexColor(value) || DEFAULT_ACCENT_COLOR;
+    localStorage.setItem(ACCENT_COLOR_SETTINGS_KEY, normalized);
+    applyAccentColor(normalized);
+}
+
+function resetAccentColor() {
+    setAccentColor(DEFAULT_ACCENT_COLOR);
+    const colorPicker = document.getElementById('accent-color-picker');
+    const colorInput = document.getElementById('accent-color-input');
+    if (colorPicker) colorPicker.value = DEFAULT_ACCENT_COLOR;
+    if (colorInput) colorInput.value = DEFAULT_ACCENT_COLOR;
+}
+
+function applyAccentColor(color) {
+    const normalized = normalizeHexColor(color) || DEFAULT_ACCENT_COLOR;
+    const isDark = isDarkModeEnabled();
+    const palette = buildAccentPalette(normalized, isDark);
+    const root = document.documentElement;
+    root.style.setProperty('--primary-yellow', palette.primary);
+    root.style.setProperty('--primary-yellow-dark', palette.dark);
+    root.style.setProperty('--primary-yellow-light', palette.light);
+    
+    if (isDark) {
+        root.style.setProperty('--bg-cream', palette.bgCreamDark);
+        root.style.setProperty('--bg-light', palette.bgLightDark);
+    } else {
+        root.style.setProperty('--bg-cream', palette.bgCream);
+        root.style.setProperty('--bg-light', palette.bgLight);
+    }
+}
+
+function buildAccentPalette(hex, isDarkMode = false) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) {
+        return { 
+            primary: DEFAULT_ACCENT_COLOR, 
+            dark: '#F5C800', 
+            light: '#FFF3B8', 
+            bgCream: '#FFFEF7',
+            bgCreamDark: '#0b0f17',
+            bgLight: '#FFF9E6',
+            bgLightDark: '#111827'
+        };
+    }
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    
+    // Detect if color is dark (lightness < 0.5)
+    const isColorDark = hsl.l < 0.5;
+    
+    // For icons: if color is dark, make them lighter
+    let dark, light;
+    if (isColorDark) {
+        // Lighten for dark colors
+        dark = hslToHex(hsl.h, clamp(hsl.s * 0.9, 0.3, 1), clamp(hsl.l + 0.15, 0.4, 0.7));
+        light = hslToHex(hsl.h, clamp(hsl.s * 0.7, 0.2, 1), clamp(hsl.l + 0.35, 0.7, 0.95));
+    } else {
+        // Darken for light colors
+        dark = hslToHex(hsl.h, hsl.s, clamp(hsl.l - 0.12, 0.1, 0.9));
+        light = hslToHex(hsl.h, clamp(hsl.s - 0.05, 0.15, 1), clamp(hsl.l + 0.28, 0.2, 0.95));
+    }
+    
+    // Background cream - subtle tinted version
+    const bgCream = hslToHex(hsl.h, clamp(hsl.s * 0.15, 0.05, 0.15), clamp(hsl.l + 0.42, 0.92, 0.99));
+    
+    // Background light - slightly less subtle
+    const bgLight = hslToHex(hsl.h, clamp(hsl.s * 0.25, 0.08, 0.25), clamp(hsl.l + 0.38, 0.88, 0.96));
+    
+    // Dark mode background - darker tinted version
+    const bgCreamDark = hslToHex(hsl.h, clamp(hsl.s * 0.25, 0.08, 0.25), clamp(hsl.l * 0.15, 0.04, 0.1));
+    
+    // Dark mode bg-light - slightly lighter than bg-cream
+    const bgLightDark = hslToHex(hsl.h, clamp(hsl.s * 0.3, 0.1, 0.35), clamp(hsl.l * 0.25, 0.06, 0.13));
+    
+    return { primary: hex.toUpperCase(), dark, light, bgCream, bgLight, bgCreamDark, bgLightDark };
+}
+
+function hexToRgb(hex) {
+    const normalized = normalizeHexColor(hex);
+    if (!normalized) return null;
+    const value = normalized.slice(1);
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return { r, g, b };
+}
+
+function rgbToHsl(r, g, b) {
+    const rn = r / 255;
+    const gn = g / 255;
+    const bn = b / 255;
+    const max = Math.max(rn, gn, bn);
+    const min = Math.min(rn, gn, bn);
+    const delta = max - min;
+    let h = 0;
+    if (delta !== 0) {
+        if (max === rn) h = ((gn - bn) / delta) % 6;
+        else if (max === gn) h = (bn - rn) / delta + 2;
+        else h = (rn - gn) / delta + 4;
+        h = Math.round(h * 60);
+        if (h < 0) h += 360;
+    }
+    const l = (max + min) / 2;
+    const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+    return { h: h / 360, s, l };
+}
+
+function hslToHex(h, s, l) {
+    const { r, g, b } = hslToRgb(h, s, l);
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+}
+
+function hslToRgb(h, s, l) {
+    const hue = h * 360;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r1 = 0;
+    let g1 = 0;
+    let b1 = 0;
+
+    if (hue >= 0 && hue < 60) {
+        r1 = c; g1 = x; b1 = 0;
+    } else if (hue >= 60 && hue < 120) {
+        r1 = x; g1 = c; b1 = 0;
+    } else if (hue >= 120 && hue < 180) {
+        r1 = 0; g1 = c; b1 = x;
+    } else if (hue >= 180 && hue < 240) {
+        r1 = 0; g1 = x; b1 = c;
+    } else if (hue >= 240 && hue < 300) {
+        r1 = x; g1 = 0; b1 = c;
+    } else {
+        r1 = c; g1 = 0; b1 = x;
+    }
+
+    return {
+        r: Math.round((r1 + m) * 255),
+        g: Math.round((g1 + m) * 255),
+        b: Math.round((b1 + m) * 255)
+    };
+}
+
+function toHex(value) {
+    return value.toString(16).padStart(2, '0');
+}
+
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function renderPresetColors() {
+    const container = document.getElementById('preset-colors');
+    if (!container) return;
+    const currentColor = getAccentColor();
+    container.innerHTML = PRESET_COLORS.map(color => `
+        <button class="preset-color-btn ${color === currentColor ? 'active' : ''}" 
+                style="background-color: ${color};"
+                onclick="selectPresetColor('${color}')"
+                aria-label="Kleur ${color}">
+            ${color === currentColor ? '<i class="fas fa-check"></i>' : ''}
+        </button>
+    `).join('');
+}
+
+function selectPresetColor(color) {
+    const normalized = normalizeHexColor(color) || DEFAULT_ACCENT_COLOR;
+    setAccentColor(normalized);
+    const colorPicker = document.getElementById('accent-color-picker');
+    const colorInput = document.getElementById('accent-color-input');
+    if (colorPicker) colorPicker.value = normalized;
+    if (colorInput) colorInput.value = normalized;
+    renderPresetColors();
 }
 
 function isCloudEnabled() {
@@ -1040,6 +1266,58 @@ function checkAnswer(userAnswer, correctAnswer) {
     }
     
     return false;
+}
+
+function getSubjectForCurrentList() {
+    const list = wordLists.find(l => l.id === currentListId);
+    return (list?.subject || '').toLowerCase().trim();
+}
+
+function isWordPracticed(word) {
+    const stats = word?.stats || { correct: 0, wrong: 0 };
+    return (stats.correct + stats.wrong) > 0;
+}
+
+function findRelatedWordHint(userAnswer, correctAnswer, currentWordId) {
+    const subject = getSubjectForCurrentList();
+    if (!subject) return null;
+
+    const normalizedUser = normalizeAnswer(userAnswer, false, studySession.ignoreParentheses);
+    if (!normalizedUser) return null;
+
+    const normalizedCorrect = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses);
+
+    for (const list of wordLists) {
+        if ((list.subject || '').toLowerCase().trim() !== subject) continue;
+        for (const word of (list.words || [])) {
+            if (!isWordPracticed(word)) continue;
+            if (currentWordId && word.id === currentWordId) continue;
+
+            const termNorm = normalizeAnswer(word.term || '', false, studySession.ignoreParentheses);
+            const defNorm = normalizeAnswer(word.definition || '', false, studySession.ignoreParentheses);
+
+            if (termNorm && termNorm === normalizedUser && termNorm !== normalizedCorrect) {
+                return { matched: word.term, counterpart: word.definition };
+            }
+
+            if (defNorm && defNorm === normalizedUser && defNorm !== normalizedCorrect) {
+                return { matched: word.definition, counterpart: word.term };
+            }
+        }
+    }
+
+    return null;
+}
+
+function buildRelatedWordHint(userAnswer, correctAnswer, currentWordId) {
+    const match = findRelatedWordHint(userAnswer, correctAnswer, currentWordId);
+    if (!match) return '';
+    return `
+        <div class="other-word-hint">
+            <i class="fas fa-lightbulb"></i>
+            <span><strong>${escapeHtml(match.matched)}</strong> is het woord voor <strong>${escapeHtml(match.counterpart)}</strong>.</span>
+        </div>
+    `;
 }
 
 function containsOptionalTokens(answer) {
@@ -1511,12 +1789,14 @@ function checkStepTyping(wordId, correct) {
         progress.typingRemaining = 2;
         progress.typingCooldown = Math.max(progress.typingCooldown, 3);
         const diff = buildTypingDiff(userAnswer, correct);
+        const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         if (feedback) {
             feedback.innerHTML = `
                 <div class="feedback-message wrong">
                     <i class="fas fa-times-circle"></i> Fout.
                 </div>
                 ${diff}
+                ${relatedHint}
                 <div class="feedback-actions">
                     <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepTyping('${wordId}')">
                         <i class="fas fa-check"></i> Ik bedoelde dit
@@ -1618,11 +1898,13 @@ function checkStepReviewTyping(wordId, correct) {
     } else {
         input.classList.add('wrong');
         const diff = buildTypingDiff(userAnswer, correct);
+        const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = `
             <div class="feedback-message wrong">
                 <i class="fas fa-times-circle"></i> Fout.
             </div>
             ${diff}
+            ${relatedHint}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepReview('${wordId}')">
                     <i class="fas fa-check"></i> Ik bedoelde dit
@@ -1802,11 +2084,13 @@ function checkTypingAnswer(wordId, correct) {
             studySession.typingWrongWords.push(wordId);
         }
         const diff = buildTypingDiff(userAnswer, correct);
+        const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = `
             <div class="feedback-message wrong">
                 <i class="fas fa-times-circle"></i> Fout.
             </div>
             ${diff}
+            ${relatedHint}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedTyping('${wordId}')">
                     <i class="fas fa-check"></i> Ik bedoelde dit
@@ -1892,11 +2176,13 @@ function checkTypingReview(wordId, correct) {
     } else {
         input.classList.add('wrong');
         const diff = buildTypingDiff(userAnswer, correct);
+        const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = `
             <div class="feedback-message wrong">
                 <i class="fas fa-times-circle"></i> Fout.
             </div>
             ${diff}
+            ${relatedHint}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedTypingReview('${wordId}')">
                     <i class="fas fa-check"></i> Ik bedoelde dit
@@ -1956,14 +2242,14 @@ function initFlashcardsMode() {
     studySession.flashcardsWrong = [];
     studySession.flashcardsCorrect = [];
     studySession.currentIndex = 0;
-    flashcardState = { dragX: 0, isDragging: false, animState: null, isFlipped: false };
+    flashcardState = { dragX: 0, isDragging: false, animState: null, isFlipped: false, ignoreNextClick: false };
     
     showView('study-flashcards-view');
     updateFlashcardsProgress();
     showCurrentFlashcard();
     
     // Add keyboard listener
-    document.addEventListener('keydown', handleFlashcardKeys);
+    window.addEventListener('keydown', handleFlashcardKeys, true);
 
     ensureFlashcardSwipeHandlers();
 }
@@ -1973,13 +2259,20 @@ function handleFlashcardKeys(e) {
         return;
     }
     if (flashcardState.animState) return;
+
+    const activeElement = document.activeElement;
+    const isTypingField = activeElement && ['INPUT', 'TEXTAREA'].includes(activeElement.tagName) && !activeElement.disabled;
+    if (isTypingField) return;
+
+    const key = e.key;
+    const code = e.code;
     
-    switch (e.code) {
+    switch (code) {
         case 'Space':
         case 'ArrowUp':
         case 'ArrowDown':
             e.preventDefault();
-            toggleFlashcard();
+            toggleFlashcard('keyboard');
             break;
         case 'ArrowLeft':
             e.preventDefault();
@@ -1988,6 +2281,12 @@ function handleFlashcardKeys(e) {
         case 'ArrowRight':
             e.preventDefault();
             markFlashcard(true);
+            break;
+        default:
+            if (key === ' ' || key === 'Spacebar') {
+                e.preventDefault();
+                toggleFlashcard('keyboard');
+            }
             break;
     }
 }
@@ -2064,6 +2363,7 @@ function onFlashcardPointerUp(e) {
     const deltaX = flashcardSwipe.currentX - flashcardSwipe.startX;
     const deltaY = flashcardSwipe.currentY - flashcardSwipe.startY;
     const duration = Date.now() - flashcardSwipe.startTime;
+    const isTouch = e?.type?.startsWith('touch');
 
     // Check if swipe is significant
     const minDistance = 60;
@@ -2085,6 +2385,14 @@ function onFlashcardPointerUp(e) {
         flashcard.classList.remove('drag-left', 'drag-right');
         if (flashcardsView) {
             flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
+        }
+        const isTap = Math.abs(deltaX) < 12 && Math.abs(deltaY) < 12 && duration < 900;
+        if (isTouch && isTap) {
+            flashcardState.ignoreNextClick = true;
+            setTimeout(() => {
+                flashcardState.ignoreNextClick = false;
+            }, 100);
+            toggleFlashcard('touch');
         }
         setTimeout(() => {
             flashcard.style.transition = '';
@@ -2128,7 +2436,7 @@ function showCurrentFlashcard() {
             showCurrentFlashcard();
         } else {
             // Complete!
-            document.removeEventListener('keydown', handleFlashcardKeys);
+            window.removeEventListener('keydown', handleFlashcardKeys, true);
             showComplete();
         }
         return;
@@ -2163,7 +2471,11 @@ function showCurrentFlashcard() {
     if (backEl) backEl.textContent = backLabel || 'BETEKENIS';
 }
 
-function toggleFlashcard() {
+function toggleFlashcard(source = 'click') {
+    if (source === 'click' && flashcardState.ignoreNextClick) {
+        flashcardState.ignoreNextClick = false;
+        return;
+    }
     const flashcard = document.getElementById('flashcard-card');
     const actions = document.getElementById('flashcard-actions');
     flashcard.classList.toggle('flipped');
@@ -2246,7 +2558,7 @@ function restartStudy() {
 }
 
 function exitStudy() {
-    document.removeEventListener('keydown', handleFlashcardKeys);
+    window.removeEventListener('keydown', handleFlashcardKeys, true);
     saveActiveSession();
     showListDetail(currentListId);
 }
@@ -2277,6 +2589,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyTheme();
     applyCloudState();
+
+    const colorPicker = document.getElementById('accent-color-picker');
+    const colorInput = document.getElementById('accent-color-input');
+    if (colorPicker && colorInput) {
+        const syncAccentInputs = (value, save = false) => {
+            const normalized = normalizeHexColor(value) || getAccentColor();
+            colorPicker.value = normalized;
+            colorInput.value = normalized;
+            applyAccentColor(normalized);
+            if (save) {
+                setAccentColor(normalized);
+                renderPresetColors();
+            }
+        };
+
+        colorPicker.addEventListener('input', (e) => syncAccentInputs(e.target.value, true));
+        colorInput.addEventListener('change', (e) => syncAccentInputs(e.target.value, true));
+    }
     
     // Setup language search filters
     setupLanguageSearch();
@@ -2548,8 +2878,7 @@ function buildTypingDiff(userAnswer, correctAnswer) {
     const user = normalizeAnswer(userAnswer, false, studySession.ignoreParentheses);
     const correct = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses);
 
-    const maxLen = Math.max(user.length, correct.length);
-    if (maxLen === 0) {
+    if (!user.length && !correct.length) {
         return `
             <div class="correct-answer-display">
                 <div>Jij typte: <strong>(leeg)</strong></div>
@@ -2558,43 +2887,78 @@ function buildTypingDiff(userAnswer, correctAnswer) {
         `;
     }
 
-    const userChars = [];
-    const correctChars = [];
+    const uChars = Array.from(user);
+    const cChars = Array.from(correct);
+    const m = uChars.length;
+    const n = cChars.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
 
-    for (let i = 0; i < maxLen; i++) {
-        const u = user[i] || '';
-        const c = correct[i] || '';
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
 
-        if (!u && c) {
-            userChars.push(`<span class="diff-char missing">•</span>`);
-            correctChars.push(`<span class="diff-char expected">${escapeHtml(c)}</span>`);
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            const cost = uChars[i - 1] === cChars[j - 1] ? 0 : 1;
+            dp[i][j] = Math.min(
+                dp[i - 1][j] + 1,
+                dp[i][j - 1] + 1,
+                dp[i - 1][j - 1] + cost
+            );
+        }
+    }
+
+    const userOut = [];
+    const correctOut = [];
+    let i = m;
+    let j = n;
+
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0) {
+            const cost = uChars[i - 1] === cChars[j - 1] ? 0 : 1;
+            if (dp[i][j] === dp[i - 1][j - 1] + cost) {
+                const u = uChars[i - 1];
+                const c = cChars[j - 1];
+                if (cost === 0) {
+                    userOut.push(`<span class="diff-char correct">${escapeHtml(u)}</span>`);
+                    correctOut.push(`<span class="diff-char correct">${escapeHtml(c)}</span>`);
+                } else {
+                    userOut.push(`<span class="diff-char wrong">${escapeHtml(u)}</span>`);
+                    correctOut.push(`<span class="diff-char expected">${escapeHtml(c)}</span>`);
+                }
+                i--;
+                j--;
+                continue;
+            }
+        }
+
+        if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
+            const u = uChars[i - 1];
+            userOut.push(`<span class="diff-char wrong">${escapeHtml(u)}</span>`);
+            correctOut.push(`<span class="diff-char expected">•</span>`);
+            i--;
             continue;
         }
 
-        if (u && !c) {
-            userChars.push(`<span class="diff-char wrong">${escapeHtml(u)}</span>`);
-            correctChars.push(`<span class="diff-char expected">•</span>`);
+        if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) {
+            const c = cChars[j - 1];
+            userOut.push(`<span class="diff-char missing">•</span>`);
+            correctOut.push(`<span class="diff-char expected">${escapeHtml(c)}</span>`);
+            j--;
             continue;
         }
 
-        if (u === c) {
-            userChars.push(`<span class="diff-char correct">${escapeHtml(u)}</span>`);
-            correctChars.push(`<span class="diff-char correct">${escapeHtml(c)}</span>`);
-        } else {
-            userChars.push(`<span class="diff-char wrong">${escapeHtml(u)}</span>`);
-            correctChars.push(`<span class="diff-char expected">${escapeHtml(c)}</span>`);
-        }
+        break;
     }
 
     return `
         <div class="typing-diff">
             <div class="diff-row">
                 <span class="diff-label">Jij:</span>
-                <span class="diff-text">${userChars.join('')}</span>
+                <span class="diff-text">${userOut.reverse().join('')}</span>
             </div>
             <div class="diff-row">
                 <span class="diff-label">Juist:</span>
-                <span class="diff-text">${correctChars.join('')}</span>
+                <span class="diff-text">${correctOut.reverse().join('')}</span>
             </div>
         </div>
     `;
