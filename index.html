@@ -394,7 +394,7 @@
                             <div class="tab-panel active" id="tab-general">
                                 <div class="setting-group">
                                     <label class="toggle-label">
-                                        <input type="checkbox" id="cloud-enabled-toggle">
+                                        <input type="checkbox" id="cloud-enabled-toggle" onchange="setCloudEnabled(this.checked)">
                                         <span class="toggle-switch">
                                             <span class="toggle-slider"></span>
                                         </span>
@@ -407,7 +407,7 @@
                             <div class="tab-panel" id="tab-themes">
                                 <div class="setting-group">
                                     <label class="toggle-label">
-                                        <input type="checkbox" id="dark-mode-toggle">
+                                        <input type="checkbox" id="dark-mode-toggle" onchange="setDarkModeEnabled(this.checked)">
                                         <span class="toggle-switch">
                                             <span class="toggle-slider"></span>
                                         </span>
@@ -426,15 +426,14 @@
                                         <input type="text" id="accent-color-input" value="#FFD93D" maxlength="7" aria-label="Accentkleur hex">
                                         <button class="btn btn-secondary btn-small" onclick="resetAccentColor()">Standaard</button>
                                     </div>
-                                    <p class="setting-hint">Deze kleur vervangt alle gele accenten in de app.</p>
+                                    <p class="setting-hint">Kies een kleur om het uiterlijk van de app aan te passen.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="closeAppSettings()">Sluiten</button>
-                        <button class="btn btn-primary" onclick="saveAppSettings()">
-                            <i class="fas fa-save"></i> Opslaan
+                        <button class="btn btn-primary" onclick="closeAppSettings()">
+                            <i class="fas fa-check"></i> Klaar
                         </button>
                     </div>
                 </div>
@@ -528,7 +527,7 @@
                     </header>
 
                     <main class="flashcard-stage" id="flashcard-stage">
-                        <div id="flashcard-card" class="flashcard-card" onclick="toggleFlashcard()">
+                        <div id="flashcard-card" class="flashcard-card" onclick="toggleFlashcard('click')">
                             <div class="flashcard-face flashcard-face-front">
                                 <span id="flashcard-label-front" class="flashcard-chip">WOORD</span>
                                 <div class="flashcard-text-wrap">

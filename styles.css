@@ -33,8 +33,8 @@
 body.dark {
     --bg-cream: #0b0f17;
     --bg-light: #111827;
-    --white: #0f172a;
-    --text-dark: #e5e7eb;
+    --white: #1e293b;
+    --text-dark: #f1f5f9;
     --text-medium: #cbd5e1;
     --text-light: #94a3b8;
     --shadow-sm: 0 2px 6px rgba(0,0,0,0.45);
@@ -45,6 +45,249 @@ body.dark {
     --toggle-track-end: #334155;
     --toggle-knob-start: #e5e7eb;
     --toggle-knob-end: #cbd5e1;
+    --success-light: rgba(34, 197, 94, 0.15);
+    --error-light: rgba(239, 68, 68, 0.15);
+    --primary-yellow-light: rgba(255, 217, 61, 0.15);
+}
+
+/* Dark mode specific overrides */
+body.dark .welcome-section {
+    background: linear-gradient(135deg, rgba(255, 217, 61, 0.1) 0%, var(--bg-cream) 100%);
+}
+
+body.dark .modal-header {
+    background: linear-gradient(135deg, rgba(255, 217, 61, 0.15), var(--bg-light));
+}
+
+body.dark .modal-content {
+    border-color: rgba(255, 217, 61, 0.2);
+}
+
+body.dark .flashcard-face-front {
+    background: var(--white);
+    border-color: var(--bg-light);
+}
+
+body.dark .flashcard-face-front .flashcard-chip {
+    color: var(--primary-yellow);
+}
+
+body.dark .flashcard-face-front .flashcard-text {
+    color: var(--text-dark);
+}
+
+body.dark .flashcard-face-front .flashcard-subhint {
+    color: var(--text-light);
+}
+
+body.dark .flashcard-close {
+    background: rgba(30, 41, 59, 0.9);
+    color: var(--text-light);
+}
+
+body.dark .flashcard-close:hover {
+    background: var(--white);
+    color: var(--text-dark);
+}
+
+body.dark .flashcard-progress-bar {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+body.dark .flashcard-progress-fill {
+    background: var(--primary-yellow);
+}
+
+body.dark .flashcard-action-wrong,
+body.dark .flashcard-action-right {
+    background: var(--white);
+}
+
+body.dark .flashcard-action-wrong {
+    border-bottom-color: rgba(244, 63, 94, 0.25);
+}
+
+body.dark .flashcard-action-right {
+    border-bottom-color: rgba(16, 185, 129, 0.25);
+}
+
+body.dark .flashcard-front,
+body.dark .flashcard-back {
+    border-color: var(--bg-light);
+}
+
+body.dark .flashcard-front {
+    background: var(--white);
+}
+
+body.dark .flashcard-label {
+    color: var(--text-light);
+}
+
+body.dark .flashcard-subhint {
+    color: var(--text-light);
+}
+
+body.dark .btn-wrong,
+body.dark .btn-correct {
+    background: var(--white);
+}
+
+body.dark .btn-wrong {
+    border-bottom-color: rgba(244, 63, 94, 0.25);
+}
+
+body.dark .btn-correct {
+    border-bottom-color: rgba(16, 185, 129, 0.25);
+}
+
+body.dark .choice-btn {
+    background: var(--white);
+    border-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+body.dark .choice-btn:hover:not(:disabled) {
+    background: var(--primary-yellow-light);
+    border-color: var(--primary-yellow);
+}
+
+body.dark .typing-input {
+    background: var(--white);
+    border-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+body.dark .import-area textarea {
+    background: var(--white);
+    border-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+body.dark .flip-card-front {
+    background: var(--white);
+    color: var(--text-dark);
+}
+
+body.dark .flip-card-back {
+    background: var(--primary-yellow);
+    color: var(--text-dark);
+}
+
+body.dark .empty-state {
+    background: var(--white);
+    border-color: var(--primary-yellow);
+}
+
+body.dark .preset-color-btn:hover,
+body.dark .preset-color-btn.active {
+    border-color: var(--text-dark);
+}
+
+body.dark .btn-secondary {
+    background: var(--bg-light);
+    color: var(--text-dark);
+}
+
+body.dark .btn-secondary:hover {
+    background: var(--primary-yellow-light);
+}
+
+body.dark .nav-btn.active {
+    color: #1e293b;
+}
+
+body.dark .mobile-nav-btn.active {
+    color: var(--primary-yellow-dark);
+    background: var(--primary-yellow-light);
+}
+
+body.dark .subject-btn {
+    background: var(--white);
+    border-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+body.dark .subject-btn.active {
+    background: var(--primary-yellow-light);
+    border-color: var(--primary-yellow);
+}
+
+body.dark .direction-btn {
+    background: var(--white);
+    border-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+body.dark .direction-btn.active {
+    background: var(--primary-yellow-light);
+    border-color: var(--primary-yellow);
+}
+
+body.dark .question-type-label {
+    background: var(--primary-yellow-light);
+    color: var(--primary-yellow);
+}
+
+body.dark .resume-banner {
+    background: var(--primary-yellow-light);
+}
+
+body.dark .resume-info {
+    color: var(--text-dark);
+}
+
+body.dark .other-word-hint {
+    background: var(--white);
+}
+
+body.dark select option {
+    background: var(--white);
+    color: var(--text-dark);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--text-light);
+    border-radius: 5px;
+    border: 2px solid var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-medium);
+}
+
+body.dark ::-webkit-scrollbar-track {
+    background: var(--bg-cream);
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+    background: var(--text-light);
+    border-color: var(--bg-cream);
+}
+
+/* Smooth color transitions for theme changes */
+body,
+.header,
+.modal-content,
+.modal-header,
+.modal-body,
+.word-list-card,
+.mode-card,
+.question-card,
+.flashcard-face,
+.btn {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 * {
@@ -528,6 +771,11 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+.btn-primary:focus-visible {
+    outline: 3px solid var(--primary-yellow);
+    outline-offset: 2px;
+}
+
 .btn-secondary {
     background: var(--bg-light);
     color: var(--text-dark);
@@ -535,6 +783,11 @@ body {
 
 .btn-secondary:hover {
     background: var(--primary-yellow-light);
+}
+
+.btn-secondary:focus-visible {
+    outline: 3px solid var(--primary-yellow);
+    outline-offset: 2px;
 }
 
 .btn-icon {
@@ -548,6 +801,11 @@ body {
 
 .btn-icon:hover {
     background: var(--primary-yellow-light);
+}
+
+.btn-icon:focus-visible {
+    outline: 3px solid var(--primary-yellow);
+    outline-offset: 2px;
 }
 
 .btn-danger {
@@ -1281,8 +1539,13 @@ body {
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--bg-light);
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 0.75rem;
+    background: var(--white);
+}
+
+.modal-footer .btn-primary {
+    min-width: 140px;
 }
 
 .setting-group {
@@ -1623,7 +1886,7 @@ body {
     position: absolute;
     inset: 0;
     border-radius: 32px;
-    border: 8px solid var(--white);
+    border: 8px solid var(--bg-light);
     box-shadow: 0 24px 48px rgba(0,0,0,0.18);
     display: flex;
     flex-direction: column;
@@ -2294,7 +2557,7 @@ body {
 }
 
 .grade-mid {
-    color: var(--text-dark);
+    color: var(--primary-yellow-dark);
 }
 
 .complete-stats {

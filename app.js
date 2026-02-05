@@ -13,6 +13,9 @@ const CLOUD_SETTINGS_KEY = 'cloudEnabled';
 const DARK_MODE_SETTINGS_KEY = 'darkModeEnabled';
 const ACCENT_COLOR_SETTINGS_KEY = 'accentColor';
 const LAST_SETTINGS_TAB_KEY = 'lastSettingsTab';
+const LAST_VIEW_KEY = 'lastView';
+const LAST_LIST_ID_KEY = 'lastListId';
+const LAST_STUDY_MODE_KEY = 'lastStudyMode';
 const DEFAULT_ACCENT_COLOR = '#FFD93D';
 const PRESET_COLORS = [
     '#FFD93D', // Geel (default)
@@ -82,6 +85,36 @@ function saveData() {
     localStorage.setItem('wordLists', JSON.stringify(wordLists));
 }
 
+// ===== Session Persistence =====
+function restoreLastView() {
+    const lastView = localStorage.getItem(LAST_VIEW_KEY);
+    const lastListId = localStorage.getItem(LAST_LIST_ID_KEY);
+    const lastStudyMode = localStorage.getItem(LAST_STUDY_MODE_KEY);
+    
+    // Only restore if we have valid data
+    if (!lastView || lastView === 'home-view' || lastView === 'create-view' || lastView === 'complete-view') {
+        return; // Show default home view
+    }
+    
+    // For study views, only restore if active session exists
+    if (lastView.startsWith('study-')) {
+        if (lastStudyMode && studySession.words && studySession.words.length > 0) {
+            showView(lastView);
+            return;
+        }
+        return; // Session ended, show home
+    }
+    
+    // For list view, restore the list if it exists
+    if (lastView === 'list-view' && lastListId) {
+        const list = wordLists.find(l => l.id === lastListId);
+        if (list) {
+            showListDetail(lastListId);
+            return;
+        }
+    }
+}
+
 // ===== Navigation =====
 function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -104,9 +137,23 @@ function showView(viewId) {
             btn.classList.add('active');
         }
     });
+    
+    // Save view state for session persistence
+    localStorage.setItem(LAST_VIEW_KEY, viewId);
+    if (currentListId && (viewKey === 'list' || viewKey === 'study-steps' || viewKey === 'study-typing' || viewKey === 'study-flashcards')) {
+        localStorage.setItem(LAST_LIST_ID_KEY, currentListId);
+    }
+    if (currentStudyMode && viewKey.startsWith('study-')) {
+        localStorage.setItem(LAST_STUDY_MODE_KEY, currentStudyMode);
+    }
 }
 
 function showHome() {
+    // Clear study state when going home
+    currentListId = null;
+    currentStudyMode = null;
+    localStorage.removeItem(LAST_STUDY_MODE_KEY);
+    
     showView('home-view');
     renderWordLists();
     document.querySelector('.nav-btn[data-view="home"]').classList.add('active');
@@ -716,19 +763,7 @@ function closeAppSettings() {
 }
 
 function saveAppSettings() {
-    const toggle = document.getElementById('cloud-enabled-toggle');
-    const enabled = !!toggle?.checked;
-    setCloudEnabled(enabled);
-
-    const darkToggle = document.getElementById('dark-mode-toggle');
-    setDarkModeEnabled(!!darkToggle?.checked);
-
-    const colorPicker = document.getElementById('accent-color-picker');
-    const colorInput = document.getElementById('accent-color-input');
-    const chosen = (colorPicker?.value || colorInput?.value || '').trim();
-    if (chosen) {
-        setAccentColor(chosen);
-    }
+    // Settings now auto-save on change, so this just closes the modal
     closeAppSettings();
 }
 
@@ -790,12 +825,19 @@ function applyAccentColor(color) {
     const root = document.documentElement;
     root.style.setProperty('--primary-yellow', palette.primary);
     root.style.setProperty('--primary-yellow-dark', palette.dark);
-    root.style.setProperty('--primary-yellow-light', palette.light);
     
+    // In dark mode, primary-yellow-light should be semi-transparent
     if (isDark) {
+        const rgb = hexToRgb(normalized);
+        if (rgb) {
+            root.style.setProperty('--primary-yellow-light', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`);
+        } else {
+            root.style.setProperty('--primary-yellow-light', palette.light);
+        }
         root.style.setProperty('--bg-cream', palette.bgCreamDark);
         root.style.setProperty('--bg-light', palette.bgLightDark);
     } else {
+        root.style.setProperty('--primary-yellow-light', palette.light);
         root.style.setProperty('--bg-cream', palette.bgCream);
         root.style.setProperty('--bg-light', palette.bgLight);
     }
@@ -2388,10 +2430,6 @@ function onFlashcardPointerUp(e) {
         }
         const isTap = Math.abs(deltaX) < 12 && Math.abs(deltaY) < 12 && duration < 900;
         if (isTouch && isTap) {
-            flashcardState.ignoreNextClick = true;
-            setTimeout(() => {
-                flashcardState.ignoreNextClick = false;
-            }, 100);
             toggleFlashcard('touch');
         }
         setTimeout(() => {
@@ -2459,6 +2497,7 @@ function showCurrentFlashcard() {
     }
     if (actions) actions.classList.remove('is-visible');
     flashcardState.isFlipped = false;
+    flashcardState.ignoreNextClick = false;  // Reset ignore flag for new card
     
     document.getElementById('flashcard-term').textContent = qa.question;
     document.getElementById('flashcard-definition').textContent = qa.answer;
@@ -2473,8 +2512,7 @@ function showCurrentFlashcard() {
 
 function toggleFlashcard(source = 'click') {
     if (source === 'click' && flashcardState.ignoreNextClick) {
-        flashcardState.ignoreNextClick = false;
-        return;
+        return;  // Return without resetting - will be reset when new card loads
     }
     const flashcard = document.getElementById('flashcard-card');
     const actions = document.getElementById('flashcard-actions');
@@ -2583,6 +2621,36 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ===== Session Persistence =====
+function restoreLastView() {
+    const lastView = localStorage.getItem(LAST_VIEW_KEY);
+    const lastListId = localStorage.getItem(LAST_LIST_ID_KEY);
+    const lastStudyMode = localStorage.getItem(LAST_STUDY_MODE_KEY);
+    
+    // Only restore if we have valid data
+    if (!lastView || lastView === 'home-view' || lastView === 'create-view' || lastView === 'complete-view') {
+        return; // Show default home view
+    }
+    
+    // For study views, only restore if active session exists
+    if (lastView.startsWith('study-')) {
+        if (lastStudyMode && studySession.words && studySession.words.length > 0) {
+            showView(lastView);
+            return;
+        }
+        return; // Session ended, show home
+    }
+    
+    // For list view, restore the list if it exists
+    if (lastView === 'list-view' && lastListId) {
+        const list = wordLists.find(l => l.id === lastListId);
+        if (list) {
+            showListDetail(lastListId);
+            return;
+        }
+    }
+}
+
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
     renderWordLists();
@@ -2628,10 +2696,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Re-attach flashcard click handler
-    const flashcard = document.getElementById('flashcard');
+    const flashcard = document.getElementById('flashcard-card');
     if (flashcard) {
-        flashcard.addEventListener('click', toggleFlashcard);
+        flashcard.removeEventListener('click', toggleFlashcard);
+        flashcard.addEventListener('click', () => toggleFlashcard('click'));
     }
+    
+    // Restore last view (session persistence)
+    restoreLastView();
 });
 
 function applyImportFromUrl() {
