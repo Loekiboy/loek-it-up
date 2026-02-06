@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loek it Up - Woordjes Leren</title>
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/fav.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -44,6 +45,13 @@
                     <i class="fas fa-cog"></i> Instellingen
                 </button>
             </nav>
+            <div class="header-search public-search cloud-only">
+                <div class="public-search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="public-search-input" name="public-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoek openbare woordenlijsten (titel of woord)..." oninput="debouncedPublicSearch()">
+                </div>
+                <div id="public-search-results" class="public-search-results"></div>
+            </div>
             <div class="auth-controls cloud-only">
                 <button id="auth-menu-btn" class="auth-avatar-btn" onclick="toggleAuthMenu(event)" aria-label="Account">
                     <img src="images/logo.svg" alt="Account" class="auth-avatar-img">
@@ -94,13 +102,6 @@
                 
                 <div class="lists-section">
                     <h2><i class="fas fa-folder-open"></i> Mijn Woordenlijsten</h2>
-                    <div class="public-search cloud-only">
-                        <div class="public-search-bar">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="public-search-input" name="public-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoek openbare woordenlijsten (titel of woord)..." oninput="debouncedPublicSearch()">
-                        </div>
-                        <div id="public-search-results" class="public-search-results"></div>
-                    </div>
                     <div id="word-lists-container" class="word-lists-grid">
                         <!-- Word lists will be dynamically added here -->
                     </div>
@@ -230,7 +231,7 @@
 
                     <div class="form-group cloud-only">
                         <label class="toggle-label">
-                            <input type="checkbox" id="list-public">
+                            <input type="checkbox" id="list-public" checked>
                             <span class="toggle-switch">
                                 <span class="toggle-slider"></span>
                             </span>

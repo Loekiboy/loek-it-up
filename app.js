@@ -172,7 +172,7 @@ function showCreateList() {
     document.getElementById('import-area').classList.add('hidden');
     document.getElementById('import-text').value = '';
     const publicToggle = document.getElementById('list-public');
-    if (publicToggle) publicToggle.checked = false;
+    if (publicToggle) publicToggle.checked = isCloudEnabled();
     
     document.querySelectorAll('.subject-btn').forEach(btn => btn.classList.remove('active'));
     
@@ -466,7 +466,7 @@ async function saveList() {
     const langTo = document.getElementById('lang-to').value.trim();
     const subject = document.getElementById('selected-subject').value;
     const icon = document.getElementById('selected-icon').value || 'fa-book';
-    const isPublic = isCloudEnabled() ? (document.getElementById('list-public')?.checked || false) : false;
+    const isPublic = isCloudEnabled() ? (document.getElementById('list-public')?.checked !== false) : false;
     const existingList = editingListId ? wordLists.find(l => l.id === editingListId) : null;
     const statsById = (existingList?.words || []).reduce((acc, w) => {
         acc[w.id] = w.stats || { correct: 0, wrong: 0 };
@@ -655,11 +655,17 @@ function initSupabase() {
         return;
     }
 
-    // Create the client
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Helpful console note about security: anon key is public; use RLS to protect data
-    console.info('Supabase client initialized. Ensure you have created RLS policies (see README/SQL) to protect user data.');
+    // Create or reuse the client to avoid multiple GoTrue instances
+    if (window.__loek_supabase_client) {
+        supabaseClient = window.__loek_supabase_client;
+        console.info('Reusing existing Supabase client instance.');
+    } else {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.__loek_supabase_client = supabaseClient;
+        // Expose config for debug helpers
+        window.__LOEK_SUPABASE_CONFIG = { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY };
+        console.info('Supabase client initialized. Ensure you have created RLS policies (see README/SQL) to protect user data.');
+    }
 
     supabaseClient.auth.getSession().then(({ data }) => {
         authUser = data.session?.user || null;
@@ -1137,6 +1143,10 @@ async function loadRemoteLists() {
     renderWordLists();
 }
 
+function isValidUUID(str) {
+    return typeof str === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str);
+}
+
 async function saveListToRemote(listId) {
     if (!supabaseClient || !authUser) return;
     const list = wordLists.find(l => l.id === listId);
@@ -1144,25 +1154,65 @@ async function saveListToRemote(listId) {
 
     const searchText = list.words.map(w => `${w.term} ${w.definition}`).join(' ').slice(0, 2000);
 
-    const { error } = await supabaseClient
-        .from('word_lists')
-        .upsert({
-            id: list.id,
-            user_id: authUser.id,
-            title: list.title,
-            lang_from: list.langFrom,
-            lang_to: list.langTo,
-            subject: list.subject,
-            icon: list.icon,
-            words: list.words,
-            is_public: !!list.isPublic,
-            search_text: searchText,
-            updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
+    // Build payload and omit id if it's not a valid UUID so Postgres can generate one
+    const payload = {
+        user_id: authUser.id,
+        title: list.title,
+        lang_from: list.langFrom,
+        lang_to: list.langTo,
+        subject: list.subject,
+        icon: list.icon,
+        words: list.words,
+        is_public: !!list.isPublic,
+        search_text: searchText,
+        updated_at: new Date().toISOString()
+    };
+    if (isValidUUID(list.id)) payload.id = list.id;
 
-    if (error) {
-        console.error('Save list failed', error);
-        throw error;
+    try {
+        // Log session/token presence to help debug auth related 400s
+        try {
+            const sess = await supabaseClient.auth.getSession();
+            console.debug('Supabase session present:', !!sess?.data?.session);
+        } catch (e) {
+            console.debug('Could not read session prior to save:', e?.message || e);
+        }
+
+        // Request returning rows so we can capture generated UUIDs
+        const resp = await supabaseClient
+            .from('word_lists')
+            .upsert(payload, { onConflict: 'id' })
+            .select('*');
+
+        if (resp.error) {
+            // Log detailed response for debugging
+            console.error('Save list failed (detailed):', {
+                status: resp.status || 'unknown',
+                error: resp.error,
+                data: resp.data
+            });
+
+            // Attempt a manual REST call to capture full response body for debugging
+            try {
+                await debugRestSave(list);
+            } catch (e) {
+                console.error('Manual REST debug save also failed:', e);
+            }
+
+            throw resp.error;
+        }
+
+        // If DB generated an id (when we omitted id), update local list id with returned value
+        if (resp.data && resp.data[0] && resp.data[0].id && !isValidUUID(list.id)) {
+            list.id = resp.data[0].id;
+            saveData();
+            renderWordLists();
+        }
+
+        return resp.data;
+    } catch (err) {
+        console.error('Save list exception:', err);
+        throw err;
     }
 }
 
@@ -1173,6 +1223,66 @@ async function deleteListFromRemote(listId) {
         .delete()
         .eq('id', listId)
         .eq('user_id', authUser.id);
+}
+
+// Debug helper: perform manual REST request to Supabase to capture full response body
+async function debugRestSave(list) {
+    const cfg = window.__LOEK_SUPABASE_CONFIG;
+    if (!cfg || !cfg.url) {
+        console.warn('Supabase config not exposed on window; cannot run debug REST save.');
+        return;
+    }
+
+    // Try to get a user access token
+    let token = null;
+    try {
+        const sess = await supabaseClient.auth.getSession();
+        token = sess?.data?.session?.access_token || null;
+    } catch (e) {
+        console.debug('Could not read access token for debug saving:', e?.message || e);
+    }
+
+    // Build REST payload, omit id if it's not a valid UUID
+    const restPayload = [{
+        user_id: list.userId || list.user_id || (authUser && authUser.id),
+        title: list.title,
+        lang_from: list.langFrom,
+        lang_to: list.langTo,
+        subject: list.subject,
+        icon: list.icon,
+        words: list.words,
+        is_public: !!list.isPublic,
+        search_text: (list.words || []).map(w => `${w.term} ${w.definition}`).join(' ').slice(0,2000),
+        updated_at: new Date().toISOString()
+    }];
+    if (isValidUUID(list.id)) restPayload[0].id = list.id;
+
+    const url = `${cfg.url.replace(/\/$/, '')}/rest/v1/word_lists?on_conflict=id`;
+    const headers = {
+        'Content-Type': 'application/json',
+        apikey: cfg.anonKey
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    console.debug('Debug REST save request url:', url);
+    console.debug('Debug REST save request headers:', Object.keys(headers));
+    console.debug('Debug REST save payload sample:', payload[0]);
+
+    const resp = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+    });
+
+    const text = await resp.text();
+    console.error('Debug REST save response status:', resp.status, resp.statusText);
+    console.error('Debug REST save response body:', text);
+    if (!resp.ok) throw new Error(`Debug REST save failed: ${resp.status}`);
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        return text;
+    }
 }
 
 function debouncedPublicSearch() {
@@ -1225,7 +1335,7 @@ async function searchPublicLists() {
                 <div class="public-list-meta">${escapeHtml(list.lang_from)} → ${escapeHtml(list.lang_to)} • ${list.words?.length || 0} woordjes</div>
             </div>
             <button class="btn btn-primary" onclick="importPublicList('${list.id}')">
-                <i class="fas fa-plus"></i> Importeer
+                <i class="fas fa-play"></i> Oefenen
             </button>
         </div>
     `).join('');
@@ -1244,7 +1354,7 @@ async function importPublicList(listId) {
 
     const newList = {
         id: generateId(),
-        title: `${data.title} (kopie)`,
+        title: data.title,
         langFrom: data.lang_from,
         langTo: data.lang_to,
         subject: data.subject,
@@ -1256,13 +1366,18 @@ async function importPublicList(listId) {
 
     wordLists.push(newList);
 
+    let openListId = newList.id;
     if (authUser) {
-        await saveListToRemote(newList.id);
+        const saved = await saveListToRemote(newList.id);
+        if (saved && saved[0]?.id) openListId = saved[0].id;
         await loadRemoteLists();
     } else {
         saveData();
         renderWordLists();
     }
+
+    showListDetail(openListId);
+    startStudyMode('flashcards');
 }
 
 // ===== Study Mode Settings =====

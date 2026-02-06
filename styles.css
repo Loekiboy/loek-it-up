@@ -391,6 +391,13 @@ body.default-yellow-theme .logo-nose {
     gap: 0.5rem;
 }
 
+.header-search {
+    flex: 1;
+    max-width: 420px;
+    margin: 0 1rem;
+    position: relative;
+}
+
 .auth-controls {
     display: flex;
     align-items: center;
@@ -616,6 +623,10 @@ body.default-yellow-theme .logo-nose {
     margin-bottom: 1.5rem;
 }
 
+.header-search.public-search {
+    margin-bottom: 0;
+}
+
 .public-search-bar {
     display: flex;
     align-items: center;
@@ -641,6 +652,18 @@ body.default-yellow-theme .logo-nose {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+.header-search .public-search-results {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    box-shadow: var(--shadow-md);
+    z-index: 120;
 }
 
 .public-list-card {
@@ -2637,6 +2660,12 @@ body.default-yellow-theme .logo-nose {
         width: 100%;
         justify-content: center;
         flex-wrap: wrap;
+    }
+
+    .header-search {
+        width: 100%;
+        max-width: none;
+        margin: 0;
     }
 
     .nav-btn {
