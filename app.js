@@ -11,6 +11,7 @@ let authMode = 'login';
 let publicSearchTimer = null;
 const CLOUD_SETTINGS_KEY = 'cloudEnabled';
 const DARK_MODE_SETTINGS_KEY = 'darkModeEnabled';
+const DYNAMIC_LOGO_SETTINGS_KEY = 'dynamicLogoEnabled';
 const ACCENT_COLOR_SETTINGS_KEY = 'accentColor';
 const LAST_SETTINGS_TAB_KEY = 'lastSettingsTab';
 const LAST_VIEW_KEY = 'lastView';
@@ -746,6 +747,8 @@ function openAppSettings() {
     if (toggle) toggle.checked = isCloudEnabled();
     const darkToggle = document.getElementById('dark-mode-toggle');
     if (darkToggle) darkToggle.checked = isDarkModeEnabled();
+    const logoToggle = document.getElementById('dynamic-logo-toggle');
+    if (logoToggle) logoToggle.checked = isDynamicLogoEnabled();
     const colorPicker = document.getElementById('accent-color-picker');
     const colorInput = document.getElementById('accent-color-input');
     const accent = getAccentColor();
@@ -784,10 +787,59 @@ function setDarkModeEnabled(enabled) {
     applyTheme();
 }
 
+function isDynamicLogoEnabled() {
+    return localStorage.getItem(DYNAMIC_LOGO_SETTINGS_KEY) === 'true';
+}
+
+function setDynamicLogoEnabled(enabled) {
+    localStorage.setItem(DYNAMIC_LOGO_SETTINGS_KEY, enabled ? 'true' : 'false');
+    applyTheme();
+}
+
 function applyTheme() {
     const enabled = isDarkModeEnabled();
+    const dynamicLogo = isDynamicLogoEnabled();
     document.body.classList.toggle('dark', enabled);
+    document.body.classList.toggle('dynamic-logo-enabled', dynamicLogo);
     applyAccentColor(getAccentColor());
+}
+
+function updateFavicon(primary, dark) {
+    const isDynamic = isDynamicLogoEnabled();
+    // Default colors as sent by user
+    let faceColor = "#fdc204";
+    let noseColor = "#e89d05";
+
+    // Always use original colors for default yellow, otherwise follow dynamic setting
+    if (isDynamic && primary !== '#FFD93D') {
+        faceColor = primary;
+        noseColor = dark;
+    }
+
+    const svgTemplate = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="176" height="208" viewBox="0 0 176 208">
+        <g transform="translate(-159.0253,-68.68503)">
+            <path d="M181.26891,221.58907c0,-35.86713 -15.34531,-76.82861 -15.34531,-95.60829c0,-13.0457 32.33336,-40.63191 45.79687,-40.63191c17.32149,0 57.70153,0 86.87844,0c15.47817,0 31.1881,20.35903 31.1881,31.69111c0,18.98627 0,71.43517 0,108.68152c0,17.97676 -33.55751,45.55451 -48.41883,45.55451c-14.73709,0 -33.52207,-14.97104 -60.10484,-14.97104c-22.08538,0 -39.99443,-14.61957 -39.99443,-34.71588z" fill="#fcf1d1" stroke="#000000" stroke-width="10.5"/>
+            <path d="M164.2753,236.84929c0,-35.86713 0,-89.17972 0,-107.9594c0,-13.0457 16.98805,-28.2808 30.45156,-28.2808c17.32149,0 62.41166,0 91.58857,0c15.47817,0 26.47797,12.50881 26.47797,23.84089c0,18.98627 0,79.2854 0,116.53174c0,17.97676 -19.7093,30.58347 -34.57062,30.58347c-14.73709,0 -47.37028,0 -73.95305,0c-22.08538,0 -39.99443,-14.61957 -39.99443,-34.71588z" fill="${faceColor}" stroke="#000000" stroke-width="10.5"/>
+            <path d="M190.45269,198.23019l-25.47516,-7.12449" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+            <path d="M231.85421,218.76247c0,-1.27379 -0.52642,-3.29545 -0.61386,-5.61272c-0.26314,-6.9742 -0.32251,-16.62602 -0.32251,-16.62602h16.38644c0,0 -0.26981,10.85447 -0.74615,17.80403c-0.1172,1.70987 -1.12659,3.18335 -1.12659,4.20061c0,2.35306 0.114,10.27828 -7.02376,9.84237c-5.5897,-0.09866 -6.55357,-7.7658 -6.55357,-9.60827z" fill="${noseColor}"/>
+            <path d="M231.1334,195.44147c1.09524,-2.06216 4.9423,-2.34092 6.96327,-2.34092c1.7688,0 5.76702,0.55632 6.84807,2.57501" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+            <path d="M231.42856,202.26057c0,11.56814 -9.60111,20.94597 -21.44468,20.94597c-11.84357,0 -21.44468,-9.37783 -21.44468,-20.94597c0,-11.56814 9.60111,-20.94597 21.44468,-20.94597c11.84357,0 21.44468,9.37783 21.44468,20.94597z" fill="#fcfcfc" stroke="#000000" stroke-width="8.5"/>
+            <path d="M288.39697,202.81283c0,11.56814 -9.60111,20.94597 -21.44468,20.94597c-11.84357,0 -21.44469,-9.37783 -21.44469,-20.94597c0,-11.56814 9.60112,-20.94597 21.44469,-20.94597c11.84357,0 21.44468,9.37783 21.44468,20.94597z" fill="#fcfcfc" stroke="#000000" stroke-width="8.5"/>
+            <path d="M288.42805,196.44152l21.26151,-5.95403" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+            <path d="M256.90206,237.9935c0,0 -3.16122,15.66449 -17.08871,15.45007c-14.93715,-0.57176 -17.08872,-15.45007 -17.08872,-15.45007" fill="none" stroke="#000000" stroke-width="5.5" stroke-linecap="round"/>
+            <path d="M205.64506,200.0706c0,-3.61999 2.93458,-6.55457 6.55457,-6.55457c3.61999,0 6.55458,2.93458 6.55458,6.55458c0,3.61999 -2.93458,6.55458 -6.55457,6.55458c-3.61999,0 -6.55457,-2.93458 -6.55457,-6.55457z" fill="#000000" stroke="#000000" stroke-width="0.5"/>
+            <path d="M262.58891,199.787c0,-3.61999 2.93458,-6.55457 6.55457,-6.55457c3.61999,0 6.55458,2.93458 6.55458,6.55458c0,3.61999 -2.93459,6.55458 -6.55457,6.55458c-3.61999,0 -6.55457,-2.93458 -6.55457,-6.55457z" fill="#000000" stroke="none" stroke-width="0"/>
+            <path d="M200.71999,159.49466c0,0 5.23481,-8.77689 12.63142,-9.9159c10.80313,-1.66359 18.26872,6.40452 18.26872,6.40452" fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+            <path d="M248.94293,156.21738c0,0 6.85263,-6.20051 17.86228,-5.44591c8.9574,0.61395 13.03785,8.95729 13.03785,8.95729" fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+            <path d="M209.3206,116.68132c-9.91379,-3.09959 -18.80188,-14.9667 -23.63838,-22.56556c-14.59159,-22.92555 4.61742,-15.45305 6.78667,-14.61521c7.0794,2.50232 18.23168,10.40104 13.37438,-2.67487c-4.02674,-5.94388 3.66876,-6.3546 7.48965,-5.61724c3.8209,0.73736 19.00336,12.23009 23.00392,11.76945c3.14477,-0.3621 -3.45621,-7.61097 -0.53498,-9.62955c4.0414,-2.79261 11.97713,-2.89832 18.18915,0.80246c2.37993,1.41783 27.55058,25.1354 21.22596,27.7469c-3.30286,1.36379 -9.26644,1.78611 -13.70766,3.09569c-6.71153,1.97902 -13.26955,4.47796 -19.95993,6.13634c-14.09302,3.49331 -26.39174,7.37657 -32.22878,5.55159z" fill="#000000" stroke="#000000" stroke-width="4.5" stroke-linecap="round"/>
+        </g>
+    </svg>`;
+
+    const encodedSvg = window.btoa(svgTemplate);
+    const link = document.querySelector("link[rel*='icon']");
+    if (link) {
+        link.href = `data:image/svg+xml;base64,${encodedSvg}`;
+    }
 }
 
 function normalizeHexColor(value) {
@@ -825,15 +877,11 @@ function applyAccentColor(color) {
     const root = document.documentElement;
     root.style.setProperty('--primary-yellow', palette.primary);
     root.style.setProperty('--primary-yellow-dark', palette.dark);
+    root.style.setProperty('--primary-glow', palette.glow);
     
     // In dark mode, primary-yellow-light should be semi-transparent
     if (isDark) {
-        const rgb = hexToRgb(normalized);
-        if (rgb) {
-            root.style.setProperty('--primary-yellow-light', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`);
-        } else {
-            root.style.setProperty('--primary-yellow-light', palette.light);
-        }
+        root.style.setProperty('--primary-yellow-light', palette.glow);
         root.style.setProperty('--bg-cream', palette.bgCreamDark);
         root.style.setProperty('--bg-light', palette.bgLightDark);
     } else {
@@ -841,6 +889,12 @@ function applyAccentColor(color) {
         root.style.setProperty('--bg-cream', palette.bgCream);
         root.style.setProperty('--bg-light', palette.bgLight);
     }
+
+    // Update Favicon with dynamic colors
+    updateFavicon(palette.primary, palette.dark);
+
+    // Special handling for default yellow theme
+    document.body.classList.toggle('default-yellow-theme', normalized === '#FFD93D');
 }
 
 function buildAccentPalette(hex, isDarkMode = false) {
@@ -848,14 +902,17 @@ function buildAccentPalette(hex, isDarkMode = false) {
     if (!rgb) {
         return { 
             primary: DEFAULT_ACCENT_COLOR, 
-            dark: '#F5C800', 
+            dark: '#E6B800', 
             light: '#FFF3B8', 
+            glow: 'rgba(255, 217, 61, 0.3)',
             bgCream: '#FFFEF7',
             bgCreamDark: '#0b0f17',
             bgLight: '#FFF9E6',
             bgLightDark: '#111827'
         };
     }
+
+    const glow = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${isDarkMode ? 0.2 : 0.35})`;
     const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
     
     // Detect if color is dark (lightness < 0.5)
@@ -869,7 +926,7 @@ function buildAccentPalette(hex, isDarkMode = false) {
         light = hslToHex(hsl.h, clamp(hsl.s * 0.7, 0.2, 1), clamp(hsl.l + 0.35, 0.7, 0.95));
     } else {
         // Darken for light colors
-        dark = hslToHex(hsl.h, hsl.s, clamp(hsl.l - 0.12, 0.1, 0.9));
+        dark = hslToHex(hsl.h, hsl.s, clamp(hsl.l - 0.2, 0.1, 0.9));
         light = hslToHex(hsl.h, clamp(hsl.s - 0.05, 0.15, 1), clamp(hsl.l + 0.28, 0.2, 0.95));
     }
     
@@ -885,7 +942,7 @@ function buildAccentPalette(hex, isDarkMode = false) {
     // Dark mode bg-light - slightly lighter than bg-cream
     const bgLightDark = hslToHex(hsl.h, clamp(hsl.s * 0.3, 0.1, 0.35), clamp(hsl.l * 0.25, 0.06, 0.13));
     
-    return { primary: hex.toUpperCase(), dark, light, bgCream, bgLight, bgCreamDark, bgLightDark };
+    return { primary: hex.toUpperCase(), dark, light, glow, bgCream, bgLight, bgCreamDark, bgLightDark };
 }
 
 function hexToRgb(hex) {

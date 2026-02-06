@@ -3,6 +3,7 @@
     --primary-yellow: #FFD93D;
     --primary-yellow-dark: #F5C800;
     --primary-yellow-light: #FFF3B8;
+    --primary-glow: rgba(255, 217, 61, 0.3);
     --secondary-orange: #FF8C42;
     --accent-brown: #6D4C41;
     --bg-cream: #FFFEF7;
@@ -48,19 +49,20 @@ body.dark {
     --success-light: rgba(34, 197, 94, 0.15);
     --error-light: rgba(239, 68, 68, 0.15);
     --primary-yellow-light: rgba(255, 217, 61, 0.15);
+    --primary-glow: rgba(255, 217, 61, 0.2);
 }
 
 /* Dark mode specific overrides */
 body.dark .welcome-section {
-    background: linear-gradient(135deg, rgba(255, 217, 61, 0.1) 0%, var(--bg-cream) 100%);
+    background: linear-gradient(135deg, var(--primary-yellow-light) 0%, var(--bg-cream) 100%);
 }
 
 body.dark .modal-header {
-    background: linear-gradient(135deg, rgba(255, 217, 61, 0.15), var(--bg-light));
+    background: linear-gradient(135deg, var(--primary-yellow-light), var(--bg-light));
 }
 
 body.dark .modal-content {
-    border-color: rgba(255, 217, 61, 0.2);
+    border-color: var(--primary-yellow-light);
 }
 
 body.dark .flashcard-face-front {
@@ -348,10 +350,36 @@ body {
 }
 
 .logo-image {
-    height: 50px;
+    height: 42px;
     width: auto;
     max-width: 140px;
     object-fit: contain;
+}
+
+.logo-face {
+    fill: #fdc204;
+    transition: fill 0.3s ease;
+}
+
+.logo-nose {
+    fill: #e89d05;
+    transition: fill 0.3s ease;
+}
+
+body.dynamic-logo-enabled .logo-face {
+    fill: var(--primary-yellow);
+}
+
+body.dynamic-logo-enabled .logo-nose {
+    fill: var(--primary-yellow-dark);
+}
+
+body.default-yellow-theme .logo-face {
+    fill: #fdc204 !important;
+}
+
+body.default-yellow-theme .logo-nose {
+    fill: #e89d05 !important;
 }
 
 .logo:hover {
@@ -550,12 +578,12 @@ body {
     justify-content: center;
 }
 
-.welcome-icon img {
+.welcome-logo-image {
     width: 90px;
     height: 90px;
-    object-fit: contain;
-    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
 }
+
+/* logo-face and logo-nose styles are shared via body.dynamic-logo-enabled */
 
 @keyframes float {
     0%, 100% { transform: translateY(0px); }
@@ -1655,7 +1683,7 @@ body {
 
 .toggle-label input:checked + .toggle-switch {
     background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--primary-yellow-dark) 100%);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(255, 217, 61, 0.35);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px var(--primary-glow);
 }
 
 .toggle-label input:checked + .toggle-switch .toggle-slider {
