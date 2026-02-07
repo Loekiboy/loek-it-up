@@ -48,8 +48,7 @@ body.dark {
     --toggle-knob-end: #cbd5e1;
     --success-light: rgba(34, 197, 94, 0.15);
     --error-light: rgba(239, 68, 68, 0.15);
-    --primary-yellow-light: rgba(255, 217, 61, 0.15);
-    --primary-glow: rgba(255, 217, 61, 0.2);
+    /* --primary-yellow-light and --primary-glow are handled by JS now */
 }
 
 /* Dark mode specific overrides */
@@ -616,6 +615,8 @@ body.default-yellow-theme .logo-nose {
     padding: 0.75rem;
     box-shadow: var(--shadow-md);
     z-index: 120;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .public-list-card {
@@ -644,8 +645,41 @@ body.default-yellow-theme .logo-nose {
     font-size: 0.9rem;
 }
 
+.subsite-link {
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.subsite-card {
+    border-left: 3px solid var(--primary-yellow);
+}
+
 .lists-section h2 i {
     color: var(--primary-yellow);
+}
+
+.lists-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.lists-header h2 {
+    margin-bottom: 0;
+}
+
+.lists-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+#merge-mode-btn.active {
+    background: var(--primary-yellow);
+    color: var(--white);
 }
 
 .word-lists-grid {
@@ -716,6 +750,40 @@ body.default-yellow-theme .logo-nose {
     border-radius: var(--radius-sm);
     font-size: 0.875rem;
     color: var(--text-medium);
+}
+
+/* Merge Mode Styling */
+.word-list-card {
+    position: relative;
+}
+
+.merge-checkbox {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-light);
+    cursor: pointer;
+    z-index: 10;
+    transition: color 0.2s ease;
+}
+
+.merge-checkbox:hover {
+    color: var(--primary-yellow);
+}
+
+.word-list-card.selected {
+    border-color: var(--primary-yellow);
+    background: var(--primary-yellow-light);
+}
+
+.word-list-card.selected .merge-checkbox {
+    color: var(--primary-yellow);
 }
 
 .empty-state {
@@ -1935,18 +2003,77 @@ body:has(.study-view.active) .mobile-nav {
     background: var(--primary-yellow-light);
 }
 
+@keyframes choice-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1.02); }
+}
+
+@keyframes choice-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
 .choice-btn.correct {
     border-color: var(--success);
-    background: var(--success-light);
+    background: var(--success);
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    animation: choice-pop 0.3s ease-out forwards;
 }
 
 .choice-btn.wrong {
     border-color: var(--error);
-    background: var(--error-light);
+    background: var(--error);
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4);
+    animation: choice-shake 0.2s ease-in-out 0s 2;
 }
 
 .choice-btn:disabled {
     cursor: default;
+    opacity: 0.6;
+}
+
+.choice-btn.correct:disabled, .choice-btn.wrong:disabled {
+    opacity: 1;
+}
+
+.feedback-msg {
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.feedback-msg.correct { color: var(--success); }
+.feedback-msg.wrong { color: var(--error); }
+
+.correct-answer-display {
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    padding: 1.25rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--error);
+}
+
+body.dark .correct-answer-display {
+    background: rgba(220, 53, 69, 0.05);
+    border-color: var(--error);
+    color: var(--text-dark);
+}
+
+.correct-answer-display strong {
+    color: var(--error);
+    font-size: 1.2rem;
+    display: block;
+    margin-top: 0.5rem;
 }
 
 .typing-input-container {
@@ -2311,40 +2438,6 @@ body:has(.study-view.active) .mobile-nav {
 .card-action-btn:active::before {
     width: 300px;
     height: 300px;
-}
-
-.card-action-wrong {
-    background: linear-gradient(135deg, #fecaca, #ef4444);
-    border-color: #dc2626;
-    color: var(--white);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-}
-
-.card-action-wrong:hover {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
-}
-
-.card-action-wrong:active {
-    transform: translateY(-1px);
-}
-
-.card-action-right {
-    background: linear-gradient(135deg, #86efac, #10b981);
-    border-color: #059669;
-    color: var(--white);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-}
-
-.card-action-right:hover {
-    background: linear-gradient(135deg, #10b981, #059669);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-}
-
-.card-action-right:active {
-    transform: translateY(-1px);
 }
 
 .card-hint {
@@ -3084,4 +3177,172 @@ body:has(.study-view.active) .mobile-nav {
         width: 100%;
         padding: 0.85rem 1.25rem;
     }
+}
+/* Start of fixes for study UI */
+.study-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.progress-container {
+    flex: 1;
+    margin: 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 10px;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-yellow);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.study-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+/* End of fixes for study UI */
+
+/* Dark mode fixes for flashcards */
+body.dark .flip-card-front {
+    background: var(--white);
+    color: var(--text-dark);
+    border: 2px solid var(--bg-light);
+}
+
+body.dark .flip-card-back {
+    background: var(--primary-yellow);
+    color: var(--text-dark);
+    border: 2px solid var(--primary-yellow-dark);
+}
+
+body.dark .question-card {
+    background: var(--white);
+    border: 2px solid var(--bg-light);
+}
+
+/* Fix card action buttons to match site style */
+.card-action-btn {
+    flex: 1;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    border-radius: var(--radius-lg);
+    border: 2px solid;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-action-wrong {
+    background: var(--error-light);
+    border-color: var(--error);
+    color: var(--error);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-action-wrong:hover {
+    background: var(--error);
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-action-wrong:active {
+    transform: translateY(0);
+}
+
+.card-action-right {
+    background: var(--success-light);
+    border-color: var(--success);
+    color: var(--success);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-action-right:hover {
+    background: var(--success);
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-action-right:active {
+    transform: translateY(0);
+}
+
+body.dark .card-action-wrong,
+body.dark .card-action-right {
+    background: var(--white);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .card-action-wrong {
+    color: var(--error);
+    border-color: var(--error);
+}
+
+body.dark .card-action-wrong:hover {
+    background: var(--error-light);
+    color: var(--error);
+    border-color: var(--error);
+}
+
+body.dark .card-action-right {
+    color: var(--success);
+    border-color: var(--success);
+}
+
+body.dark .card-action-right:hover {
+    background: var(--success-light);
+    color: var(--success);
+    border-color: var(--success);
+}
+
+/* Finish button styling */
+.btn-finish {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Typing input centering fix */
+.typing-input-container {
+    width: 100%;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.typing-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--bg-light);
+    border-radius: var(--radius-md);
+    font-size: 1.1rem;
+    text-align: center;
+    transition: var(--transition);
 }

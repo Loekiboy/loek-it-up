@@ -3,6 +3,8 @@ let wordLists = JSON.parse(localStorage.getItem('wordLists')) || [];
 let currentListId = null;
 let currentStudyMode = null;
 let editingListId = null;
+let mergeMode = false;
+let selectedListsForMerge = [];
 
 // Supabase auth
 let supabaseClient = null;
@@ -64,34 +66,7 @@ function saveData() {
 }
 
 // ===== Session Persistence =====
-function restoreLastView() {
-    const lastView = localStorage.getItem(LAST_VIEW_KEY);
-    const lastListId = localStorage.getItem(LAST_LIST_ID_KEY);
-    const lastStudyMode = localStorage.getItem(LAST_STUDY_MODE_KEY);
-    
-    // Only restore if we have valid data
-    if (!lastView || lastView === 'home-view' || lastView === 'create-view' || lastView === 'complete-view') {
-        return; // Show default home view
-    }
-    
-    // For study views, only restore if active session exists
-    if (lastView.startsWith('study-')) {
-        if (lastStudyMode && studySession.words && studySession.words.length > 0) {
-            showView(lastView);
-            return;
-        }
-        return; // Session ended, show home
-    }
-    
-    // For list view, restore the list if it exists
-    if (lastView === 'list-view' && lastListId) {
-        const list = wordLists.find(l => l.id === lastListId);
-        if (list) {
-            showListDetail(lastListId);
-            return;
-        }
-    }
-}
+// restoreLastView is defined below near the DOMContentLoaded handler
 
 // ===== Navigation =====
 function showView(viewId) {
@@ -118,7 +93,7 @@ function showView(viewId) {
     
     // Save view state for session persistence
     localStorage.setItem(LAST_VIEW_KEY, viewId);
-    if (currentListId && (viewKey === 'list' || viewKey === 'study-steps' || viewKey === 'study-typing')) {
+    if (currentListId && (viewKey === 'list' || viewKey.startsWith('study-'))) {
         localStorage.setItem(LAST_LIST_ID_KEY, currentListId);
     }
     if (currentStudyMode && viewKey.startsWith('study-')) {
@@ -190,18 +165,34 @@ function showListDetail(listId) {
 function renderWordLists() {
     const container = document.getElementById('word-lists-container');
     const emptyState = document.getElementById('empty-state');
-    
+
     if (wordLists.length === 0) {
         container.classList.add('hidden');
         emptyState.classList.remove('hidden');
         return;
     }
-    
+
     container.classList.remove('hidden');
     emptyState.classList.add('hidden');
-    
-    container.innerHTML = wordLists.map(list => `
-        <div class="word-list-card" onclick="showListDetail('${list.id}')">
+
+    // Sort word lists by last studied (newest first)
+    const sortedLists = [...wordLists].sort((a, b) => {
+        const timeA = a.lastStudied || 0;
+        const timeB = b.lastStudied || 0;
+        return timeB - timeA;
+    });
+
+    container.innerHTML = sortedLists.map(list => {
+        const isSelected = selectedListsForMerge.includes(list.id);
+        const checkboxHtml = mergeMode ? `
+            <div class="merge-checkbox" onclick="event.stopPropagation(); toggleListSelection('${list.id}')">
+                <i class="fas ${isSelected ? 'fa-check-square' : 'fa-square'}"></i>
+            </div>
+        ` : '';
+
+        return `
+        <div class="word-list-card ${isSelected ? 'selected' : ''}" onclick="${mergeMode ? `toggleListSelection('${list.id}')` : `showListDetail('${list.id}')`}">
+            ${checkboxHtml}
             <div class="card-header">
                 <div class="card-icon">
                     <i class="fas ${list.icon || 'fa-book'}"></i>
@@ -217,7 +208,10 @@ function renderWordLists() {
                 <span>${escapeHtml(list.langTo)}</span>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
+
+    updateMergeButton();
 }
 
 function renderWordsPreview(words) {
@@ -597,6 +591,127 @@ async function deleteCurrentList() {
     if (active && active.listId === id) localStorage.removeItem('activeStudySession');
 
     showHome();
+}
+
+// ===== Merge Functions =====
+function toggleMergeMode() {
+    mergeMode = !mergeMode;
+    selectedListsForMerge = [];
+    renderWordLists();
+
+    const mergeBtn = document.getElementById('merge-mode-btn');
+    const mergeActionBtn = document.getElementById('merge-action-btn');
+
+    if (mergeBtn) {
+        if (mergeMode) {
+            mergeBtn.innerHTML = '<i class="fas fa-times"></i> Annuleren';
+            mergeBtn.classList.add('active');
+        } else {
+            mergeBtn.innerHTML = '<i class="fas fa-layer-group"></i> Samenvoegen';
+            mergeBtn.classList.remove('active');
+        }
+    }
+
+    if (mergeActionBtn) {
+        mergeActionBtn.classList.add('hidden');
+    }
+}
+
+function toggleListSelection(listId) {
+    if (!mergeMode) return;
+
+    const index = selectedListsForMerge.indexOf(listId);
+    if (index > -1) {
+        selectedListsForMerge.splice(index, 1);
+    } else {
+        selectedListsForMerge.push(listId);
+    }
+
+    renderWordLists();
+}
+
+function updateMergeButton() {
+    const mergeActionBtn = document.getElementById('merge-action-btn');
+    if (!mergeActionBtn) return;
+
+    if (mergeMode && selectedListsForMerge.length >= 2) {
+        mergeActionBtn.classList.remove('hidden');
+        mergeActionBtn.textContent = `${selectedListsForMerge.length} lijsten samenvoegen`;
+    } else {
+        mergeActionBtn.classList.add('hidden');
+    }
+}
+
+function mergeLists() {
+    if (selectedListsForMerge.length < 2) {
+        alert('Selecteer minstens 2 woordenlijsten om samen te voegen.');
+        return;
+    }
+
+    const selectedLists = wordLists.filter(l => selectedListsForMerge.includes(l.id));
+
+    // Verzamel alle woorden en verwijder duplicaten
+    const allWords = [];
+    const seenTerms = new Set();
+
+    selectedLists.forEach(list => {
+        list.words.forEach(word => {
+            const key = `${word.term.toLowerCase()}-${word.definition.toLowerCase()}`;
+            if (!seenTerms.has(key)) {
+                seenTerms.add(key);
+                allWords.push({
+                    id: word.id || generateId(),
+                    term: word.term,
+                    definition: word.definition,
+                    stats: word.stats || { correct: 0, wrong: 0 }
+                });
+            }
+        });
+    });
+
+    // Bepaal gedeelde eigenschappen
+    const firstList = selectedLists[0];
+    const allSameLang = selectedLists.every(l =>
+        l.langFrom === firstList.langFrom &&
+        l.langTo === firstList.langTo
+    );
+    const allSameSubject = selectedLists.every(l => l.subject === firstList.subject);
+
+    // Vul het create-view formulier in
+    document.getElementById('list-title').value = selectedLists.map(l => l.title).join(' + ');
+    document.getElementById('selected-subject').value = allSameSubject ? firstList.subject : '';
+    document.getElementById('selected-icon').value = allSameSubject ? firstList.icon : 'fa-book';
+
+    // Update subject button selection
+    document.querySelectorAll('.subject-btn').forEach(btn => {
+        if (allSameSubject && btn.dataset.subject === firstList.subject) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Vul taalkeuzes in
+    if (allSameLang) {
+        document.getElementById('lang-from').value = firstList.langFrom;
+        document.getElementById('lang-to').value = firstList.langTo;
+    } else {
+        document.getElementById('lang-from').value = '';
+        document.getElementById('lang-to').value = '';
+    }
+
+    // Verwijder oude woorden en voeg nieuwe toe
+    document.getElementById('words-container').innerHTML = '';
+    allWords.forEach(word => {
+        addWordEntry(word.term, word.definition, word.id, word.stats);
+    });
+
+    // Reset merge mode en ga naar create view
+    mergeMode = false;
+    selectedListsForMerge = [];
+    editingListId = null;
+
+    showCreateList();
 }
 
 async function exportCurrentList() {
@@ -1274,15 +1389,155 @@ async function debugRestSave(list) {
 }
 
 function debouncedPublicSearch() {
-    if (!isCloudEnabled()) return;
     clearTimeout(publicSearchTimer);
     publicSearchTimer = setTimeout(() => {
-        searchPublicLists();
-    }, 250);
+        performSearch();
+    }, 200);
 }
 
-async function searchPublicLists() {
-    if (!isCloudEnabled()) return;
+// ===== Subsite Registry =====
+const subsiteRegistry = [
+    {
+        title: 'Griekse Aoristus Oefenen',
+        description: 'Oefen Griekse aoristus vormen (pseudo-sigmatisch, thematisch, imperfect)',
+        url: 'aoristus/',
+        icon: 'fa-university',
+        tags: ['grieks', 'aoristus', 'werkwoorden', 'vervoegen', 'greek', 'conjugation', 'aorist']
+    },
+    {
+        title: 'Duitse Oefeningen',
+        description: 'Modale werkwoorden, derde naamval, voornaamwoorden, der/ein-groep',
+        url: 'du/',
+        icon: 'fa-flag',
+        tags: ['duits', 'german', 'deutsch', 'modale werkwoorden', 'dativ', 'derde naamval', 'voornaamwoorden', 'der', 'ein', 'naamval', 'grammatica']
+    },
+    {
+        title: 'Duitse Modale Werkwoorden',
+        description: 'Oefen dürfen, können, mögen, müssen, sollen, wollen',
+        url: 'du/modale-werkwoorden/',
+        icon: 'fa-flag',
+        tags: ['duits', 'modale werkwoorden', 'dürfen', 'können', 'mögen', 'müssen', 'sollen', 'wollen', 'modal']
+    },
+    {
+        title: 'Duits - Derde Naamval (Dativ)',
+        description: 'Oefen de Duitse derde naamval (Dativ)',
+        url: 'du/derde-naamval/',
+        icon: 'fa-flag',
+        tags: ['duits', 'dativ', 'derde naamval', 'naamval', 'grammatica']
+    },
+    {
+        title: 'Duits - Persoonlijke Voornaamwoorden',
+        description: 'Oefen Duitse persoonlijke voornaamwoorden',
+        url: 'du/Persvnw/',
+        icon: 'fa-flag',
+        tags: ['duits', 'voornaamwoorden', 'persoonlijk', 'pronouns', 'grammatica']
+    },
+    {
+        title: 'Duits - Der- en Ein-Groep',
+        description: 'Oefen de der- en ein-groep in alle naamvallen',
+        url: 'du/der_ein-gruppe/',
+        icon: 'fa-flag',
+        tags: ['duits', 'der', 'ein', 'naamval', 'grammatica', 'artikel']
+    },
+    {
+        title: 'English Learning Hub',
+        description: 'Engels leren: grammatica en woordenschat',
+        url: 'en/',
+        icon: 'fa-flag-usa',
+        tags: ['engels', 'english', 'grammar', 'vocabulary', 'hub']
+    },
+    {
+        title: 'English Grammar Practice',
+        description: 'Oefen Engelse werkwoordstijden (tenses)',
+        url: 'english_verbs/',
+        icon: 'fa-flag-usa',
+        tags: ['engels', 'english', 'grammar', 'verbs', 'tenses', 'werkwoorden', 'present simple', 'past simple', 'present perfect', 'continuous']
+    },
+    {
+        title: 'Engels Woorden Leren',
+        description: 'Leer Engelse woorden met flashcards en spelling',
+        url: 'english_words/',
+        icon: 'fa-flag-usa',
+        tags: ['engels', 'english', 'woorden', 'words', 'vocabulary', 'woordenschat', 'flashcards', 'spelling']
+    },
+    {
+        title: 'Latijn Oefenen',
+        description: 'Latijnse grammatica: werkwoorden, naamwoorden, voornaamwoorden',
+        url: 'la/',
+        icon: 'fa-book-open',
+        tags: ['latijn', 'latin', 'grammatica', 'werkwoorden', 'naamwoorden', 'vervoegen']
+    },
+    {
+        title: 'Latijn - Betrekkelijk Voornaamwoord',
+        description: 'Oefen Latijnse betrekkelijke voornaamwoorden',
+        url: 'la/betr_vnw/',
+        icon: 'fa-book-open',
+        tags: ['latijn', 'voornaamwoord', 'betrekkelijk', 'relative pronoun', 'grammatica']
+    },
+    {
+        title: 'Latijn - Werkwoorden Oefenen',
+        description: 'Oefen Latijnse werkwoorden en vervoegingen',
+        url: 'la/ww/',
+        icon: 'fa-book-open',
+        tags: ['latijn', 'werkwoorden', 'vervoegen', 'conjugation', 'verbs']
+    },
+    {
+        title: 'Latijn - Stamtijden Oefenen',
+        description: 'Oefen Latijnse stamtijden',
+        url: 'la/stamtijden/',
+        icon: 'fa-book-open',
+        tags: ['latijn', 'stamtijden', 'stem forms', 'werkwoorden']
+    },
+    {
+        title: 'Latijn - Onregelmatige Werkwoorden',
+        description: 'Oefen Latijnse onregelmatige werkwoorden',
+        url: 'la/onregelmatige_ww/',
+        icon: 'fa-book-open',
+        tags: ['latijn', 'onregelmatig', 'irregular', 'werkwoorden']
+    },
+    {
+        title: 'Latijn - Woorden Oefenen',
+        description: 'Oefen Latijnse woordenschat',
+        url: 'la/words/',
+        icon: 'fa-book-open',
+        tags: ['latijn', 'woorden', 'woordenschat', 'vocabulary']
+    },
+    {
+        title: 'Latijn - Zelfstandig Naamwoord',
+        description: 'Oefen Latijnse zelfstandige naamwoorden en verbuigingen',
+        url: 'la/zn/',
+        icon: 'fa-book-open',
+        tags: ['latijn', 'zelfstandig naamwoord', 'naamwoord', 'noun', 'declension', 'verbuiging']
+    }
+];
+
+function searchSubsites(query) {
+    const q = query.toLowerCase();
+    const words = q.split(/\s+/).filter(w => w.length > 0);
+
+    return subsiteRegistry.filter(site => {
+        const searchText = (site.title + ' ' + site.description + ' ' + site.tags.join(' ')).toLowerCase();
+        return words.every(word => searchText.includes(word));
+    });
+}
+
+function searchLocalLists(query) {
+    const q = query.toLowerCase();
+    const words = q.split(/\s+/).filter(w => w.length > 0);
+
+    return wordLists.filter(list => {
+        const searchText = [
+            list.title,
+            list.langFrom,
+            list.langTo,
+            list.subject,
+            ...(list.words || []).map(w => w.term + ' ' + w.definition)
+        ].join(' ').toLowerCase();
+        return words.every(word => searchText.includes(word));
+    });
+}
+
+async function performSearch() {
     const input = document.getElementById('public-search-input');
     const results = document.getElementById('public-search-results');
     if (!input || !results) return;
@@ -1294,43 +1549,74 @@ async function searchPublicLists() {
         return;
     }
 
-    if (!supabaseClient) {
-        results.innerHTML = '<p class="public-search-empty">Log in om te zoeken.</p>';
-        results.classList.remove('hidden');
-        return;
-    }
+    let html = '';
 
-    const { data, error } = await supabaseClient
-        .from('word_lists')
-        .select('id,title,lang_from,lang_to,subject,icon,words,user_id')
-        .eq('is_public', true)
-        .or(`title.ilike.%${query}%,search_text.ilike.%${query}%`)
-        .order('updated_at', { ascending: false })
-        .limit(20);
-
-    if (error) {
-        results.innerHTML = '<p class="public-search-empty">Zoeken mislukt.</p>';
-        results.classList.remove('hidden');
-        return;
-    }
-
-    if (!data || data.length === 0) {
-        results.innerHTML = '<p class="public-search-empty">Geen resultaten.</p>';
-        results.classList.remove('hidden');
-        return;
-    }
-
-    results.innerHTML = data.map(list => `
-        <div class="public-list-card">
-            <div class="public-list-info">
-                <div class="public-list-title">${escapeHtml(list.title)}</div>
-                <div class="public-list-meta">${escapeHtml(list.lang_from)} → ${escapeHtml(list.lang_to)} • ${list.words?.length || 0} woordjes</div>
+    // Search subsites
+    const subsiteResults = searchSubsites(query);
+    if (subsiteResults.length > 0) {
+        html += subsiteResults.map(site => `
+            <div class="public-list-card subsite-card">
+                <div class="public-list-info">
+                    <div class="public-list-title"><i class="fas ${site.icon}" style="color:var(--primary-yellow-dark);margin-right:0.4rem;"></i>${escapeHtml(site.title)}</div>
+                    <div class="public-list-meta">${escapeHtml(site.description)}</div>
+                </div>
+                <a href="${site.url}" class="btn btn-primary subsite-link">
+                    <i class="fas fa-external-link-alt"></i> Openen
+                </a>
             </div>
-            <button class="btn btn-primary" onclick="importPublicList('${list.id}')">
-                <i class="fas fa-play"></i> Oefenen
-            </button>
-        </div>
-    `).join('');
+        `).join('');
+    }
+
+    // Search local lists
+    const localResults = searchLocalLists(query);
+    if (localResults.length > 0) {
+        html += localResults.map(list => `
+            <div class="public-list-card">
+                <div class="public-list-info">
+                    <div class="public-list-title"><i class="fas ${list.icon || 'fa-book'}" style="color:var(--primary-yellow-dark);margin-right:0.4rem;"></i>${escapeHtml(list.title)}</div>
+                    <div class="public-list-meta">${escapeHtml(list.langFrom || '')} → ${escapeHtml(list.langTo || '')} • ${list.words?.length || 0} woordjes</div>
+                </div>
+                <button class="btn btn-primary" onclick="showListDetail('${list.id}')">
+                    <i class="fas fa-play"></i> Oefenen
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // Search cloud lists if enabled
+    if (isCloudEnabled() && supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('word_lists')
+                .select('id,title,lang_from,lang_to,subject,icon,words,user_id')
+                .eq('is_public', true)
+                .or(`title.ilike.%${query}%,search_text.ilike.%${query}%`)
+                .order('updated_at', { ascending: false })
+                .limit(20);
+
+            if (!error && data && data.length > 0) {
+                html += data.map(list => `
+                    <div class="public-list-card">
+                        <div class="public-list-info">
+                            <div class="public-list-title"><i class="fas fa-cloud" style="color:var(--primary-yellow-dark);margin-right:0.4rem;"></i>${escapeHtml(list.title)}</div>
+                            <div class="public-list-meta">${escapeHtml(list.lang_from)} → ${escapeHtml(list.lang_to)} • ${list.words?.length || 0} woordjes</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="importPublicList('${list.id}')">
+                            <i class="fas fa-download"></i> Importeren
+                        </button>
+                    </div>
+                `).join('');
+            }
+        } catch (e) {
+            // Cloud search failed, that's fine
+        }
+    }
+
+    if (!html) {
+        results.innerHTML = '<p class="public-search-empty">Geen resultaten gevonden.</p>';
+    } else {
+        results.innerHTML = html;
+    }
     results.classList.remove('hidden');
 }
 
@@ -1344,6 +1630,20 @@ async function importPublicList(listId) {
         .single();
 
     if (error || !data) return;
+
+    // Check if list already exists locally (by title and words to catch duplicates)
+    const existingList = wordLists.find(list =>
+        list.title === data.title &&
+        list.langFrom === data.lang_from &&
+        list.langTo === data.lang_to &&
+        list.words.length === (data.words || []).length
+    );
+
+    if (existingList) {
+        // List already exists, just show it
+        showListDetail(existingList.id);
+        return;
+    }
 
     const newList = {
         id: generateId(),
@@ -1370,7 +1670,6 @@ async function importPublicList(listId) {
     }
 
     showListDetail(openListId);
-    startStudyMode('steps');
 }
 
 // ===== Study Mode Settings =====
@@ -1653,9 +1952,9 @@ function initStepsMode() {
 
     studySession.words.forEach(word => {
         studySession.wordProgress[word.id] = {
-            phase: 'choice',
+            phase: 'flash',
             done: false,
-            typingRemaining: 0,
+            typingRemaining: 1,
             typingCooldown: 0
         };
     });
@@ -1745,6 +2044,11 @@ function showNextStepQuestion() {
     const qa = getQuestion(word);
     studySession.currentWordId = wordId;
 
+    if (progress.phase === 'flash') {
+        showStepFlash(word, qa);
+        return;
+    }
+
     if (progress.phase === 'choice') {
         showStepChoice(word, qa);
         return;
@@ -1795,6 +2099,46 @@ function reduceStepsCooldowns() {
     });
 }
 
+function showStepFlash(word, qa) {
+    const content = document.getElementById('steps-content');
+    content.innerHTML = `
+        <div class="question-card">
+            <div class="flip-hint">Klik op de kaart om het antwoord te zien</div>
+            <div class="flip-card" id="step-flash-card" onclick="flipStepFlash()">
+                <div class="flip-card-inner" id="step-flash-inner">
+                    <div class="flip-card-front">
+                        <p>${escapeHtml(qa.question)}</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p>${escapeHtml(qa.answer)}</p>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="step-flash-next" onclick="continueStepFlash('${word.id}')" style="display: none;">
+                <i class="fas fa-arrow-right"></i> Volgende
+            </button>
+        </div>
+    `;
+}
+
+function flipStepFlash() {
+    const card = document.getElementById('step-flash-card');
+    const nextBtn = document.getElementById('step-flash-next');
+    if (card) {
+        card.classList.toggle('flipped');
+        if (card.classList.contains('flipped') && nextBtn) {
+            nextBtn.style.display = 'block';
+        }
+    }
+}
+
+function continueStepFlash(wordId) {
+    const progress = studySession.wordProgress[wordId];
+    if (progress) {
+        progress.phase = 'choice';
+    }
+    showNextStepQuestion();
+}
 
 function showStepChoice(word, qa) {
     const list = wordLists.find(l => l.id === currentListId);
@@ -1841,15 +2185,19 @@ function checkStepChoice(wordId, btn, selected, correct) {
         if (studySession.wordProgress[wordId]) {
             studySession.wordProgress[wordId].phase = 'typing';
         }
+        if (feedback) {
+            feedback.innerHTML = `
+                <div class="feedback-msg correct">
+                    <i class="fas fa-check-circle"></i> Goed zo!
+                </div>
+            `;
+        }
     } else {
         btn.classList.add('wrong');
         studySession.wrongCount++;
         studySession.stepsWrongWords.push(wordId);
         if (feedback) {
             feedback.innerHTML = `
-                <div class="correct-answer-display">
-                    Het juiste antwoord was: <strong>${escapeHtml(correct)}</strong>
-                </div>
                 <button class="btn btn-primary btn-next" onclick="continueStepChoice()">
                     <i class="fas fa-arrow-right"></i> Volgende vraag
                 </button>
@@ -2244,7 +2592,9 @@ function checkTypingAnswer(wordId, correct) {
         input.classList.add('wrong');
         studySession.wrongCount++;
         progress.needsExtraCorrect = 2;
-        progress.cooldown = Math.max(progress.cooldown, 4);
+        // Bij kleine sets (<4 woorden), zorg dat foute woorden afwisselen door hogere cooldown
+        const cooldownValue = studySession.words.length < 4 ? 8 : 4;
+        progress.cooldown = Math.max(progress.cooldown, cooldownValue);
         if (!studySession.typingWrongWords.includes(wordId)) {
             studySession.typingWrongWords.push(wordId);
         }
@@ -2725,6 +3075,52 @@ function finalizeCardSession() {
     cleanupCardHandlers();
     finalizeSessionStats();
 
+    // Update last studied timestamp
+    if (currentListId) {
+        const list = wordLists.find(l => l.id === currentListId);
+        if (list) {
+            list.lastStudied = Date.now();
+            saveData();
+        }
+    }
+
+    document.getElementById('stat-correct').textContent = studySession.correctCount;
+    document.getElementById('stat-wrong').textContent = studySession.wrongCount;
+
+    const accuracy = studySession.correctCount + studySession.wrongCount > 0
+        ? Math.round((studySession.correctCount / (studySession.correctCount + studySession.wrongCount)) * 100)
+        : 100;
+
+    const grade = calculateGrade(studySession.correctCount, studySession.wrongCount);
+    const gradeValue = parseFloat(grade);
+    let gradeClass = 'grade-mid';
+    if (gradeValue < 5.5) {
+        gradeClass = 'grade-low';
+    } else if (gradeValue > 8) {
+        gradeClass = 'grade-high';
+    }
+
+    document.getElementById('complete-message').innerHTML =
+        `Je hebt alle woordjes geoefend met ${accuracy}% nauwkeurigheid (cijfer <span class="grade-score ${gradeClass}">${grade}</span>).`;
+
+    playCompleteSound();
+    createConfetti();
+    showView('complete-view');
+    clearActiveSession();
+}
+
+function showComplete() {
+    finalizeSessionStats();
+
+    // Update last studied timestamp
+    if (currentListId) {
+        const list = wordLists.find(l => l.id === currentListId);
+        if (list) {
+            list.lastStudied = Date.now();
+            saveData();
+        }
+    }
+
     document.getElementById('stat-correct').textContent = studySession.correctCount;
     document.getElementById('stat-wrong').textContent = studySession.wrongCount;
 
@@ -2779,26 +3175,74 @@ function exitStudy() {
     }
 }
 
-// ===== Session Persistence =====
+function restartStudy() {
+    if (currentListId && currentStudyMode) {
+        startStudyMode(currentStudyMode);
+    } else {
+        showHome();
+    }
+}
+
 function restoreLastView() {
     const lastView = localStorage.getItem(LAST_VIEW_KEY);
     const lastListId = localStorage.getItem(LAST_LIST_ID_KEY);
     const lastStudyMode = localStorage.getItem(LAST_STUDY_MODE_KEY);
-    
+
     // Only restore if we have valid data
     if (!lastView || lastView === 'home-view' || lastView === 'create-view' || lastView === 'complete-view') {
         return; // Show default home view
     }
-    
-    // For study views, only restore if active session exists
+
+    // For study views, try to restore session from localStorage
     if (lastView.startsWith('study-')) {
-        if (lastStudyMode && studySession.words && studySession.words.length > 0) {
-            showView(lastView);
-            return;
+        const raw = localStorage.getItem('activeStudySession');
+        if (raw) {
+            try {
+                const data = JSON.parse(raw);
+                if (data && data.state && data.state.words && data.state.words.length > 0) {
+                    studySession = data.state;
+                    currentStudyMode = data.mode;
+                    currentListId = data.listId;
+
+                    switch (currentStudyMode) {
+                        case 'steps':
+                            showView('study-steps-view');
+                            updateStepsProgress();
+                            if (studySession.stepsReviewMode) {
+                                showNextStepsReviewQuestion();
+                            } else {
+                                showNextStepQuestion();
+                            }
+                            return;
+                        case 'typing':
+                            showView('study-typing-view');
+                            updateTypingProgress();
+                            if (studySession.typingReviewMode) {
+                                showNextTypingReviewQuestion();
+                            } else {
+                                showNextTypingQuestion();
+                            }
+                            return;
+                        case 'cards':
+                            // Cards mode can't be easily restored mid-session, show list instead
+                            if (data.listId) {
+                                const list = wordLists.find(l => l.id === data.listId);
+                                if (list) {
+                                    showListDetail(data.listId);
+                                    return;
+                                }
+                            }
+                            return;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to restore study session:', e);
+                localStorage.removeItem('activeStudySession');
+            }
         }
         return; // Session ended, show home
     }
-    
+
     // For list view, restore the list if it exists
     if (lastView === 'list-view' && lastListId) {
         const list = wordLists.find(l => l.id === lastListId);
@@ -2851,6 +3295,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (menu.classList.contains('hidden')) return;
         if (menu.contains(event.target) || btn.contains(event.target)) return;
         closeAuthMenu();
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', (event) => {
+        const searchContainer = document.querySelector('.header-search');
+        const results = document.getElementById('public-search-results');
+        if (!searchContainer || !results) return;
+        if (results.classList.contains('hidden')) return;
+        if (searchContainer.contains(event.target)) return;
+        results.classList.add('hidden');
     });
 
     // Restore last view (session persistence)
@@ -2942,37 +3396,37 @@ function handleStepsKeyboard(e) {
         }
 
         const choiceNextBtn = document.querySelector('#step-choice-feedback .btn-next');
-        if (choiceNextBtn && e.code === 'Enter') {
+        if (choiceNextBtn && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault();
             choiceNextBtn.click();
             return;
         }
     }
 
-    const flipCard = document.getElementById('step-flip-card');
-    const nextBtn = document.getElementById('step-next-btn');
-    if (flipCard) {
-        if (e.code === 'Space') {
+    const flashCard = document.getElementById('step-flash-card');
+    const flashNextBtn = document.getElementById('step-flash-next');
+    if (flashCard) {
+        if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
-            flipStepCard();
+            if (!flashCard.classList.contains('flipped')) {
+                flipStepFlash();
+            } else if (flashNextBtn && flashNextBtn.style.display !== 'none') {
+                flashNextBtn.click();
+            }
             return;
-        }
-        if (e.code === 'Enter' && nextBtn && !nextBtn.classList.contains('hidden')) {
-            e.preventDefault();
-            nextBtn.click();
         }
     }
 
     const typingInput = document.getElementById('step-typing-input');
     const typingContinueBtn = document.querySelector('#step-typing-feedback .btn-next');
-    if (typingInput && typingInput.disabled && typingContinueBtn && e.code === 'Enter') {
+    if (typingInput && typingInput.disabled && typingContinueBtn && e.key === 'Enter') {
         e.preventDefault();
         typingContinueBtn.click();
     }
 
     const reviewInput = document.getElementById('step-review-input');
     const reviewContinueBtn = document.querySelector('#step-review-feedback .btn-next');
-    if (reviewInput && reviewInput.disabled && reviewContinueBtn && e.code === 'Enter') {
+    if (reviewInput && reviewInput.disabled && reviewContinueBtn && e.key === 'Enter') {
         e.preventDefault();
         reviewContinueBtn.click();
     }
@@ -2981,14 +3435,14 @@ function handleStepsKeyboard(e) {
 function handleTypingKeyboard(e) {
     const typingInput = document.getElementById('typing-input');
     const typingContinueBtn = document.querySelector('#typing-feedback .btn-next');
-    if (typingInput && typingInput.disabled && typingContinueBtn && e.code === 'Enter') {
+    if (typingInput && typingInput.disabled && typingContinueBtn && e.key === 'Enter') {
         e.preventDefault();
         typingContinueBtn.click();
     }
 
     const reviewInput = document.getElementById('typing-review-input');
     const reviewContinueBtn = document.querySelector('#typing-review-feedback .btn-next');
-    if (reviewInput && reviewInput.disabled && reviewContinueBtn && e.code === 'Enter') {
+    if (reviewInput && reviewInput.disabled && reviewContinueBtn && e.key === 'Enter') {
         e.preventDefault();
         reviewContinueBtn.click();
     }
@@ -3110,10 +3564,71 @@ function buildTypingDiff(userAnswer, correctAnswer) {
         `;
     }
 
-    const uChars = Array.from(user);
-    const cChars = Array.from(correct);
-    const m = uChars.length;
-    const n = cChars.length;
+    if (!user.length) {
+        return `
+            <div class="typing-diff">
+                <div class="diff-row">
+                    <span class="diff-label">Jij:</span>
+                    <span class="diff-text"><span class="diff-char missing">(leeg)</span></span>
+                </div>
+                <div class="diff-row">
+                    <span class="diff-label">Juist:</span>
+                    <span class="diff-text"><span class="diff-char expected">${escapeHtml(correct)}</span></span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Split into words for word-level alignment
+    const userWords = user.split(/(\s+)/);
+    const correctWords = correct.split(/(\s+)/);
+
+    // Use word-level LCS to align words, then character-level diff within mismatched words
+    const wordOps = alignWords(
+        userWords.filter(w => w.trim()),
+        correctWords.filter(w => w.trim())
+    );
+
+    let userHtml = [];
+    let correctHtml = [];
+
+    for (const op of wordOps) {
+        if (op.type === 'equal') {
+            userHtml.push(`<span class="diff-char correct">${escapeHtml(op.userWord)}</span>`);
+            correctHtml.push(`<span class="diff-char correct">${escapeHtml(op.correctWord)}</span>`);
+        } else if (op.type === 'replace') {
+            // Character-level diff within the word
+            const charDiff = charLevelDiff(op.userWord, op.correctWord);
+            userHtml.push(charDiff.userHtml);
+            correctHtml.push(charDiff.correctHtml);
+        } else if (op.type === 'insert') {
+            // Word missing from user's answer
+            userHtml.push(`<span class="diff-char missing">_</span>`);
+            correctHtml.push(`<span class="diff-char expected">${escapeHtml(op.correctWord)}</span>`);
+        } else if (op.type === 'delete') {
+            // Extra word in user's answer
+            userHtml.push(`<span class="diff-char wrong">${escapeHtml(op.userWord)}</span>`);
+            correctHtml.push(`<span class="diff-char expected"></span>`);
+        }
+    }
+
+    return `
+        <div class="typing-diff">
+            <div class="diff-row">
+                <span class="diff-label">Jij:</span>
+                <span class="diff-text">${userHtml.join(' ')}</span>
+            </div>
+            <div class="diff-row">
+                <span class="diff-label">Juist:</span>
+                <span class="diff-text">${correctHtml.join(' ')}</span>
+            </div>
+        </div>
+    `;
+}
+
+function alignWords(userWords, correctWords) {
+    const m = userWords.length;
+    const n = correctWords.length;
     const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
 
     for (let i = 0; i <= m; i++) dp[i][0] = i;
@@ -3121,70 +3636,169 @@ function buildTypingDiff(userAnswer, correctAnswer) {
 
     for (let i = 1; i <= m; i++) {
         for (let j = 1; j <= n; j++) {
-            const cost = uChars[i - 1] === cChars[j - 1] ? 0 : 1;
+            if (userWords[i - 1].toLowerCase() === correctWords[j - 1].toLowerCase()) {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                // Partial match gets lower cost than complete mismatch
+                const similarity = wordSimilarity(userWords[i - 1], correctWords[j - 1]);
+                const replaceCost = similarity > 0.5 ? 0.5 : 1;
+                dp[i][j] = Math.min(
+                    dp[i - 1][j] + 1,
+                    dp[i][j - 1] + 1,
+                    dp[i - 1][j - 1] + replaceCost
+                );
+            }
+        }
+    }
+
+    // Traceback
+    const ops = [];
+    let i = m, j = n;
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0) {
+            const isEqual = userWords[i - 1].toLowerCase() === correctWords[j - 1].toLowerCase();
+            const similarity = wordSimilarity(userWords[i - 1], correctWords[j - 1]);
+            const replaceCost = isEqual ? 0 : (similarity > 0.5 ? 0.5 : 1);
+
+            if (dp[i][j] === dp[i - 1][j - 1] + replaceCost) {
+                if (isEqual) {
+                    ops.push({ type: 'equal', userWord: userWords[i - 1], correctWord: correctWords[j - 1] });
+                } else {
+                    ops.push({ type: 'replace', userWord: userWords[i - 1], correctWord: correctWords[j - 1] });
+                }
+                i--; j--;
+                continue;
+            }
+        }
+        if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
+            ops.push({ type: 'delete', userWord: userWords[i - 1] });
+            i--;
+            continue;
+        }
+        if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) {
+            ops.push({ type: 'insert', correctWord: correctWords[j - 1] });
+            j--;
+            continue;
+        }
+        break;
+    }
+
+    return ops.reverse();
+}
+
+function wordSimilarity(a, b) {
+    if (!a || !b) return 0;
+    const la = a.toLowerCase();
+    const lb = b.toLowerCase();
+    if (la === lb) return 1;
+    const maxLen = Math.max(la.length, lb.length);
+    if (maxLen === 0) return 1;
+    const dist = levenshteinDistance(la, lb);
+    return 1 - dist / maxLen;
+}
+
+function levenshteinDistance(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+            // Handle transpositions (adjacent char swap)
+            if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+                dp[i][j] = Math.min(dp[i][j], dp[i - 2][j - 2] + 1);
+            }
+        }
+    }
+    return dp[m][n];
+}
+
+function charLevelDiff(userWord, correctWord) {
+    const uChars = Array.from(userWord);
+    const cChars = Array.from(correctWord);
+    const m = uChars.length;
+    const n = cChars.length;
+
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            // Case-insensitive and accent-tolerant comparison
+            const uChar = uChars[i - 1];
+            const cChar = cChars[j - 1];
+            const cost = charsMatch(uChar, cChar) ? 0 : 1;
             dp[i][j] = Math.min(
                 dp[i - 1][j] + 1,
                 dp[i][j - 1] + 1,
                 dp[i - 1][j - 1] + cost
             );
+            // Transposition
+            if (i > 1 && j > 1 && charsMatch(uChars[i - 1], cChars[j - 2]) && charsMatch(uChars[i - 2], cChars[j - 1])) {
+                dp[i][j] = Math.min(dp[i][j], dp[i - 2][j - 2] + 1);
+            }
         }
     }
 
-    const userOut = [];
-    const correctOut = [];
-    let i = m;
-    let j = n;
+    // Traceback
+    const userParts = [];
+    const correctParts = [];
+    let i = m, j = n;
 
     while (i > 0 || j > 0) {
         if (i > 0 && j > 0) {
-            const cost = uChars[i - 1] === cChars[j - 1] ? 0 : 1;
+            const cost = charsMatch(uChars[i - 1], cChars[j - 1]) ? 0 : 1;
             if (dp[i][j] === dp[i - 1][j - 1] + cost) {
-                const u = uChars[i - 1];
-                const c = cChars[j - 1];
                 if (cost === 0) {
-                    userOut.push(`<span class="diff-char correct">${escapeHtml(u)}</span>`);
-                    correctOut.push(`<span class="diff-char correct">${escapeHtml(c)}</span>`);
+                    userParts.push(`<span class="diff-char correct">${escapeHtml(uChars[i - 1])}</span>`);
+                    correctParts.push(`<span class="diff-char correct">${escapeHtml(cChars[j - 1])}</span>`);
                 } else {
-                    userOut.push(`<span class="diff-char wrong">${escapeHtml(u)}</span>`);
-                    correctOut.push(`<span class="diff-char expected">${escapeHtml(c)}</span>`);
+                    userParts.push(`<span class="diff-char wrong">${escapeHtml(uChars[i - 1])}</span>`);
+                    correctParts.push(`<span class="diff-char expected">${escapeHtml(cChars[j - 1])}</span>`);
                 }
-                i--;
-                j--;
+                i--; j--;
+                continue;
+            }
+            // Check transposition
+            if (i > 1 && j > 1 && charsMatch(uChars[i - 1], cChars[j - 2]) && charsMatch(uChars[i - 2], cChars[j - 1]) && dp[i][j] === dp[i - 2][j - 2] + 1) {
+                userParts.push(`<span class="diff-char wrong">${escapeHtml(uChars[i - 1])}</span>`);
+                userParts.push(`<span class="diff-char wrong">${escapeHtml(uChars[i - 2])}</span>`);
+                correctParts.push(`<span class="diff-char expected">${escapeHtml(cChars[j - 1])}</span>`);
+                correctParts.push(`<span class="diff-char expected">${escapeHtml(cChars[j - 2])}</span>`);
+                i -= 2; j -= 2;
                 continue;
             }
         }
-
         if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
-            const u = uChars[i - 1];
-            userOut.push(`<span class="diff-char wrong">${escapeHtml(u)}</span>`);
-            correctOut.push(`<span class="diff-char expected">•</span>`);
+            userParts.push(`<span class="diff-char wrong">${escapeHtml(uChars[i - 1])}</span>`);
             i--;
             continue;
         }
-
         if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) {
-            const c = cChars[j - 1];
-            userOut.push(`<span class="diff-char missing">•</span>`);
-            correctOut.push(`<span class="diff-char expected">${escapeHtml(c)}</span>`);
+            correctParts.push(`<span class="diff-char expected">${escapeHtml(cChars[j - 1])}</span>`);
             j--;
             continue;
         }
-
         break;
     }
 
-    return `
-        <div class="typing-diff">
-            <div class="diff-row">
-                <span class="diff-label">Jij:</span>
-                <span class="diff-text">${userOut.reverse().join('')}</span>
-            </div>
-            <div class="diff-row">
-                <span class="diff-label">Juist:</span>
-                <span class="diff-text">${correctOut.reverse().join('')}</span>
-            </div>
-        </div>
-    `;
+    return {
+        userHtml: userParts.reverse().join(''),
+        correctHtml: correctParts.reverse().join('')
+    };
+}
+
+function charsMatch(a, b) {
+    if (a === b) return true;
+    // Case insensitive
+    if (a.toLowerCase() === b.toLowerCase()) return true;
+    // Accent-tolerant: normalize and compare
+    const na = a.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const nb = b.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return na === nb;
 }
 
 function recordAnswer(wordId, isCorrect) {
