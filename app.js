@@ -42,10 +42,10 @@ let studySession = {
     // Steps mode specific
     currentBatch: [],
     learnedWords: [],
-    currentPhase: 'flashcard', // flashcard, choice, typing
+    currentPhase: 'choice', // choice, typing
     phaseIndex: 0,
     wrongInSession: [],
-    wordProgress: {}, // Track progress per word: {flashcard: done, choice: done, typing: needsCorrect}
+    wordProgress: {}, // Track progress per word: {choice: done, typing: needsCorrect}
     stepsWrongWords: [],
     stepsReviewMode: false,
     stepsReviewQueue: [],
@@ -55,30 +55,7 @@ let studySession = {
     typingWrongWords: [],
     typingReviewMode: false,
     typingReviewQueue: [],
-    typingReviewIndex: 0,
-    // Flashcards mode specific
-    flashcardsDeck: [],
-    flashcardsWrong: [],
-    flashcardsCorrect: []
-};
-
-let flashcardSwipe = {
-    startX: 0,
-    startY: 0,
-    currentX: 0,
-    currentY: 0,
-    active: false,
-    startTime: 0
-};
-
-let flashcardAnimating = false;
-let flashcardHandlersAttached = false;
-let flashcardState = {
-    dragX: 0,
-    isDragging: false,
-    animState: null,
-    isFlipped: false,
-    ignoreNextClick: false
+    typingReviewIndex: 0
 };
 
 // ===== Save Data =====
@@ -141,7 +118,7 @@ function showView(viewId) {
     
     // Save view state for session persistence
     localStorage.setItem(LAST_VIEW_KEY, viewId);
-    if (currentListId && (viewKey === 'list' || viewKey === 'study-steps' || viewKey === 'study-typing' || viewKey === 'study-flashcards')) {
+    if (currentListId && (viewKey === 'list' || viewKey === 'study-steps' || viewKey === 'study-typing')) {
         localStorage.setItem(LAST_LIST_ID_KEY, currentListId);
     }
     if (currentStudyMode && viewKey.startsWith('study-')) {
@@ -693,6 +670,7 @@ function updateAuthUI() {
     const logoutBtn = document.getElementById('auth-logout-btn');
     const userLabel = document.getElementById('auth-user');
     const menuBtn = document.getElementById('auth-menu-btn');
+    const avatarInitial = document.getElementById('auth-avatar-initial');
 
     if (authUser) {
         if (loginBtn) loginBtn.classList.add('hidden');
@@ -703,6 +681,10 @@ function updateAuthUI() {
             userLabel.classList.remove('hidden');
         }
         if (menuBtn) menuBtn.classList.add('logged-in');
+        if (avatarInitial) {
+            const initial = authUser.email?.trim()?.[0] || '?';
+            avatarInitial.textContent = initial.toUpperCase();
+        }
     } else {
         if (loginBtn) loginBtn.classList.remove('hidden');
         if (signupBtn) signupBtn.classList.remove('hidden');
@@ -712,6 +694,7 @@ function updateAuthUI() {
             userLabel.classList.add('hidden');
         }
         if (menuBtn) menuBtn.classList.remove('logged-in');
+        if (avatarInitial) avatarInitial.textContent = '?';
     }
 }
 
@@ -1049,7 +1032,9 @@ function selectPresetColor(color) {
 }
 
 function isCloudEnabled() {
-    return localStorage.getItem(CLOUD_SETTINGS_KEY) === 'true';
+    const value = localStorage.getItem(CLOUD_SETTINGS_KEY);
+    if (value === null) return true;
+    return value === 'true';
 }
 
 function setCloudEnabled(enabled) {
@@ -1071,7 +1056,10 @@ function applyCloudState() {
         const publicInput = document.getElementById('public-search-input');
         const publicResults = document.getElementById('public-search-results');
         if (publicInput) publicInput.value = '';
-        if (publicResults) publicResults.innerHTML = '';
+        if (publicResults) {
+            publicResults.innerHTML = '';
+            publicResults.classList.add('hidden');
+        }
     } else {
         initSupabase();
     }
@@ -1302,11 +1290,13 @@ async function searchPublicLists() {
     const query = input.value.trim();
     if (!query) {
         results.innerHTML = '';
+        results.classList.add('hidden');
         return;
     }
 
     if (!supabaseClient) {
         results.innerHTML = '<p class="public-search-empty">Log in om te zoeken.</p>';
+        results.classList.remove('hidden');
         return;
     }
 
@@ -1320,11 +1310,13 @@ async function searchPublicLists() {
 
     if (error) {
         results.innerHTML = '<p class="public-search-empty">Zoeken mislukt.</p>';
+        results.classList.remove('hidden');
         return;
     }
 
     if (!data || data.length === 0) {
         results.innerHTML = '<p class="public-search-empty">Geen resultaten.</p>';
+        results.classList.remove('hidden');
         return;
     }
 
@@ -1339,6 +1331,7 @@ async function searchPublicLists() {
             </button>
         </div>
     `).join('');
+    results.classList.remove('hidden');
 }
 
 async function importPublicList(listId) {
@@ -1377,20 +1370,21 @@ async function importPublicList(listId) {
     }
 
     showListDetail(openListId);
-    startStudyMode('flashcards');
+    startStudyMode('steps');
 }
 
 // ===== Study Mode Settings =====
 function startStudyMode(mode) {
     const list = wordLists.find(l => l.id === currentListId);
     if (!list || list.words.length === 0) return;
-    
+
     currentStudyMode = mode;
-    
+
     // Show typing settings only for modes that use typing
     const typingSettings = document.getElementById('typing-settings');
-    typingSettings.classList.toggle('hidden', mode === 'flashcards');
-    
+    const usesTyping = mode === 'steps' || mode === 'typing';
+    typingSettings.classList.toggle('hidden', !usesTyping);
+
     document.getElementById('settings-modal').classList.remove('hidden');
 }
 
@@ -1428,7 +1422,7 @@ function confirmStartStudy() {
     };
     
     closeSettingsModal();
-    
+
     switch (currentStudyMode) {
         case 'steps':
             initStepsMode();
@@ -1436,8 +1430,8 @@ function confirmStartStudy() {
         case 'typing':
             initTypingMode();
             break;
-        case 'flashcards':
-            initFlashcardsMode();
+        case 'cards':
+            initCardsMode();
             break;
     }
 
@@ -1659,7 +1653,7 @@ function initStepsMode() {
 
     studySession.words.forEach(word => {
         studySession.wordProgress[word.id] = {
-            phase: 'flashcard',
+            phase: 'choice',
             done: false,
             typingRemaining: 0,
             typingCooldown: 0
@@ -1751,11 +1745,6 @@ function showNextStepQuestion() {
     const qa = getQuestion(word);
     studySession.currentWordId = wordId;
 
-    if (progress.phase === 'flashcard') {
-        showStepFlashcard(word, qa);
-        return;
-    }
-
     if (progress.phase === 'choice') {
         showStepChoice(word, qa);
         return;
@@ -1806,44 +1795,6 @@ function reduceStepsCooldowns() {
     });
 }
 
-function showStepFlashcard(word, qa) {
-    const content = document.getElementById('steps-content');
-    content.innerHTML = `
-        <div class="question-card">
-            <div class="question-type-label">
-                <i class="fas fa-clone"></i> Woordkaartje
-            </div>
-            <div class="flip-card" id="step-flip-card" onclick="flipStepCard()">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <p>${escapeHtml(qa.question)}</p>
-                    </div>
-                    <div class="flip-card-back">
-                        <p>${escapeHtml(qa.answer)}</p>
-                    </div>
-                </div>
-            </div>
-            <p class="flip-hint">Klik om om te draaien</p>
-            <button class="btn btn-primary btn-next hidden" id="step-next-btn" onclick="completeStepFlashcard()">
-                <i class="fas fa-arrow-right"></i> Volgende
-            </button>
-        </div>
-    `;
-}
-
-function flipStepCard() {
-    const card = document.getElementById('step-flip-card');
-    card.classList.toggle('flipped');
-    document.getElementById('step-next-btn').classList.remove('hidden');
-}
-
-function completeStepFlashcard() {
-    const wordId = studySession.currentWordId;
-    if (wordId && studySession.wordProgress[wordId]) {
-        studySession.wordProgress[wordId].phase = 'choice';
-    }
-    showNextStepQuestion();
-}
 
 function showStepChoice(word, qa) {
     const list = wordLists.find(l => l.id === currentListId);
@@ -2447,332 +2398,6 @@ function reduceTypingCooldowns() {
     });
 }
 
-// ===== FLASHCARDS MODE =====
-function initFlashcardsMode() {
-    const list = wordLists.find(l => l.id === currentListId);
-    const selectedWords = getStudyWordsFromSelection(list.words);
-
-    studySession.flashcardsDeck = shuffleArray([...selectedWords]);
-    studySession.flashcardsWrong = [];
-    studySession.flashcardsCorrect = [];
-    studySession.currentIndex = 0;
-    flashcardState = { dragX: 0, isDragging: false, animState: null, isFlipped: false, ignoreNextClick: false };
-    
-    showView('study-flashcards-view');
-    updateFlashcardsProgress();
-    showCurrentFlashcard();
-    
-    // Add keyboard listener
-    window.addEventListener('keydown', handleFlashcardKeys, true);
-
-    ensureFlashcardSwipeHandlers();
-}
-
-function handleFlashcardKeys(e) {
-    if (!document.getElementById('study-flashcards-view').classList.contains('active')) {
-        return;
-    }
-    if (flashcardState.animState) return;
-
-    const activeElement = document.activeElement;
-    const isTypingField = activeElement && ['INPUT', 'TEXTAREA'].includes(activeElement.tagName) && !activeElement.disabled;
-    if (isTypingField) return;
-
-    const key = e.key;
-    const code = e.code;
-    
-    switch (code) {
-        case 'Space':
-        case 'ArrowUp':
-        case 'ArrowDown':
-            e.preventDefault();
-            toggleFlashcard('keyboard');
-            break;
-        case 'ArrowLeft':
-            e.preventDefault();
-            markFlashcard(false);
-            break;
-        case 'ArrowRight':
-            e.preventDefault();
-            markFlashcard(true);
-            break;
-        default:
-            if (key === ' ' || key === 'Spacebar') {
-                e.preventDefault();
-                toggleFlashcard('keyboard');
-            }
-            break;
-    }
-}
-
-function ensureFlashcardSwipeHandlers() {
-    if (flashcardHandlersAttached) return;
-    const flashcard = document.getElementById('flashcard-card');
-    if (!flashcard) return;
-
-    // Mouse events
-    flashcard.addEventListener('mousedown', onFlashcardPointerDown);
-    document.addEventListener('mousemove', onFlashcardPointerMove);
-    document.addEventListener('mouseup', onFlashcardPointerUp);
-    
-    // Touch events
-    flashcard.addEventListener('touchstart', onFlashcardPointerDown);
-    document.addEventListener('touchmove', onFlashcardPointerMove, { passive: false });
-    document.addEventListener('touchend', onFlashcardPointerUp);
-    document.addEventListener('touchcancel', onFlashcardPointerCancel);
-
-    flashcardHandlersAttached = true;
-}
-
-function onFlashcardPointerDown(e) {
-    if (!document.getElementById('study-flashcards-view').classList.contains('active')) {
-        return;
-    }
-    if (flashcardAnimating) return;
-    
-    flashcardSwipe.active = true;
-    flashcardSwipe.startX = e.clientX || e.touches?.[0]?.clientX || 0;
-    flashcardSwipe.startY = e.clientY || e.touches?.[0]?.clientY || 0;
-    flashcardSwipe.currentX = flashcardSwipe.startX;
-    flashcardSwipe.currentY = flashcardSwipe.startY;
-    flashcardSwipe.startTime = Date.now();
-    flashcardState.isDragging = true;
-    flashcardState.dragX = 0;
-}
-
-function onFlashcardPointerMove(e) {
-    if (!flashcardSwipe.active) return;
-    
-    const flashcard = document.getElementById('flashcard-card');
-    const flashcardsView = document.getElementById('study-flashcards-view');
-    flashcardSwipe.currentX = e.clientX || e.touches?.[0]?.clientX || 0;
-    flashcardSwipe.currentY = e.clientY || e.touches?.[0]?.clientY || 0;
-    
-    const deltaX = flashcardSwipe.currentX - flashcardSwipe.startX;
-    const deltaY = flashcardSwipe.currentY - flashcardSwipe.startY;
-
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        e.preventDefault?.();
-        const rotate = Math.max(Math.min(deltaX / 20, 15), -15);
-        const scale = 1 - Math.abs(deltaX) / 1200;
-        flashcardState.dragX = deltaX;
-        flashcard.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg) scale(${Math.max(0.85, scale)})`;
-
-        flashcard.classList.toggle('drag-right', deltaX > 20);
-        flashcard.classList.toggle('drag-left', deltaX < -20);
-        if (flashcardsView) {
-            flashcardsView.classList.toggle('flash-bg-right', deltaX > 20);
-            flashcardsView.classList.toggle('flash-bg-left', deltaX < -20);
-        }
-    }
-}
-
-function onFlashcardPointerUp(e) {
-    if (!flashcardSwipe.active) return;
-    flashcardSwipe.active = false;
-    flashcardState.isDragging = false;
-
-    const flashcard = document.getElementById('flashcard-card');
-    const flashcardsView = document.getElementById('study-flashcards-view');
-    const deltaX = flashcardSwipe.currentX - flashcardSwipe.startX;
-    const deltaY = flashcardSwipe.currentY - flashcardSwipe.startY;
-    const duration = Date.now() - flashcardSwipe.startTime;
-    const isTouch = e?.type?.startsWith('touch');
-
-    // Check if swipe is significant
-    const minDistance = 60;
-    const maxDuration = 1000;
-    const isSignificantSwipe = Math.abs(deltaX) > minDistance && 
-                              Math.abs(deltaX) > Math.abs(deltaY) && 
-                              duration < maxDuration;
-
-    flashcard.style.transition = 'transform 0.25s ease';
-
-    if (isSignificantSwipe) {
-        flashcard.classList.remove('drag-left', 'drag-right');
-        if (flashcardsView) {
-            flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
-        }
-        markFlashcard(deltaX > 0);
-    } else {
-        flashcard.style.transform = 'translateX(0) rotate(0) scale(1)';
-        flashcard.classList.remove('drag-left', 'drag-right');
-        if (flashcardsView) {
-            flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
-        }
-        const isTap = Math.abs(deltaX) < 12 && Math.abs(deltaY) < 12 && duration < 900;
-        if (isTouch && isTap) {
-            toggleFlashcard('touch');
-        }
-        setTimeout(() => {
-            flashcard.style.transition = '';
-        }, 250);
-    }
-}
-
-function onFlashcardPointerCancel() {
-    flashcardSwipe.active = false;
-    flashcardState.isDragging = false;
-    const flashcard = document.getElementById('flashcard-card');
-    const flashcardsView = document.getElementById('study-flashcards-view');
-    if (flashcard) {
-        flashcard.style.transform = '';
-        flashcard.classList.remove('drag-left', 'drag-right');
-    }
-    if (flashcardsView) {
-        flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
-    }
-}
-
-function updateFlashcardsProgress() {
-    const total = studySession.flashcardsDeck.length + 
-                  studySession.flashcardsCorrect.length + 
-                  studySession.flashcardsWrong.length;
-    const answered = studySession.flashcardsCorrect.length + studySession.flashcardsWrong.length;
-    const percent = total > 0 ? (answered / total) * 100 : 0;
-    const current = Math.min(total, answered + (studySession.flashcardsDeck.length > 0 ? 1 : 0));
-    
-    document.getElementById('flashcards-progress').style.width = `${percent}%`;
-    document.getElementById('flashcards-progress-text').textContent = 
-        `${current}/${total}`;
-}
-
-function showCurrentFlashcard() {
-    if (studySession.flashcardsDeck.length === 0) {
-        if (studySession.flashcardsWrong.length > 0) {
-            // Reshuffle wrong cards
-            studySession.flashcardsDeck = shuffleArray([...studySession.flashcardsWrong]);
-            studySession.flashcardsWrong = [];
-            showCurrentFlashcard();
-        } else {
-            // Complete!
-            window.removeEventListener('keydown', handleFlashcardKeys, true);
-            showComplete();
-        }
-        return;
-    }
-    
-    const word = studySession.flashcardsDeck[0];
-    const qa = getQuestion(word);
-    const list = wordLists.find(l => l.id === currentListId);
-    
-    const flashcard = document.getElementById('flashcard-card');
-    const flashcardsView = document.getElementById('study-flashcards-view');
-    const actions = document.getElementById('flashcard-actions');
-    flashcard.classList.remove('flipped');
-    flashcard.classList.remove('swipe-left', 'swipe-right', 'animate-fly-left', 'animate-fly-right');
-    flashcard.classList.remove('drag-left', 'drag-right');
-    flashcard.style.transform = '';
-    flashcard.style.transition = '';
-    if (flashcardsView) {
-        flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
-    }
-    if (actions) actions.classList.remove('is-visible');
-    flashcardState.isFlipped = false;
-    flashcardState.ignoreNextClick = false;  // Reset ignore flag for new card
-    
-    document.getElementById('flashcard-term').textContent = qa.question;
-    document.getElementById('flashcard-definition').textContent = qa.answer;
-
-    const frontLabel = list ? (qa.isTermToDef ? list.langFrom : list.langTo) : 'WOORD';
-    const backLabel = list ? (qa.isTermToDef ? list.langTo : list.langFrom) : 'BETEKENIS';
-    const frontEl = document.getElementById('flashcard-label-front');
-    const backEl = document.getElementById('flashcard-label-back');
-    if (frontEl) frontEl.textContent = frontLabel || 'WOORD';
-    if (backEl) backEl.textContent = backLabel || 'BETEKENIS';
-}
-
-function toggleFlashcard(source = 'click') {
-    if (source === 'click' && flashcardState.ignoreNextClick) {
-        return;  // Return without resetting - will be reset when new card loads
-    }
-    const flashcard = document.getElementById('flashcard-card');
-    const actions = document.getElementById('flashcard-actions');
-    flashcard.classList.toggle('flipped');
-    flashcardState.isFlipped = flashcard.classList.contains('flipped');
-    if (actions) actions.classList.toggle('is-visible', flashcardState.isFlipped);
-}
-
-function markFlashcard(correct) {
-    if (studySession.flashcardsDeck.length === 0) return;
-
-    if (flashcardAnimating) return;
-    flashcardAnimating = true;
-
-    const flashcard = document.getElementById('flashcard-card');
-    const flashcardsView = document.getElementById('study-flashcards-view');
-    flashcard.classList.remove('drag-left', 'drag-right', 'swipe-left', 'swipe-right');
-    flashcard.classList.add(correct ? 'animate-fly-right' : 'animate-fly-left');
-    if (flashcardsView) {
-        flashcardsView.classList.remove('flash-bg-left', 'flash-bg-right');
-    }
-
-    flashcardState.animState = correct ? 'fly-right' : 'fly-left';
-
-    setTimeout(() => {
-        const word = studySession.flashcardsDeck.shift();
-
-        if (correct) {
-            studySession.flashcardsCorrect.push(word);
-            studySession.correctCount++;
-            playCorrectSound();
-        } else {
-            studySession.flashcardsWrong.push(word);
-            studySession.wrongCount++;
-        }
-
-        recordAnswer(word.id, correct);
-        saveActiveSession();
-
-        flashcardState.animState = null;
-        updateFlashcardsProgress();
-        showCurrentFlashcard();
-        flashcardAnimating = false;
-    }, 300);
-}
-
-// Flashcard click handler
-document.getElementById('flashcard-card')?.addEventListener('click', toggleFlashcard);
-
-// ===== Complete & Exit =====
-function showComplete() {
-    finalizeSessionStats();
-    document.getElementById('stat-correct').textContent = studySession.correctCount;
-    document.getElementById('stat-wrong').textContent = studySession.wrongCount;
-    
-    const accuracy = studySession.correctCount + studySession.wrongCount > 0
-        ? Math.round((studySession.correctCount / (studySession.correctCount + studySession.wrongCount)) * 100)
-        : 100;
-    
-    const grade = calculateGrade(studySession.correctCount, studySession.wrongCount);
-    const gradeValue = parseFloat(grade);
-    let gradeClass = 'grade-mid';
-    if (gradeValue < 5.5) {
-        gradeClass = 'grade-low';
-    } else if (gradeValue > 8) {
-        gradeClass = 'grade-high';
-    }
-    document.getElementById('complete-message').innerHTML = 
-        `Je hebt alle woordjes geoefend met ${accuracy}% nauwkeurigheid (cijfer <span class="grade-score ${gradeClass}">${grade}</span>).`;
-    
-    playCompleteSound();
-    createConfetti();
-    
-    showView('complete-view');
-
-    clearActiveSession();
-}
-
-function restartStudy() {
-    confirmStartStudy();
-}
-
-function exitStudy() {
-    window.removeEventListener('keydown', handleFlashcardKeys, true);
-    saveActiveSession();
-    showListDetail(currentListId);
-}
-
 // ===== Utility Functions =====
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -2791,6 +2416,367 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ===== Woordkaartjes Mode =====
+let cardsState = {
+    currentIndex: 0,
+    deck: [],
+    correctCards: [],
+    wrongCards: [],
+    isFlipped: false
+};
+
+let cardSwipeState = {
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    currentY: 0,
+    isDragging: false,
+    startTime: 0
+};
+
+function initCardsMode() {
+    const list = wordLists.find(l => l.id === currentListId);
+    if (!list) return;
+
+    const words = getStudyWordsFromSelection(list.words);
+    cardsState.deck = shuffleArray(words);
+    cardsState.correctCards = [];
+    cardsState.wrongCards = [];
+    cardsState.currentIndex = 0;
+    cardsState.isFlipped = false;
+
+    studySession.correctCount = 0;
+    studySession.wrongCount = 0;
+
+    showView('study-cards-view');
+    updateCardsProgress();
+    showCurrentCard();
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleCardsKeys);
+
+    // Setup swipe handlers
+    setupCardSwipeHandlers();
+}
+
+function handleCardsKeys(e) {
+    if (!document.getElementById('study-cards-view').classList.contains('active')) return;
+
+    if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        flipCard();
+    } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        markCard(true);
+    } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        markCard(false);
+    }
+}
+
+function showCurrentCard() {
+    if (cardsState.currentIndex >= cardsState.deck.length) {
+        // Check if we have wrong cards to review
+        if (cardsState.wrongCards.length > 0) {
+            showCardsReviewPrompt();
+        } else {
+            finalizeCardSession();
+        }
+        return;
+    }
+
+    const word = cardsState.deck[cardsState.currentIndex];
+    const qa = getQuestion(word);
+    cardsState.isFlipped = false;
+
+    const content = document.getElementById('cards-content');
+    content.innerHTML = `
+        <div class="word-card" id="word-card" onclick="flipCard()">
+            <div class="word-card-inner">
+                <div class="word-card-face word-card-front">
+                    <p>${escapeHtml(qa.question)}</p>
+                </div>
+                <div class="word-card-face word-card-back">
+                    <p>${escapeHtml(qa.answer)}</p>
+                </div>
+            </div>
+        </div>
+        <p class="card-hint">Swipe links (fout) of rechts (goed) • Of tik om te flippen</p>
+        <div class="cards-actions" style="display: none;">
+            <button class="card-action-btn card-action-wrong" onclick="markCard(false)">
+                <i class="fas fa-times"></i> Fout
+            </button>
+            <button class="card-action-btn card-action-right" onclick="markCard(true)">
+                <i class="fas fa-check"></i> Goed
+            </button>
+        </div>
+    `;
+
+    updateCardsProgress();
+}
+
+function flipCard() {
+    const card = document.getElementById('word-card');
+    if (card) {
+        card.classList.toggle('flipped');
+        cardsState.isFlipped = !cardsState.isFlipped;
+
+        // Show/hide buttons based on flip state
+        const actions = document.querySelector('.cards-actions');
+        if (actions) {
+            if (cardsState.isFlipped) {
+                actions.style.display = 'flex';
+            } else {
+                actions.style.display = 'none';
+            }
+        }
+    }
+}
+
+function markCard(correct) {
+    const word = cardsState.deck[cardsState.currentIndex];
+    const card = document.getElementById('word-card');
+
+    // Add fly out animation
+    if (card) {
+        card.classList.add(correct ? 'fly-out-right' : 'fly-out-left');
+    }
+
+    if (correct) {
+        cardsState.correctCards.push(word);
+        studySession.correctCount++;
+        playCorrectSound();
+    } else {
+        cardsState.wrongCards.push(word);
+        studySession.wrongCount++;
+    }
+
+    recordAnswer(word.id, correct);
+    cardsState.currentIndex++;
+
+    setTimeout(() => showCurrentCard(), 400);
+}
+
+function setupCardSwipeHandlers() {
+    const container = document.getElementById('cards-content');
+    if (!container) return;
+
+    // Use pointer events for better cross-device support
+    container.addEventListener('pointerdown', onCardPointerDown, { passive: false });
+    container.addEventListener('pointermove', onCardPointerMove, { passive: false });
+    container.addEventListener('pointerup', onCardPointerUp);
+    container.addEventListener('pointercancel', onCardPointerCancel);
+}
+
+function onCardPointerDown(e) {
+    const card = e.target.closest('.word-card');
+    if (!card) return;
+
+    cardSwipeState.isDragging = true;
+    cardSwipeState.startX = e.clientX || e.touches?.[0]?.clientX || 0;
+    cardSwipeState.startY = e.clientY || e.touches?.[0]?.clientY || 0;
+    cardSwipeState.currentX = cardSwipeState.startX;
+    cardSwipeState.currentY = cardSwipeState.startY;
+    cardSwipeState.startTime = Date.now();
+
+    card.style.transition = 'none';
+}
+
+function onCardPointerMove(e) {
+    if (!cardSwipeState.isDragging) return;
+
+    const card = document.getElementById('word-card');
+    if (!card) return;
+
+    cardSwipeState.currentX = e.clientX || e.touches?.[0]?.clientX || 0;
+    cardSwipeState.currentY = e.clientY || e.touches?.[0]?.clientY || 0;
+
+    const deltaX = cardSwipeState.currentX - cardSwipeState.startX;
+    const deltaY = cardSwipeState.currentY - cardSwipeState.startY;
+
+    // Only drag if horizontal movement is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        e.preventDefault();
+
+        const rotate = deltaX / 20;
+        const opacity = 1 - Math.abs(deltaX) / 300;
+
+        card.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
+        card.style.opacity = Math.max(0.3, opacity);
+
+        // Visual feedback
+        const container = document.getElementById('study-cards-view');
+        if (deltaX < -50) {
+            container.classList.add('swipe-hint-left');
+            container.classList.remove('swipe-hint-right');
+        } else if (deltaX > 50) {
+            container.classList.add('swipe-hint-right');
+            container.classList.remove('swipe-hint-left');
+        } else {
+            container.classList.remove('swipe-hint-left', 'swipe-hint-right');
+        }
+    }
+}
+
+function onCardPointerUp(e) {
+    if (!cardSwipeState.isDragging) return;
+
+    cardSwipeState.isDragging = false;
+
+    const card = document.getElementById('word-card');
+    const container = document.getElementById('study-cards-view');
+    if (!card) return;
+
+    const deltaX = cardSwipeState.currentX - cardSwipeState.startX;
+    const deltaTime = Date.now() - cardSwipeState.startTime;
+    const velocity = Math.abs(deltaX) / deltaTime;
+
+    container.classList.remove('swipe-hint-left', 'swipe-hint-right');
+
+    // Check if swipe threshold met
+    const swipeThreshold = 80;
+    const velocityThreshold = 0.5;
+
+    if (Math.abs(deltaX) > swipeThreshold || velocity > velocityThreshold) {
+        // Swipe successful - mark card
+        if (deltaX > 0) {
+            markCard(true); // Swipe right = correct
+        } else {
+            markCard(false); // Swipe left = wrong
+        }
+    } else {
+        // Reset card position
+        card.style.transition = 'all 0.3s ease';
+        card.style.transform = '';
+        card.style.opacity = '';
+
+        setTimeout(() => {
+            card.style.transition = '';
+        }, 300);
+    }
+}
+
+function onCardPointerCancel(e) {
+    if (!cardSwipeState.isDragging) return;
+
+    cardSwipeState.isDragging = false;
+
+    const card = document.getElementById('word-card');
+    const container = document.getElementById('study-cards-view');
+
+    if (card) {
+        card.style.transition = 'all 0.3s ease';
+        card.style.transform = '';
+        card.style.opacity = '';
+    }
+
+    if (container) {
+        container.classList.remove('swipe-hint-left', 'swipe-hint-right');
+    }
+}
+
+function updateCardsProgress() {
+    const total = cardsState.deck.length;
+    const current = cardsState.currentIndex + 1;
+    const percent = total > 0 ? (cardsState.currentIndex / total) * 100 : 0;
+
+    const progressBar = document.getElementById('cards-progress');
+    if (progressBar) {
+        progressBar.style.width = `${percent}%`;
+    }
+
+    const progressText = document.getElementById('cards-progress-text');
+    if (progressText) {
+        progressText.textContent = `${Math.min(current, total)}/${total}`;
+    }
+}
+
+function showCardsReviewPrompt() {
+    const content = document.getElementById('cards-content');
+    content.innerHTML = `
+        <div class="question-card">
+            <h3>Wil je de foute kaartjes herhalen?</h3>
+            <p style="margin: 1rem 0; color: var(--text-medium);">
+                Je hebt ${cardsState.wrongCards.length} ${cardsState.wrongCards.length === 1 ? 'kaartje' : 'kaartjes'} fout.
+            </p>
+            <div class="cards-actions" style="flex-direction: column;">
+                <button class="btn btn-primary" onclick="retryWrongCards()">
+                    <i class="fas fa-redo"></i> Ja, herhaal fouten
+                </button>
+                <button class="btn btn-secondary" onclick="finalizeCardSession()">
+                    <i class="fas fa-check"></i> Nee, afronden
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function retryWrongCards() {
+    cardsState.deck = shuffleArray([...cardsState.wrongCards]);
+    cardsState.wrongCards = [];
+    cardsState.currentIndex = 0;
+    cardsState.isFlipped = false;
+    showCurrentCard();
+}
+
+function finalizeCardSession() {
+    cleanupCardHandlers();
+    finalizeSessionStats();
+
+    document.getElementById('stat-correct').textContent = studySession.correctCount;
+    document.getElementById('stat-wrong').textContent = studySession.wrongCount;
+
+    const accuracy = studySession.correctCount + studySession.wrongCount > 0
+        ? Math.round((studySession.correctCount / (studySession.correctCount + studySession.wrongCount)) * 100)
+        : 100;
+
+    const grade = calculateGrade(studySession.correctCount, studySession.wrongCount);
+    const gradeValue = parseFloat(grade);
+    let gradeClass = 'grade-mid';
+    if (gradeValue < 5.5) {
+        gradeClass = 'grade-low';
+    } else if (gradeValue > 8) {
+        gradeClass = 'grade-high';
+    }
+
+    document.getElementById('complete-message').innerHTML =
+        `Je hebt alle woordjes geoefend met ${accuracy}% nauwkeurigheid (cijfer <span class="grade-score ${gradeClass}">${grade}</span>).`;
+
+    playCompleteSound();
+    createConfetti();
+    showView('complete-view');
+    clearActiveSession();
+}
+
+function cleanupCardHandlers() {
+    document.removeEventListener('keydown', handleCardsKeys);
+
+    const container = document.getElementById('cards-content');
+    if (container) {
+        container.removeEventListener('pointerdown', onCardPointerDown);
+        container.removeEventListener('pointermove', onCardPointerMove);
+        container.removeEventListener('pointerup', onCardPointerUp);
+        container.removeEventListener('pointercancel', onCardPointerCancel);
+    }
+}
+
+function exitStudy() {
+    // Cleanup cards mode handlers if in cards mode
+    if (currentStudyMode === 'cards') {
+        cleanupCardHandlers();
+    }
+
+    // Clear active session
+    clearActiveSession();
+
+    // Return to list detail view
+    if (currentListId) {
+        showListDetail(currentListId);
+    } else {
+        showHome();
+    }
 }
 
 // ===== Session Persistence =====
@@ -2866,14 +2852,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (menu.contains(event.target) || btn.contains(event.target)) return;
         closeAuthMenu();
     });
-    
-    // Re-attach flashcard click handler
-    const flashcard = document.getElementById('flashcard-card');
-    if (flashcard) {
-        flashcard.removeEventListener('click', toggleFlashcard);
-        flashcard.addEventListener('click', () => toggleFlashcard('click'));
-    }
-    
+
     // Restore last view (session persistence)
     restoreLastView();
 });
@@ -3400,13 +3379,6 @@ function resumeStudy() {
             } else {
                 showNextTypingQuestion();
             }
-            break;
-        case 'flashcards':
-            showView('study-flashcards-view');
-            updateFlashcardsProgress();
-            showCurrentFlashcard();
-            document.addEventListener('keydown', handleFlashcardKeys);
-            ensureFlashcardSwipeHandlers();
             break;
     }
 }

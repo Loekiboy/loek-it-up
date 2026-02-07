@@ -50,11 +50,11 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="public-search-input" name="public-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoek openbare woordenlijsten (titel of woord)..." oninput="debouncedPublicSearch()">
                 </div>
-                <div id="public-search-results" class="public-search-results"></div>
+                <div id="public-search-results" class="public-search-results hidden"></div>
             </div>
             <div class="auth-controls cloud-only">
                 <button id="auth-menu-btn" class="auth-avatar-btn" onclick="toggleAuthMenu(event)" aria-label="Account">
-                    <img src="images/logo.svg" alt="Account" class="auth-avatar-img">
+                    <span id="auth-avatar-initial" class="auth-avatar-initial">?</span>
                 </button>
                 <div id="auth-menu" class="auth-menu hidden">
                     <div id="auth-user" class="auth-user hidden"></div>
@@ -317,12 +317,12 @@
                                 <h4>Typen</h4>
                                 <p>Typ alle vertalingen en leer door herhaling</p>
                             </div>
-                            <div class="mode-card" onclick="startStudyMode('flashcards')">
+                            <div class="mode-card" onclick="startStudyMode('cards')">
                                 <div class="mode-icon">
                                     <i class="fas fa-clone"></i>
                                 </div>
                                 <h4>Woordkaartjes</h4>
-                                <p>Swipe door kaartjes en markeer wat je weet</p>
+                                <p>Flip en swipe kaartjes om te leren</p>
                             </div>
                         </div>
                     </div>
@@ -556,43 +556,23 @@
                 </div>
             </div>
 
-            <!-- Study View - Flashcards Mode -->
-            <div id="study-flashcards-view" class="view study-view">
-                <div class="flashcard-screen">
-                    <header class="flashcard-header">
-                        <button class="flashcard-close" onclick="exitStudy()" aria-label="Sluiten">
+            <!-- Woordkaartjes Mode -->
+            <div id="study-cards-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
                             <i class="fas fa-times"></i>
                         </button>
-                        <div class="flashcard-progress">
-                            <span id="flashcards-progress-text" class="flashcard-progress-text">0/0</span>
-                            <div class="flashcard-progress-bar">
-                                <div id="flashcards-progress" class="flashcard-progress-fill"></div>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="cards-progress" class="progress-fill"></div>
                             </div>
+                            <span id="cards-progress-text">0/0</span>
                         </div>
-                        <div class="flashcard-header-spacer"></div>
-                    </header>
+                    </div>
 
-                    <main class="flashcard-stage" id="flashcard-stage">
-                        <div id="flashcard-card" class="flashcard-card" onclick="toggleFlashcard('click')">
-                            <div class="flashcard-face flashcard-face-front">
-                                <span id="flashcard-label-front" class="flashcard-chip">WOORD</span>
-                                <div class="flashcard-text-wrap">
-                                    <p id="flashcard-term" class="flashcard-text"></p>
-                                </div>
-                                <span class="flashcard-subhint">Tik om te draaien</span>
-                            </div>
-                            <div class="flashcard-face flashcard-face-back">
-                                <span id="flashcard-label-back" class="flashcard-chip">BETEKENIS</span>
-                                <div class="flashcard-text-wrap">
-                                    <p id="flashcard-definition" class="flashcard-text"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-
-                    <div id="flashcard-actions" class="flashcard-actions">
-                        <button class="flashcard-action flashcard-action-wrong" onclick="markFlashcard(false)">FOUT</button>
-                        <button class="flashcard-action flashcard-action-right" onclick="markFlashcard(true)">GOED</button>
+                    <div id="cards-content" class="study-content cards-container">
+                        <!-- Card will be rendered here -->
                     </div>
                 </div>
             </div>
