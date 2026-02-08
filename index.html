@@ -48,9 +48,22 @@
             <div class="header-search public-search">
                 <div class="public-search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="public-search-input" name="public-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoek woordenlijsten of oefeningen..." oninput="debouncedPublicSearch()">
+                    <input type="search" id="public-search-input" name="public-search" autocomplete="search" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" inputmode="search" aria-label="Publiek zoeken" data-public-search-input placeholder="Zoek woordenlijsten of oefeningen..." oninput="debouncedPublicSearch()">
                 </div>
                 <div id="public-search-results" class="public-search-results hidden"></div>
+                <button id="mobile-search-btn" class="mobile-search-btn" onclick="openMobileSearch()" aria-label="Zoeken op mobiel"><i class="fas fa-search"></i></button>
+            </div>
+
+            <!-- Mobile search overlay (only shown on small screens) -->
+            <div id="mobile-search-overlay" class="mobile-search-overlay hidden" role="dialog" aria-modal="true" aria-label="Zoeken">
+                <div class="mobile-search-inner">
+                    <button class="mobile-search-close" onclick="closeMobileSearch()" aria-label="Sluiten"><i class="fas fa-times"></i></button>
+                    <div class="public-search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="search" id="mobile-public-search-input" autocomplete="search" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" inputmode="search" aria-label="Zoek woordenlijsten of oefeningen" data-public-search-input placeholder="Zoek woordenlijsten of oefeningen..." oninput="debouncedPublicSearch()">
+                    </div>
+                    <div id="mobile-public-search-results" class="public-search-results hidden"></div>
+                </div>
             </div>
             <div class="auth-controls cloud-only">
                 <button id="auth-menu-btn" class="auth-avatar-btn" onclick="toggleAuthMenu(event)" aria-label="Account">
@@ -254,7 +267,46 @@
                             <i class="fas fa-file-import"></i> Importeren
                         </button>
                         <div id="import-area" class="import-area hidden">
-                            <p class="import-hint">Plak hier woordjes gescheiden door tabs (van StudyGo, Quizlet, etc.)</p>
+                            <div class="import-source-selector">
+                                <button class="import-source-btn active" data-source="plain" onclick="setImportSource('plain')">
+                                    <i class="fas fa-table"></i> Tab-gescheiden
+                                </button>
+                                <button class="import-source-btn" data-source="studygo" onclick="setImportSource('studygo')">
+                                    <i class="fas fa-graduation-cap"></i> StudyGo
+                                </button>
+                                <button class="import-source-btn" data-source="jojoschool" onclick="setImportSource('jojoschool')">
+                                    <i class="fas fa-book"></i> JoJoSchool
+                                </button>
+                            </div>
+                            <div id="import-instructions-plain" class="import-instructions">
+                                <p class="import-hint">Plak hier woordjes gescheiden door tabs (van Quizlet, etc.)</p>
+                            </div>
+                            <div id="import-instructions-studygo" class="import-instructions hidden">
+                                <div class="import-hint studygo-instructions">
+                                    <strong>Instructies:</strong>
+                                    <ol>
+                                        <li>Ga naar je StudyGo woordenlijst</li>
+                                        <li>Klik op opties (drie bolletjes &#8942;)</li>
+                                        <li>Klik op "Printen"</li>
+                                        <li>Selecteer alles (Ctrl+A)</li>
+                                        <li>Kopieer alles (Ctrl+C)</li>
+                                        <li>Plak alles hieronder (Ctrl+V)</li>
+                                    </ol>
+                                    <p>De titel en talen worden automatisch herkend.</p>
+                                </div>
+                            </div>
+                            <div id="import-instructions-jojoschool" class="import-instructions hidden">
+                                <div class="import-hint studygo-instructions">
+                                    <strong>Instructies:</strong>
+                                    <ol>
+                                        <li>Ga naar je JoJoSchool woordenlijst</li>
+                                        <li>Selecteer alles (Ctrl+A)</li>
+                                        <li>Kopieer alles (Ctrl+C)</li>
+                                        <li>Plak alles hieronder (Ctrl+V)</li>
+                                    </ol>
+                                    <p>De titel en taal worden automatisch herkend.</p>
+                                </div>
+                            </div>
                             <textarea id="import-text" placeholder="woord1&#9;vertaling1&#10;woord2&#9;vertaling2"></textarea>
                             <button class="btn btn-primary" onclick="importWords()">
                                 <i class="fas fa-check"></i> Importeren
@@ -634,6 +686,10 @@
             <button class="mobile-nav-btn" onclick="openAppSettings()" data-view="settings" aria-label="Instellingen">
                 <i class="fas fa-cog"></i>
                 <span>Inst.</span>
+            </button>
+            <button id="mobile-nav-search-btn" class="mobile-nav-btn" onclick="openMobileSearch()" aria-label="Zoeken">
+                <i class="fas fa-search"></i>
+                <span>Zoek</span>
             </button>
         </nav>
     </div>

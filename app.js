@@ -27,7 +27,7 @@ const PRESET_COLORS = [
     '#95E1D3', // Mint
     '#A8E6CF', // Groen
     '#FFB6B9', // Roze
-    '#C7CEEA', // Paars
+    '#9dabe1', // Paars
     '#FFA07A'  // Oranje
 ];
 
@@ -123,6 +123,7 @@ function showCreateList() {
     document.getElementById('selected-icon').value = '';
     document.getElementById('import-area').classList.add('hidden');
     document.getElementById('import-text').value = '';
+    setImportSource('plain');
     const publicToggle = document.getElementById('list-public');
     if (publicToggle) publicToggle.checked = isCloudEnabled();
     
@@ -399,33 +400,290 @@ document.querySelectorAll('.subject-btn').forEach(btn => {
 });
 
 // ===== Import =====
+let importSource = 'plain';
+
+function setImportSource(source) {
+    importSource = source;
+    document.querySelectorAll('.import-source-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.source === source);
+    });
+    document.getElementById('import-instructions-plain').classList.toggle('hidden', source !== 'plain');
+    document.getElementById('import-instructions-studygo').classList.toggle('hidden', source !== 'studygo');
+    document.getElementById('import-instructions-jojoschool').classList.toggle('hidden', source !== 'jojoschool');
+
+    const textarea = document.getElementById('import-text');
+    if (source === 'studygo') {
+        textarea.placeholder = 'Plak hier de gekopieerde StudyGo pagina...';
+    } else if (source === 'jojoschool') {
+        textarea.placeholder = 'Plak hier de gekopieerde JoJoSchool pagina...';
+    } else {
+        textarea.placeholder = 'woord1\tvertaling1\nwoord2\tvertaling2';
+    }
+}
+
 function toggleImport() {
     document.getElementById('import-area').classList.toggle('hidden');
 }
 
+function detectSingleLanguage(text) {
+    const languages = {
+        'engels': 'Engels', 'english': 'Engels',
+        'frans': 'Frans', 'french': 'Frans', 'français': 'Frans',
+        'grieks': 'Grieks', 'greek': 'Grieks',
+        'latijn': 'Latijn', 'latin': 'Latijn',
+        'duits': 'Duits', 'german': 'Duits', 'deutsch': 'Duits',
+        'spaans': 'Spaans', 'spanish': 'Spaans', 'español': 'Spaans',
+        'italiaans': 'Italiaans', 'italian': 'Italiaans', 'italiano': 'Italiaans',
+        'portugees': 'Portugees', 'portuguese': 'Portugees',
+        'russisch': 'Russisch', 'russian': 'Russisch',
+        'nederlands': 'Nederlands', 'dutch': 'Nederlands',
+        'zweeds': 'Zweeds', 'swedish': 'Zweeds',
+        'noors': 'Noors', 'norwegian': 'Noors',
+        'deens': 'Deens', 'danish': 'Deens',
+        'fins': 'Fins', 'finnish': 'Fins',
+        'pools': 'Pools', 'polish': 'Pools',
+        'tsjechisch': 'Tsjechisch', 'czech': 'Tsjechisch',
+        'turks': 'Turks', 'turkish': 'Turks',
+        'arabisch': 'Arabisch', 'arabic': 'Arabisch',
+        'chinees': 'Chinees', 'chinese': 'Chinees',
+        'japans': 'Japans', 'japanese': 'Japans',
+        'koreaans': 'Koreaans', 'korean': 'Koreaans'
+    };
+    return languages[text.toLowerCase()] || null;
+}
+
+function parseStudyGoText(text) {
+    const lines = text.split('\n').filter(line => line.trim());
+    const skipHeaders = [
+        'home', 'oefenen', 'forum', 'lessen', 'zoeken',
+        'terug naar lijst', 'lijst printen', 'tabel', 'kaartjes'
+    ];
+
+    let title = '';
+    let fromLang = '';
+    let toLang = '';
+    let wordStartIndex = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        const lower = line.toLowerCase();
+
+        if (skipHeaders.includes(lower)) continue;
+
+        // Check for chapter title
+        if (/hoofdstuk|chapter|^\d|^[a-z]\./i.test(line)) {
+            if (!title) {
+                title = line;
+            }
+            continue;
+        }
+
+        // Check for language name
+        const detectedLang = detectSingleLanguage(line);
+        if (detectedLang) {
+            fromLang = detectedLang;
+            if (i + 1 < lines.length) {
+                const secondLang = detectSingleLanguage(lines[i + 1].trim());
+                if (secondLang) {
+                    toLang = secondLang;
+                    wordStartIndex = i + 2;
+                    break;
+                }
+            }
+        }
+    }
+
+    const pairs = [];
+    for (let i = wordStartIndex; i < lines.length - 1; i += 2) {
+        const word = lines[i].trim();
+        const translation = lines[i + 1].trim();
+
+        if (!word || !translation) continue;
+        if (skipHeaders.includes(word.toLowerCase())) continue;
+        if (skipHeaders.includes(translation.toLowerCase())) continue;
+
+        pairs.push({ term: word, definition: translation });
+    }
+
+    return { title, fromLang, toLang, pairs };
+}
+
+function parseJojoSchoolText(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+    // Headers to filter out - more comprehensive list
+    const skipPatterns = [
+        /^nieuw$/i, /^woordenlijst$/i, /^stel je vraag$/i,
+        /^mijn account$/i, /^blogs$/i, /^log uit$/i, /^upgrade$/i,
+        /^start met oefenen$/i, /^stampen$/i, /^toets$/i, /^flashcard$/i,
+        /^meerkeuze$/i, /^typen$/i, /^opslaan$/i, /^maak kopie$/i, /^delen$/i,
+        /^verwijder$/i, /^bewerk$/i, /^ken je nog niet$/i, /^aan het leren$/i,
+        /^gestampt!$/i, /^selecteer deze$/i, /^woorden in deze lijst/i,
+        /^je bent/i, /^voortgang$/i, /^bekijk je voortgang/i, /^oefen opnieuw$/i,
+        /^keer geoefend$/i, /^geen beoordelingen$/i, /^je bent goed op weg/i,
+        /^ga verder waar je gebleven was/i, /^hervat sessie$/i, /^selecteer alle$/i,
+        /^\d+,\d+$/i, /^topscore!/i, /^nog niet geoefend/i  // Scores and ratings
+    ];
+
+    let title = '';
+    let fromLang = '';
+    let wordLines = [];
+    let seenFirstTitle = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        // Skip patterns
+        if (skipPatterns.some(p => p.test(line))) continue;
+
+        // Try to detect language early
+        if (!fromLang && wordLines.length === 0) {
+            const lang = detectSingleLanguage(line);
+            if (lang) {
+                fromLang = lang;
+                continue;
+            }
+        }
+
+        // Detect title (first substantial non-numeric line)
+        if (!title && !seenFirstTitle && line.length > 3 && line.length < 150) {
+            // Should not be just numbers, shouldn't look like a score
+            if (!/^\d+$/.test(line) && !line.match(/^\d+[,.]\d+$/)) {
+                title = line;
+                seenFirstTitle = true;
+                continue;
+            }
+        }
+
+        // Only add to word lines after title is detected
+        if (seenFirstTitle && line.length > 0) {
+            wordLines.push(line);
+        }
+    }
+
+    // Pair up consecutive lines - more robust
+    const pairs = [];
+    let i = 0;
+    while (i < wordLines.length) {
+        const word = wordLines[i];
+        const translation = i + 1 < wordLines.length ? wordLines[i + 1] : null;
+
+        // A valid pair needs both word and translation
+        if (translation && word.length > 0 && translation.length > 0) {
+            pairs.push({ term: word, definition: translation });
+            i += 2;
+        } else {
+            // Skip unpaired lines
+            i += 1;
+        }
+    }
+
+    return { title, fromLang, toLang: 'Nederlands', pairs };
+}
+
 function importWords() {
     const text = document.getElementById('import-text').value;
-    const lines = text.trim().split('\n');
 
-    const wordsList = document.getElementById('words-list');
-    const existingEntries = Array.from(wordsList.querySelectorAll('.word-entry'));
-    const allEmpty = existingEntries.length > 0 && existingEntries.every(entry => {
-        const term = entry.querySelector('.word-term').value.trim();
-        const def = entry.querySelector('.word-definition').value.trim();
-        return !term && !def;
-    });
+    if (importSource === 'studygo') {
+        const result = parseStudyGoText(text);
 
-    if (allEmpty) {
-        wordsList.innerHTML = '';
-    }
-    
-    lines.forEach(line => {
-        const parts = line.split('\t');
-        if (parts.length >= 2) {
-            addWordEntry(parts[0].trim(), parts[1].trim());
+        if (result.pairs.length === 0) {
+            alert('Geen woordparen gevonden. Controleer of je de juiste tekst hebt geplakt.');
+            return;
         }
-    });
-    
+
+        // Auto-fill title if empty
+        const titleInput = document.getElementById('list-title');
+        if (!titleInput.value.trim() && result.title) {
+            titleInput.value = result.title;
+        }
+
+        // Auto-fill languages if not set
+        const langFrom = document.getElementById('lang-from');
+        const langTo = document.getElementById('lang-to');
+        if (!langFrom.value && result.fromLang) {
+            langFrom.value = result.fromLang;
+        }
+        if (!langTo.value && result.toLang) {
+            langTo.value = result.toLang;
+        }
+
+        // Clear empty entries
+        const wordsList = document.getElementById('words-list');
+        const existingEntries = Array.from(wordsList.querySelectorAll('.word-entry'));
+        const allEmpty = existingEntries.length > 0 && existingEntries.every(entry => {
+            const term = entry.querySelector('.word-term').value.trim();
+            const def = entry.querySelector('.word-definition').value.trim();
+            return !term && !def;
+        });
+        if (allEmpty) {
+            wordsList.innerHTML = '';
+        }
+
+        result.pairs.forEach(pair => {
+            addWordEntry(pair.term, pair.definition);
+        });
+    } else if (importSource === 'jojoschool') {
+        const result = parseJojoSchoolText(text);
+
+        if (result.pairs.length === 0) {
+            alert('Geen woordparen gevonden. Controleer of je de juiste tekst hebt geplakt.');
+            return;
+        }
+
+        // Auto-fill title if empty
+        const titleInput = document.getElementById('list-title');
+        if (!titleInput.value.trim() && result.title) {
+            titleInput.value = result.title;
+        }
+
+        // Auto-fill languages if not set
+        const langFrom = document.getElementById('lang-from');
+        const langTo = document.getElementById('lang-to');
+        if (!langFrom.value && result.fromLang) {
+            langFrom.value = result.fromLang;
+        }
+        if (!langTo.value && result.toLang) {
+            langTo.value = result.toLang;
+        }
+
+        // Clear empty entries
+        const wordsList = document.getElementById('words-list');
+        const existingEntries = Array.from(wordsList.querySelectorAll('.word-entry'));
+        const allEmpty = existingEntries.length > 0 && existingEntries.every(entry => {
+            const term = entry.querySelector('.word-term').value.trim();
+            const def = entry.querySelector('.word-definition').value.trim();
+            return !term && !def;
+        });
+        if (allEmpty) {
+            wordsList.innerHTML = '';
+        }
+
+        result.pairs.forEach(pair => {
+            addWordEntry(pair.term, pair.definition);
+        });
+    } else {
+        const lines = text.trim().split('\n');
+
+        const wordsList = document.getElementById('words-list');
+        const existingEntries = Array.from(wordsList.querySelectorAll('.word-entry'));
+        const allEmpty = existingEntries.length > 0 && existingEntries.every(entry => {
+            const term = entry.querySelector('.word-term').value.trim();
+            const def = entry.querySelector('.word-definition').value.trim();
+            return !term && !def;
+        });
+        if (allEmpty) {
+            wordsList.innerHTML = '';
+        }
+
+        lines.forEach(line => {
+            const parts = line.split('\t');
+            if (parts.length >= 2) {
+                addWordEntry(parts[0].trim(), parts[1].trim());
+            }
+        });
+    }
+
     document.getElementById('import-text').value = '';
     document.getElementById('import-area').classList.add('hidden');
 }
@@ -892,7 +1150,9 @@ function setDarkModeEnabled(enabled) {
 }
 
 function isDynamicLogoEnabled() {
-    return localStorage.getItem(DYNAMIC_LOGO_SETTINGS_KEY) === 'true';
+    const val = localStorage.getItem(DYNAMIC_LOGO_SETTINGS_KEY);
+    if (val === null) return true; // Default ON
+    return val === 'true';
 }
 
 function setDynamicLogoEnabled(enabled) {
@@ -1538,11 +1798,16 @@ function searchLocalLists(query) {
 }
 
 async function performSearch() {
-    const input = document.getElementById('public-search-input');
-    const results = document.getElementById('public-search-results');
+    const mobileOverlay = document.getElementById('mobile-search-overlay');
+    const mobileInput = document.getElementById('mobile-public-search-input');
+    const desktopInput = document.getElementById('public-search-input');
+
+    const isMobileOpen = mobileOverlay && !mobileOverlay.classList.contains('hidden');
+    const input = isMobileOpen ? (mobileInput || desktopInput) : (desktopInput || mobileInput);
+    const results = isMobileOpen ? document.getElementById('mobile-public-search-results') : document.getElementById('public-search-results');
     if (!input || !results) return;
 
-    const query = input.value.trim();
+    const query = (input.value || '').trim();
     if (!query) {
         results.innerHTML = '';
         results.classList.add('hidden');
@@ -1618,6 +1883,39 @@ async function performSearch() {
         results.innerHTML = html;
     }
     results.classList.remove('hidden');
+}
+
+// Mobile search open/close helpers
+function openMobileSearch() {
+    const overlay = document.getElementById('mobile-search-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    const mobileInput = document.getElementById('mobile-public-search-input');
+    const desktopInput = document.getElementById('public-search-input');
+    if (mobileInput && desktopInput) mobileInput.value = desktopInput.value || '';
+    setTimeout(() => {
+        const focusInput = document.getElementById('mobile-public-search-input');
+        if (focusInput) focusInput.focus();
+    }, 50);
+    // mark mobile nav search button active
+    const navBtn = document.getElementById('mobile-nav-search-btn');
+    if (navBtn) navBtn.classList.add('active');
+}
+
+function closeMobileSearch() {
+    const overlay = document.getElementById('mobile-search-overlay');
+    if (!overlay) return;
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+    const mobileResults = document.getElementById('mobile-public-search-results');
+    if (mobileResults) {
+        mobileResults.innerHTML = '';
+        mobileResults.classList.add('hidden');
+    }
+    // remove active state from mobile nav search button
+    const navBtn = document.getElementById('mobile-nav-search-btn');
+    if (navBtn) navBtn.classList.remove('active');
 }
 
 async function importPublicList(listId) {
@@ -1704,7 +2002,7 @@ function confirmStartStudy() {
     const acceptSlash = document.getElementById('accept-slash-answers').checked;
     const ignoreParentheses = document.getElementById('ignore-parentheses').checked;
     const selectedWordIds = getSelectedWordIdsForStudy();
-    
+
     studySession = {
         ...studySession,
         direction,
@@ -1719,7 +2017,16 @@ function confirmStartStudy() {
         stepsReviewQueue: [],
         stepsReviewIndex: 0
     };
-    
+
+    // Update lastStudied timestamp when starting practice
+    if (currentListId) {
+        const list = wordLists.find(l => l.id === currentListId);
+        if (list) {
+            list.lastStudied = Date.now();
+            saveData();
+        }
+    }
+
     closeSettingsModal();
 
     switch (currentStudyMode) {
@@ -1990,7 +2297,7 @@ function updateStepsProgress() {
     const total = baseTotal + (reviewTotal > 0 ? reviewTotal : 0);
 
     const learned = studySession.learnedWords.length;
-    const reviewDone = studySession.stepsReviewMode ? (studySession.stepsReviewIndex || 0) : 0;
+    const reviewDone = studySession.stepsReviewMode ? (studySession.stepsReviewCorrectIds || []).length : 0;
     const done = Math.min(total, learned + reviewDone);
     const percent = total > 0 ? (done / total) * 100 : 0;
 
@@ -2346,11 +2653,21 @@ function startStepsReviewTyping() {
     studySession.stepsReviewMode = true;
     studySession.stepsReviewQueue = shuffleArray([...new Set(studySession.stepsWrongWords)]);
     studySession.stepsReviewIndex = 0;
+    studySession.stepsReviewCorrectIds = [];
+    studySession.stepsReviewUniqueCount = studySession.stepsReviewQueue.length;
     updateStepsProgress();
     showNextStepsReviewQuestion();
 }
 
 function showNextStepsReviewQuestion() {
+    const correctIds = studySession.stepsReviewCorrectIds || [];
+    const uniqueCount = studySession.stepsReviewUniqueCount || new Set(studySession.stepsWrongWords).size;
+
+    if (correctIds.length >= uniqueCount) {
+        showComplete();
+        return;
+    }
+
     if (studySession.stepsReviewIndex >= studySession.stepsReviewQueue.length) {
         showComplete();
         return;
@@ -2400,6 +2717,12 @@ function checkStepReviewTyping(wordId, correct) {
 
     if (isCorrect) {
         input.classList.add('correct');
+        playCorrectSound();
+        if (!studySession.stepsReviewCorrectIds) studySession.stepsReviewCorrectIds = [];
+        if (!studySession.stepsReviewCorrectIds.includes(wordId)) {
+            studySession.stepsReviewCorrectIds.push(wordId);
+        }
+        updateStepsProgress();
         feedback.innerHTML = `
             <div class="feedback-message correct">
                 <i class="fas fa-check-circle"></i> Goed!
@@ -2410,6 +2733,8 @@ function checkStepReviewTyping(wordId, correct) {
         `;
     } else {
         input.classList.add('wrong');
+        // Re-add to the end of the queue so it comes back
+        studySession.stepsReviewQueue.push(wordId);
         const diff = buildTypingDiff(userAnswer, correct);
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = `
@@ -2433,6 +2758,7 @@ function checkStepReviewTyping(wordId, correct) {
     if (submitBtn) {
         submitBtn.classList.add('hidden');
     }
+    saveActiveSession();
 }
 
 function continueStepReviewTyping() {
@@ -2474,10 +2800,10 @@ function updateTypingProgress() {
     const total = baseTotal + (reviewTotal > 0 ? reviewTotal : 0);
 
     const completed = Object.values(studySession.typingProgress).filter(p => p.completed).length;
-    const reviewDone = studySession.typingReviewMode ? (studySession.typingReviewIndex || 0) : 0;
+    const reviewDone = studySession.typingReviewMode ? (studySession.typingReviewCorrectIds || []).length : 0;
     const done = Math.min(total, completed + reviewDone);
     const percent = total > 0 ? (done / total) * 100 : 0;
-    
+
     document.getElementById('typing-progress').style.width = `${percent}%`;
     document.getElementById('typing-progress-text').textContent = `${done}/${total}`;
 }
@@ -2627,11 +2953,21 @@ function startTypingReview() {
     studySession.typingReviewMode = true;
     studySession.typingReviewQueue = shuffleArray([...new Set(studySession.typingWrongWords)]);
     studySession.typingReviewIndex = 0;
+    studySession.typingReviewCorrectIds = [];
+    studySession.typingReviewUniqueCount = studySession.typingReviewQueue.length;
     updateTypingProgress();
     showNextTypingReviewQuestion();
 }
 
 function showNextTypingReviewQuestion() {
+    const correctIds = studySession.typingReviewCorrectIds || [];
+    const uniqueCount = studySession.typingReviewUniqueCount || new Set(studySession.typingWrongWords).size;
+
+    if (correctIds.length >= uniqueCount) {
+        showComplete();
+        return;
+    }
+
     if (studySession.typingReviewIndex >= studySession.typingReviewQueue.length) {
         showComplete();
         return;
@@ -2680,6 +3016,12 @@ function checkTypingReview(wordId, correct) {
 
     if (isCorrect) {
         input.classList.add('correct');
+        playCorrectSound();
+        if (!studySession.typingReviewCorrectIds) studySession.typingReviewCorrectIds = [];
+        if (!studySession.typingReviewCorrectIds.includes(wordId)) {
+            studySession.typingReviewCorrectIds.push(wordId);
+        }
+        updateTypingProgress();
         feedback.innerHTML = `
             <div class="feedback-message correct">
                 <i class="fas fa-check-circle"></i> Goed!
@@ -2690,6 +3032,8 @@ function checkTypingReview(wordId, correct) {
         `;
     } else {
         input.classList.add('wrong');
+        // Re-add to the end of the queue so it comes back
+        studySession.typingReviewQueue.push(wordId);
         const diff = buildTypingDiff(userAnswer, correct);
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = `
@@ -3164,8 +3508,7 @@ function exitStudy() {
         cleanupCardHandlers();
     }
 
-    // Clear active session
-    clearActiveSession();
+    // Keep session saved so user can resume later (don't clear it)
 
     // Return to list detail view
     if (currentListId) {
@@ -3860,10 +4203,17 @@ function overrideAnswerToCorrect(wordId) {
 
 function acceptIntendedTyping(wordId) {
     overrideAnswerToCorrect(wordId);
+    playCorrectSound();
     const progress = studySession.typingProgress[wordId];
     if (progress) {
-        progress.needsExtraCorrect = 0;
-        progress.completed = true;
+        if (progress.needsExtraCorrect > 0) {
+            progress.needsExtraCorrect--;
+        }
+        if (progress.needsExtraCorrect === 0) {
+            progress.completed = true;
+        } else {
+            progress.cooldown = Math.max(progress.cooldown, 3);
+        }
         updateTypingProgress();
     }
     saveActiveSession();
@@ -3872,10 +4222,17 @@ function acceptIntendedTyping(wordId) {
 
 function acceptIntendedStepTyping(wordId) {
     overrideAnswerToCorrect(wordId);
+    playCorrectSound();
     const progress = studySession.wordProgress[wordId];
     if (progress) {
-        progress.typingRemaining = 0;
-        markWordLearned(wordId);
+        if (progress.typingRemaining > 0) {
+            progress.typingRemaining--;
+        }
+        if (progress.typingRemaining === 0) {
+            markWordLearned(wordId);
+        } else {
+            progress.typingCooldown = Math.max(progress.typingCooldown, 3);
+        }
         updateStepsProgress();
     }
     saveActiveSession();
@@ -3884,12 +4241,24 @@ function acceptIntendedStepTyping(wordId) {
 
 function acceptIntendedTypingReview(wordId) {
     overrideAnswerToCorrect(wordId);
+    playCorrectSound();
+    if (!studySession.typingReviewCorrectIds) studySession.typingReviewCorrectIds = [];
+    if (!studySession.typingReviewCorrectIds.includes(wordId)) {
+        studySession.typingReviewCorrectIds.push(wordId);
+    }
+    updateTypingProgress();
     saveActiveSession();
     continueTypingReview();
 }
 
 function acceptIntendedStepReview(wordId) {
     overrideAnswerToCorrect(wordId);
+    playCorrectSound();
+    if (!studySession.stepsReviewCorrectIds) studySession.stepsReviewCorrectIds = [];
+    if (!studySession.stepsReviewCorrectIds.includes(wordId)) {
+        studySession.stepsReviewCorrectIds.push(wordId);
+    }
+    updateStepsProgress();
     saveActiveSession();
     continueStepReviewTyping();
 }

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="studygo-extractor-site" content="true">
+    <title>StudyGo Woorden Extractie</title>
+    <link rel="icon" href="images/icon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --secondary-color: #FFF7D6;
+            --accent-color: #FFB700;
+            --text-color: #333;
+            --success-color: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #FFE77A 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 600;
+        }
+
+        #paste-area {
+            width: 100%;
+            height: 200px;
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        #paste-area:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: block;
+            margin: 20px auto;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 183, 0, 0.2);
+        }
+
+        .instructions {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: var(--text-color);
+            font-size: 1.3em;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--secondary-color);
+        }
+
+        tr:hover {
+            background-color: rgba(255, 215, 0, 0.1);
+        }
+
+        .language-info {
+            margin: 20px 0;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .copy-btn {
+            background-color: var(--accent-color);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .info-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            text-decoration: underline;
+            cursor: pointer;
+            display: inline;
+            padding: 0;
+            margin: 0;
+            font-size: inherit;
+        }
+
+        .info-text {
+            display: none;
+            margin-left: 20px;
+            background-color: #fff;
+            color: var(--text-color);
+            font-style: italic;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .info-text.show {
+            display: inline-block;
+        }
+
+        /* Cleaner sectie styles */
+        .cleaner-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .cleaner-section h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .cleaner-options {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            margin-bottom: 15px;
+        }
+
+        .option-group h4 {
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .option-group label {
+            display: block;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+        .option-group input[type="radio"],
+        .option-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .removed-text {
+            background-color: #ffcccc;
+            color: #cc0000;
+            text-decoration: line-through;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .kept-text {
+            background-color: #ccffcc;
+            color: #006600;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .original-column {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .diff-display {
+            font-family: monospace;
+        }
+
+        #clean-paste-area {
+            width: 100%;
+            height: 200px;
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        #clean-paste-area:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            margin: 5px;
+        }
+
+        /* Popup modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        .modal-content.info {
+            text-align: left;
+            max-width: 520px;
+        }
+
+        .modal-content.info .checkmark {
+            display: none;
+        }
+
+        .modal-content.info ol {
+            margin: 10px 0 20px 20px;
+        }
+
+        .modal-content .checkmark {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--success-color) 0%, #45a049 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+        }
+
+        .modal-content .checkmark::after {
+            content: '✓';
+            font-size: 40px;
+            color: white;
+        }
+
+        .modal-content h3 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-content button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #ef9a9a;
+            text-align: center;
+        }
+
+        /* Navigation styles */
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            border-radius: 25px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 183, 0, 0.3);
+        }
+
+        /* Merge section styles */
+        .merge-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .merge-section h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .merge-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .merge-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .merge-input-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .merge-input-box label {
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .merge-input-box textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .merge-input-box textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        .merge-stats {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            font-weight: 500;
+        }
+    </style>
+    <script>
+        async function fetchWords() {
+            const url = document.getElementById('studygo-link').value;
+            try {
+                const response = await fetch(`http://localhost:3000/fetch-words?url=${encodeURIComponent(url)}`);
+                const wordPairs = await response.json();
+                if (wordPairs.error) {
+                    throw new Error(wordPairs.error);
+                }
+                displayWords(wordPairs);
+            } catch (error) {
+                alert('Er ging iets mis bij het ophalen van de woorden: ' + error);
+            }
+        }
+
+        function processText() {
+            const text = document.getElementById('paste-area').value;
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            // Headers die we moeten overslaan
+            const skipHeaders = [
+                'home', 'oefenen', 'forum', 'lessen', 'zoeken',
+                'terug naar lijst', 'lijst printen', 'tabel', 'kaartjes'
+            ];
+            
+            // Vind de talen en het startpunt van de woordenlijst
+            let fromLang = 'Onbekend';
+            let toLang = 'Nederlands';
+            let wordStartIndex = 0;
+            
+            // Zoek naar de twee taalregels (bijv. "Frans" en "Nederlands")
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim().toLowerCase();
+                
+                // Sla bekende headers over
+                if (skipHeaders.includes(line)) continue;
+                
+                // Check of dit een hoofdstuk titel is (bevat vaak een punt of cijfer)
+                if (/hoofdstuk|chapter|^\d|^[a-z]\./i.test(lines[i].trim())) continue;
+                
+                // Check of dit een taalnaam is
+                const detectedLang = detectSingleLanguage(lines[i].trim());
+                if (detectedLang) {
+                    // Eerste taal gevonden
+                    fromLang = detectedLang;
+                    
+                    // Check volgende regel voor tweede taal
+                    if (i + 1 < lines.length) {
+                        const secondLang = detectSingleLanguage(lines[i + 1].trim());
+                        if (secondLang) {
+                            toLang = secondLang;
+                            wordStartIndex = i + 2; // Woorden beginnen na beide talen
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Verwerk de woordparen (elke twee regels vormen een paar)
+            const pairs = [];
+            for (let i = wordStartIndex; i < lines.length - 1; i += 2) {
+                const word = lines[i].trim();
+                const translation = lines[i + 1].trim();
+                
+                // Sla lege regels en headers over
+                if (!word || !translation) continue;
+                if (skipHeaders.includes(word.toLowerCase())) continue;
+                if (skipHeaders.includes(translation.toLowerCase())) continue;
+                
+                pairs.push({
+                    word: word,
+                    translation: translation
+                });
+            }
+            
+            displayWords(pairs, fromLang);
+        }
+        
+        function detectSingleLanguage(text) {
+            const languages = {
+                'engels': 'Engels',
+                'english': 'Engels',
+                'frans': 'Frans',
+                'french': 'Frans',
+                'français': 'Frans',
+                'grieks': 'Grieks',
+                'greek': 'Grieks',
+                'latijn': 'Latijn',
+                'latin': 'Latijn',
+                'duits': 'Duits',
+                'german': 'Duits',
+                'deutsch': 'Duits',
+                'spaans': 'Spaans',
+                'spanish': 'Spaans',
+                'español': 'Spaans',
+                'italiaans': 'Italiaans',
+                'italian': 'Italiaans',
+                'italiano': 'Italiaans',
+                'portugees': 'Portugees',
+                'portuguese': 'Portugees',
+                'russisch': 'Russisch',
+                'russian': 'Russisch',
+                'nederlands': 'Nederlands',
+                'dutch': 'Nederlands',
+                'zweeds': 'Zweeds',
+                'swedish': 'Zweeds',
+                'noors': 'Noors',
+                'norwegian': 'Noors',
+                'deens': 'Deens',
+                'danish': 'Deens',
+                'fins': 'Fins',
+                'finnish': 'Fins',
+                'pools': 'Pools',
+                'polish': 'Pools',
+                'tsjechisch': 'Tsjechisch',
+                'czech': 'Tsjechisch',
+                'turks': 'Turks',
+                'turkish': 'Turks',
+                'arabisch': 'Arabisch',
+                'arabic': 'Arabisch',
+                'chinees': 'Chinees',
+                'chinese': 'Chinees',
+                'japans': 'Japans',
+                'japanese': 'Japans',
+                'koreaans': 'Koreaans',
+                'korean': 'Koreaans'
+            };
+            
+            const lower = text.toLowerCase();
+            return languages[lower] || null;
+        }
+
+        // Globale opslag voor geëxtraheerde paren
+        let extractedPairs = [];
+
+        function displayWords(pairs, language) {
+            extractedPairs = pairs; // Sla op voor later gebruik
+            const container = document.getElementById('result');
+            let html = `
+                <div class="language-info">Taal: ${language}</div>
+                <table>
+                    <tr>
+                        <th>Woord</th>
+                        <th>Vertaling</th>
+                    </tr>
+            `;
+            
+            pairs.forEach(pair => {
+                html += `
+                    <tr>
+                        <td>${pair.word}</td>
+                        <td>${pair.translation}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</table>';
+            
+            // Pas de knoptekst aan op basis van waar we vandaan komen
+            const urlParams = new URLSearchParams(window.location.search);
+            const buttonText = urlParams.get('from') === 'loekitup' 
+                ? 'Importeer naar Loek-it-up'
+                : 'Kopieer naar klembord';
+            
+            html += `<button onclick="copyToClipboard()" class="copy-btn">${buttonText}</button>`;
+            container.innerHTML = html;
+            
+            // Automatisch invullen in het opschoon gedeelte
+            let cleanText = '';
+            pairs.forEach(pair => {
+                cleanText += `${pair.word}\t${pair.translation}\n`;
+            });
+            document.getElementById('clean-paste-area').value = cleanText;
+        }
+
+        function copyToClipboard() {
+            const table = document.querySelector('#result table');
+            let text = '';
+            
+            for (let i = 1; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                text += `${row.cells[0].textContent}\t${row.cells[1].textContent}\n`;
+            }
+            
+            // Check if we were redirected from Loek-it-up
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('from') === 'loekitup') {
+                try {
+                    // Direct send to opener and close
+                    window.opener.postMessage({
+                        type: 'wordlist',
+                        data: text
+                    }, '*');
+                    window.close();
+                } catch (e) {
+                    console.error('Fout bij verzenden:', e);
+                    alert('Er ging iets mis bij het importeren. Probeer het opnieuw.');
+                }
+            } else {
+                navigator.clipboard.writeText(text).then(() => {
+                    showSuccessPopup('Gekopieerd!', `${extractedPairs.length} woordparen zijn naar je klembord gekopieerd.`);
+                });
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        function showSuccessPopup(title, message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal-content">
+                    <div class="checkmark"></div>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <button onclick="closePopup()">Sluiten</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            // Sluit bij klik buiten modal
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closePopup();
+                }
+            });
+        }
+
+        function showInfoPopup(title, htmlContent) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal-content info">
+                    <h3>${title}</h3>
+                    ${htmlContent}
+                    <button onclick="closePopup()">Sluiten</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closePopup();
+                }
+            });
+        }
+
+        function closePopup() {
+            const overlay = document.querySelector('.modal-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('clean-result');
+            container.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        function toggleInfo(button) {
+            const infoText = button.nextElementSibling;
+            infoText.classList.toggle('show');
+        }
+
+        // ===== WOORDEN OPSCHONEN FUNCTIES =====
+        let cleanedPairs = []; // Opgeslagen resultaten voor export
+
+        function cleanWords() {
+            const text = document.getElementById('clean-paste-area').value.trim();
+            
+            if (!text) {
+                showError('Voer eerst een woordenlijst in.');
+                return;
+            }
+            
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            if (lines.length < 2) {
+                showError('De woordenlijst moet minimaal één woordpaar bevatten (twee regels of tab-gescheiden).');
+                return;
+            }
+            
+            // Opties ophalen
+            const slashOption = document.querySelector('input[name="slash-option"]:checked').value;
+            const commaOption = document.querySelector('input[name="comma-option"]:checked').value;
+            const removeBrackets = document.getElementById('remove-brackets').checked;
+            
+            // Parse de input (verwacht tab-gescheiden of twee regels per paar)
+            const pairs = parseCleanInput(lines);
+            
+            // Valideer dat we paren hebben gevonden
+            if (pairs.length === 0) {
+                showError('Kon geen woordparen vinden. Zorg dat je lijst tab-gescheiden is (woord[TAB]vertaling) of dat elke twee regels een paar vormen.');
+                return;
+            }
+            
+            // Verwerk elk paar
+            cleanedPairs = pairs.map(pair => {
+                const cleanedWord = cleanText(pair.word, slashOption, commaOption, removeBrackets);
+                const cleanedTranslation = cleanText(pair.translation, slashOption, commaOption, removeBrackets);
+                
+                return {
+                    originalWord: pair.word,
+                    originalTranslation: pair.translation,
+                    cleanedWord: cleanedWord.result,
+                    cleanedTranslation: cleanedTranslation.result,
+                    wordDiff: cleanedWord.diff,
+                    translationDiff: cleanedTranslation.diff,
+                    wordChanged: pair.word !== cleanedWord.result,
+                    translationChanged: pair.translation !== cleanedTranslation.result
+                };
+            });
+            
+            // Als slash/comma optie "split" is, moeten we mogelijk rijen splitsen
+            if (slashOption === 'split' || commaOption === 'split') {
+                cleanedPairs = expandSplitPairs(cleanedPairs, slashOption, commaOption);
+            }
+            
+            displayCleanedWords(cleanedPairs);
+        }
+
+        function parseCleanInput(lines) {
+            const pairs = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Check voor tab-gescheiden
+                if (line.includes('\t')) {
+                    const parts = line.split('\t');
+                    if (parts.length >= 2) {
+                        pairs.push({
+                            word: parts[0].trim(),
+                            translation: parts[1].trim()
+                        });
+                    }
+                } else {
+                    // Twee regels per paar
+                    if (i + 1 < lines.length) {
+                        pairs.push({
+                            word: line,
+                            translation: lines[i + 1].trim()
+                        });
+                        i++; // Skip volgende regel
+                    }
+                }
+            }
+            
+            return pairs;
+        }
+
+        function cleanText(text, slashOption, commaOption, removeBrackets) {
+            let result = text;
+            let diff = text;
+            
+            // Verwijder haakjes content
+            if (removeBrackets) {
+                // Match alle soorten haakjes: (), [], {}
+                const bracketPatterns = [
+                    /\s*\([^)]*\)\s*/g,
+                    /\s*\[[^\]]*\]\s*/g,
+                    /\s*\{[^}]*\}\s*/g
+                ];
+                
+                bracketPatterns.forEach(pattern => {
+                    result = result.replace(pattern, ' ');
+                });
+                result = result.trim().replace(/\s+/g, ' ');
+            }
+            
+            // Verwerk slash
+            if (slashOption !== 'keep' && result.includes('/')) {
+                if (slashOption === 'before') {
+                    result = result.split('/')[0].trim();
+                } else if (slashOption === 'after') {
+                    result = result.split('/').pop().trim();
+                }
+                // 'split' wordt later afgehandeld
+            }
+            
+            // Verwerk comma
+            if (commaOption !== 'keep' && result.includes(',')) {
+                if (commaOption === 'before') {
+                    result = result.split(',')[0].trim();
+                } else if (commaOption === 'after') {
+                    result = result.split(',').pop().trim();
+                }
+                // 'split' wordt later afgehandeld
+            }
+            
+            // Maak diff HTML
+            diff = createDiffHtml(text, result);
+            
+            return { result, diff };
+        }
+
+        function createDiffHtml(original, cleaned) {
+            if (original === cleaned) {
+                return original;
+            }
+            
+            // Markeer wat verwijderd is
+            let html = '';
+            let i = 0, j = 0;
+            
+            // Simpele diff: toon origineel met verwijderde delen in rood
+            const originalLower = original.toLowerCase();
+            const cleanedLower = cleaned.toLowerCase();
+            
+            // Vind de verwijderde delen
+            let currentPos = 0;
+            let cleanedPos = 0;
+            
+            while (currentPos < original.length) {
+                // Zoek naar het volgende overeenkomende karakter
+                if (cleanedPos < cleaned.length && 
+                    original[currentPos].toLowerCase() === cleaned[cleanedPos].toLowerCase()) {
+                    html += original[currentPos];
+                    currentPos++;
+                    cleanedPos++;
+                } else {
+                    // Dit karakter is verwijderd
+                    let removedStart = currentPos;
+                    
+                    // Vind alle opeenvolgende verwijderde karakters
+                    while (currentPos < original.length && 
+                           (cleanedPos >= cleaned.length || 
+                            original[currentPos].toLowerCase() !== cleaned[cleanedPos].toLowerCase())) {
+                        currentPos++;
+                    }
+                    
+                    html += `<span class="removed-text">${original.substring(removedStart, currentPos)}</span>`;
+                }
+            }
+            
+            return html;
+        }
+
+        function expandSplitPairs(pairs, slashOption, commaOption) {
+            const expanded = [];
+            
+            pairs.forEach(pair => {
+                let words = [pair.originalWord];
+                let translations = [pair.originalTranslation];
+                
+                // Split woorden bij slash
+                if (slashOption === 'split' && pair.originalWord.includes('/')) {
+                    words = pair.originalWord.split('/').map(w => w.trim());
+                }
+                
+                // Split vertalingen bij slash
+                if (slashOption === 'split' && pair.originalTranslation.includes('/')) {
+                    translations = pair.originalTranslation.split('/').map(t => t.trim());
+                }
+                
+                // Split woorden bij comma
+                if (commaOption === 'split' && pair.originalWord.includes(',')) {
+                    words = pair.originalWord.split(',').map(w => w.trim());
+                }
+                
+                // Split vertalingen bij comma
+                if (commaOption === 'split' && pair.originalTranslation.includes(',')) {
+                    translations = pair.originalTranslation.split(',').map(t => t.trim());
+                }
+                
+                // Combineer - als beide gesplit zijn, koppel 1-op-1, anders herhaal
+                const maxLen = Math.max(words.length, translations.length);
+                
+                for (let i = 0; i < maxLen; i++) {
+                    const word = words[Math.min(i, words.length - 1)];
+                    const translation = translations[Math.min(i, translations.length - 1)];
+                    
+                    // Verwijder haakjes indien nodig
+                    const removeBrackets = document.getElementById('remove-brackets').checked;
+                    const cleanedWord = cleanTextSimple(word, removeBrackets);
+                    const cleanedTranslation = cleanTextSimple(translation, removeBrackets);
+                    
+                    expanded.push({
+                        originalWord: pair.originalWord,
+                        originalTranslation: pair.originalTranslation,
+                        cleanedWord: cleanedWord,
+                        cleanedTranslation: cleanedTranslation,
+                        wordDiff: createDiffHtml(word, cleanedWord),
+                        translationDiff: createDiffHtml(translation, cleanedTranslation),
+                        wordChanged: pair.originalWord !== cleanedWord,
+                        translationChanged: pair.originalTranslation !== cleanedTranslation
+                    });
+                }
+            });
+            
+            return expanded;
+        }
+
+        function cleanTextSimple(text, removeBrackets) {
+            let result = text;
+            
+            if (removeBrackets) {
+                result = result.replace(/\s*\([^)]*\)\s*/g, ' ');
+                result = result.replace(/\s*\[[^\]]*\]\s*/g, ' ');
+                result = result.replace(/\s*\{[^}]*\}\s*/g, ' ');
+                result = result.trim().replace(/\s+/g, ' ');
+            }
+            
+            return result.trim();
+        }
+
+        function displayCleanedWords(pairs) {
+            const container = document.getElementById('clean-result');
+            
+            let html = `
+                <table>
+                    <tr>
+                        <th>Opgeschoond Woord</th>
+                        <th>Opgeschoonde Vertaling</th>
+                        <th>Origineel (wijzigingen in rood)</th>
+                    </tr>
+            `;
+            
+            pairs.forEach(pair => {
+                const wordDisplay = pair.wordChanged ? 
+                    `<strong>${pair.cleanedWord}</strong>` : pair.cleanedWord;
+                const translationDisplay = pair.translationChanged ? 
+                    `<strong>${pair.cleanedTranslation}</strong>` : pair.cleanedTranslation;
+                
+                const originalDisplay = (pair.wordChanged || pair.translationChanged) ?
+                    `<span class="diff-display">${pair.wordDiff} → ${pair.translationDiff}</span>` :
+                    `<span class="original-column">${pair.originalWord} → ${pair.originalTranslation}</span>`;
+                
+                html += `
+                    <tr>
+                        <td>${wordDisplay}</td>
+                        <td>${translationDisplay}</td>
+                        <td>${originalDisplay}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</table>';
+            
+            html += `
+                <div class="button-group">
+                    <button onclick="copyCleanedToClipboard()">Kopieer opgeschoonde lijst</button>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function copyCleanedToClipboard() {
+            let text = '';
+            
+            cleanedPairs.forEach(pair => {
+                text += `${pair.cleanedWord}\t${pair.cleanedTranslation}\n`;
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showSuccessPopup('Gekopieerd!', `${cleanedPairs.length} opgeschoonde woordparen zijn naar je klembord gekopieerd.`);
+            });
+        }
+
+        function downloadExtensionPackage() {
+            const link = document.createElement('a');
+            link.href = './extension/studygo-extractor-extension.zip';
+            link.download = 'studygo-extractor-extension.zip';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            showInfoPopup('Installatie instructies', `
+                <p>Zo installeer je de extensie:</p>
+                <ol>
+                    <li>Pak het zip-bestand uit.</li>
+                    <li>Open chrome://extensions of edge://extensions.</li>
+                    <li>Zet Ontwikkelaarsmodus aan.</li>
+                    <li>Klik op "Uitgepakte extensie laden".</li>
+                    <li>Selecteer de uitgepakte extension map.</li>
+                </ol>
+            `);
+        }
+
+        function checkExtensionInstalled() {
+            const btn = document.getElementById('extension-download-btn');
+            if (!btn) return;
+            const installed = localStorage.getItem('studygo_extension_installed') === 'true';
+            if (installed) {
+                btn.textContent = 'Extensie is geïnstalleerd';
+                btn.disabled = true;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkExtensionInstalled();
+            setTimeout(checkExtensionInstalled, 1000);
+        });
+
+        // ===== WOORDEN SAMENVOEGEN FUNCTIES =====
+        let mergedPairs = [];
+
+        function mergeWordLists() {
+            const text1 = document.getElementById('merge-list-1').value.trim();
+            const text2 = document.getElementById('merge-list-2').value.trim();
+            
+            if (!text1 && !text2) {
+                document.getElementById('merge-result').innerHTML = '<div class="error-message">Voer minimaal één woordenlijst in.</div>';
+                return;
+            }
+            
+            const pairs1 = parseMergeInput(text1);
+            const pairs2 = parseMergeInput(text2);
+            
+            mergedPairs = [...pairs1, ...pairs2];
+            
+            if (mergedPairs.length === 0) {
+                document.getElementById('merge-result').innerHTML = '<div class="error-message">Kon geen woordparen vinden. Zorg dat je lijst tab-gescheiden is of dat elke twee regels een paar vormen.</div>';
+                return;
+            }
+            
+            displayMergedWords(mergedPairs, pairs1.length, pairs2.length);
+        }
+
+        function parseMergeInput(text) {
+            if (!text) return [];
+            
+            const lines = text.split('\n').filter(line => line.trim());
+            const pairs = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Check voor tab-gescheiden
+                if (line.includes('\t')) {
+                    const parts = line.split('\t');
+                    if (parts.length >= 2) {
+                        pairs.push({
+                            word: parts[0].trim(),
+                            translation: parts[1].trim()
+                        });
+                    }
+                } else {
+                    // Twee regels per paar
+                    if (i + 1 < lines.length) {
+                        pairs.push({
+                            word: line,
+                            translation: lines[i + 1].trim()
+                        });
+                        i++;
+                    }
+                }
+            }
+            
+            return pairs;
+        }
+
+        function displayMergedWords(pairs, count1, count2) {
+            const container = document.getElementById('merge-result');
+            
+            let html = `
+                <div class="merge-stats">
+                    Lijst 1: ${count1} woorden | Lijst 2: ${count2} woorden | Totaal: ${pairs.length} woorden
+                </div>
+                <table>
+                    <tr>
+                        <th>#</th>
+                        <th>Woord</th>
+                        <th>Vertaling</th>
+                    </tr>
+            `;
+            
+            pairs.forEach((pair, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${pair.word}</td>
+                        <td>${pair.translation}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</table>';
+            html += `<button onclick="copyMergedToClipboard()">Kopieer samengevoegde lijst</button>`;
+            
+            container.innerHTML = html;
+        }
+
+        function copyMergedToClipboard() {
+            let text = '';
+            
+            mergedPairs.forEach(pair => {
+                text += `${pair.word}\t${pair.translation}\n`;
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showSuccessPopup('Gekopieerd!', `${mergedPairs.length} samengevoegde woordparen zijn naar je klembord gekopieerd.`);
+            });
+        }
+
+        // Smooth scroll naar sectie
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1> StudyGo Extractor </h1>
+        
+        <!-- Navigatie -->
+        <div class="nav-bar">
+            <button class="nav-btn" onclick="scrollToSection('extract-section')">Extraheren</button>
+            <button class="nav-btn" onclick="scrollToSection('clean-section')">Opschonen</button>
+            <button class="nav-btn" onclick="scrollToSection('merge-section')">Samenvoegen</button>
+        </div>
+        
+        <!-- Extraheren Sectie -->
+        <div id="extract-section">
+            <div class="instructions">
+            <h3>Instructies:</h3>
+            <ol>
+                <li>Ga naar je StudyGo woordenlijst</li>
+                <li>Klik op opties (drie bolletjes ⋮)</li>
+                <li>Klik op "Printen"</li>
+                <li>Selecteer alles (Ctrl+A)</li>
+                <li>Kopieer alles (Ctrl+C)</li>
+                <li>Plak alles hieronder (Ctrl+V)</li>
+            </ol>
+        </div>
+
+        <textarea id="paste-area" placeholder="Plak hier je gekopieerde woorden..."></textarea>
+        <button onclick="processText()">Converteer naar tabel</button>
+        <div class="button-group">
+            <button id="extension-download-btn" onclick="downloadExtensionPackage()">Download de extensie</button>
+        </div>
+        
+        <div id="result"></div>
+        </div>
+
+        <!-- Woorden Opschonen Sectie -->
+        <div class="cleaner-section" id="clean-section">
+            <h2>Woorden Opschonen</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Importeer een woordenlijst en maak deze schoon voor gebruik.</p>
+            
+            <div class="cleaner-options">
+                <div class="option-group">
+                    <h4>Bij een slash (/):</h4>
+                    <label><input type="radio" name="slash-option" value="keep" checked> Behouden zoals het is</label>
+                    <label><input type="radio" name="slash-option" value="split"> Maak er twee aparte woorden van</label>
+                    <label><input type="radio" name="slash-option" value="before"> Alleen het gedeelte vóór de slash</label>
+                    <label><input type="radio" name="slash-option" value="after"> Alleen het gedeelte na de slash</label>
+                </div>
+                
+                <div class="option-group">
+                    <h4>Bij een komma (,):</h4>
+                    <label><input type="radio" name="comma-option" value="keep" checked> Behouden zoals het is</label>
+                    <label><input type="radio" name="comma-option" value="split"> Maak er twee aparte woorden van</label>
+                    <label><input type="radio" name="comma-option" value="before"> Alleen het gedeelte vóór de komma</label>
+                    <label><input type="radio" name="comma-option" value="after"> Alleen het gedeelte na de komma</label>
+                </div>
+                
+                <div class="option-group">
+                    <h4>Haakjes:</h4>
+                    <label><input type="checkbox" id="remove-brackets"> Verwijder alles tussen haakjes ( ), [ ], { }</label>
+                </div>
+            </div>
+            
+            <textarea id="clean-paste-area" placeholder="Plak hier je woordenlijst (tab-gescheiden of twee regels per paar)..."></textarea>
+            <button onclick="cleanWords()">Schoon woorden op</button>
+            
+            <div id="clean-result"></div>
+        </div>
+
+        <!-- Woorden Samenvoegen Sectie -->
+        <div class="merge-section" id="merge-section">
+            <h2>Woorden Samenvoegen</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Voeg twee woordenlijsten samen tot één lijst.</p>
+            
+            <div class="merge-inputs">
+                <div class="merge-input-box">
+                    <label>Woordenlijst 1:</label>
+                    <textarea id="merge-list-1" placeholder="Plak hier je eerste woordenlijst (tab-gescheiden of twee regels per paar)..."></textarea>
+                </div>
+                <div class="merge-input-box">
+                    <label>Woordenlijst 2:</label>
+                    <textarea id="merge-list-2" placeholder="Plak hier je tweede woordenlijst (tab-gescheiden of twee regels per paar)..."></textarea>
+                </div>
+            </div>
+            
+            <button onclick="mergeWordLists()">Voeg lijsten samen</button>
+            
+            <div id="merge-result"></div>
+        </div>
+    </div>
+</body>
+</html>

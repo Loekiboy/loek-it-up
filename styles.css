@@ -619,6 +619,56 @@ body.default-yellow-theme .logo-nose {
     overflow-y: auto;
 }
 
+/* Mobile search button and overlay */
+.mobile-search-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    color: var(--text-dark);
+    padding: 0.4rem 0.6rem;
+    margin-left: 0.5rem;
+}
+
+.mobile-search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 200;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.mobile-search-overlay.hidden {
+    display: none;
+}
+
+.mobile-search-inner {
+    width: 100%;
+    max-width: 800px;
+    margin-top: 3rem;
+}
+
+.mobile-search-close {
+    background: var(--white);
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+    float: right;
+    font-size: 1rem;
+}
+
+/* On small screens: hide the header input and show the mobile button */
+@media (max-width: 768px) {
+    /* Hide the entire header search container (including icon/input) on mobile */
+    .header-search { display: none !important; }
+    /* Keep the mobile search button visible in the bottom nav */
+    .mobile-search-btn { display: none; }
+}
+
+
 .public-list-card {
     background: var(--white);
     border-radius: var(--radius-lg);
@@ -1040,6 +1090,54 @@ body.default-yellow-theme .logo-nose {
     padding: 1rem;
     background: var(--bg-light);
     border-radius: var(--radius-md);
+}
+
+.import-source-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.import-source-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--bg-cream);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--text-medium);
+    font-size: 0.875rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.import-source-btn:hover {
+    border-color: var(--primary-yellow);
+}
+
+.import-source-btn.active {
+    border-color: var(--primary-yellow);
+    background: var(--primary-yellow-light);
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.studygo-instructions ol {
+    margin: 0.5rem 0 0.5rem 1.2rem;
+    padding: 0;
+}
+
+.studygo-instructions li {
+    margin-bottom: 0.25rem;
+}
+
+.studygo-instructions p {
+    margin-top: 0.5rem;
+    font-style: italic;
 }
 
 .import-hint {
