@@ -8,6 +8,15 @@
     <link rel="apple-touch-icon" sizes="180x180" href="images/fav.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8Q831XS89"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-V8Q831XS89');
+        </script>
 </head>
 <body>
     <div class="app-container">
@@ -148,7 +157,7 @@
                     
                     <div class="form-group">
                         <label for="list-title">Titel</label>
-                        <input type="text" id="list-title" placeholder="Bijv. Franse woordjes Hoofdstuk 3">
+                        <input type="text" id="list-title" placeholder="Bijv. Franse woordjes Hoofdstuk 3" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
                     </div>
 
                     <div class="form-group">
@@ -356,6 +365,9 @@
                             <button class="btn btn-icon" onclick="exportCurrentList()" title="Exporteren">
                                 <i class="fas fa-file-export"></i>
                             </button>
+                            <button class="btn btn-icon" onclick="openQrShareModal()" title="QR delen">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
                             <button class="btn btn-icon btn-danger" onclick="deleteCurrentList()" title="Verwijderen">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -369,7 +381,7 @@
                                 <div class="mode-icon">
                                     <i class="fas fa-layer-group"></i>
                                 </div>
-                                <h4>Stampen</h4>
+                                <h4>Leren</h4>
                                 <p>Per 4 woorden: woordkaartjes, meerkeuze en typen</p>
                             </div>
                             <div class="mode-card" onclick="startStudyMode('typing')">
@@ -385,6 +397,27 @@
                                 </div>
                                 <h4>Woordkaartjes</h4>
                                 <p>Flip en swipe kaartjes om te leren</p>
+                            </div>
+                            <div class="mode-card" onclick="startEmergencyCram()">
+                                <div class="mode-icon">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <h4>Noodstop</h4>
+                                <p>Top 10 moeilijkste woorden, supersnel stampen</p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('exam')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <h4>Toets</h4>
+                                <p>Geen directe feedback, fouten duidelijk op het einde</p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('connect')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <h4>Koppelrace</h4>
+                                <p>Verbind vertaling en betekenis tegen de klok</p>
                             </div>
                         </div>
                     </div>
@@ -439,6 +472,7 @@
                         </div>
 
                         <div id="typing-settings" class="typing-settings">
+                            <p id="emergency-hint" class="setting-hint hidden">Noodstop actief: je oefent alleen de 10 moeilijkste woorden.</p>
                             <div class="setting-group">
                                 <label class="toggle-label">
                                     <input type="checkbox" id="accept-slash-answers" checked>
@@ -457,6 +491,64 @@
                                     <span class="toggle-text">Negeer tekst tussen haakjes</span>
                                 </label>
                             </div>
+                            <div class="setting-group">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="case-sensitive-answers">
+                                    <span class="toggle-switch">
+                                        <span class="toggle-slider"></span>
+                                    </span>
+                                    <span class="toggle-text">Hoofdletters moeten exact kloppen</span>
+                                </label>
+                            </div>
+                            <div class="setting-group">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="strict-diacritics">
+                                    <span class="toggle-switch">
+                                        <span class="toggle-slider"></span>
+                                    </span>
+                                    <span class="toggle-text">Trema's en tekens (' &quot; ` ^) exact rekenen</span>
+                                </label>
+                            </div>
+                            <div class="setting-group">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="allow-minor-typos">
+                                    <span class="toggle-switch">
+                                        <span class="toggle-slider"></span>
+                                    </span>
+                                    <span class="toggle-text">Kleine typefoutjes toestaan</span>
+                                </label>
+                            </div>
+                            <div id="learn-stages-settings" class="setting-group">
+                                <label>Onderdelen in Leren-modus</label>
+                                <div class="study-parts-grid">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="learn-stage-flash" checked>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">Woordkaartjes</span>
+                                    </label>
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="learn-stage-copy">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">Overtypen</span>
+                                    </label>
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="learn-stage-choice" checked>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">Meerkeuze</span>
+                                    </label>
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="learn-stage-hint">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">Hints</span>
+                                    </label>
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="learn-stage-typing" checked>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">Typen</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <p class="setting-hint">Volgorde: Woordkaartjes → Overtypen → Meerkeuze → Hints → Typen.</p>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -547,6 +639,31 @@
                 </div>
             </div>
 
+            <!-- QR Share Modal -->
+            <div id="qr-share-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-qrcode"></i> QR delen</h3>
+                        <button class="btn-close" onclick="closeQrShareModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Scan deze code om de lijst direct te importeren.</p>
+                        <div style="display:flex;justify-content:center;margin:1rem 0;">
+                            <img id="qr-share-image" alt="QR code voor lijst delen" style="max-width:220px;width:100%;height:auto;">
+                        </div>
+                        <input type="text" id="qr-share-link" readonly aria-label="Deellink">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeQrShareModal()">Sluiten</button>
+                        <button class="btn btn-primary" onclick="copyQrShareLink()">
+                            <i class="fas fa-copy"></i> Kopieer link
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Auth Modal -->
             <div id="auth-modal" class="modal hidden cloud-only">
                 <div class="modal-content">
@@ -559,7 +676,7 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="auth-email">E-mail</label>
-                            <input type="text" id="auth-email" placeholder="jij@mail.com">
+                            <input type="text" id="auth-email" placeholder="jij@mail.com" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
                         </div>
                         <div class="form-group">
                             <label for="auth-password">Wachtwoord</label>
@@ -636,6 +753,41 @@
                     <div id="cards-content" class="study-content cards-container">
                         <!-- Card will be rendered here -->
                     </div>
+                </div>
+            </div>
+
+            <div id="study-exam-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="exam-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="exam-progress-text">0/0</span>
+                        </div>
+                    </div>
+                    <div id="exam-content" class="study-content"></div>
+                </div>
+            </div>
+
+            <div id="study-connect-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="connect-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="connect-progress-text">0/0</span>
+                            <span id="connect-timer" class="setting-hint">0:00</span>
+                        </div>
+                    </div>
+                    <div id="connect-content" class="study-content"></div>
                 </div>
             </div>
 

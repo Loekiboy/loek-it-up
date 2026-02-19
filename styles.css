@@ -3444,3 +3444,39 @@ body.dark .card-action-right:hover {
     text-align: center;
     transition: var(--transition);
 }
+
+.study-parts-grid {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+}
+
+.study-parts-grid .toggle-label {
+    background: var(--bg-light);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.75rem;
+}
+
+body.dark .study-parts-grid .toggle-label {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+#connect-timer {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: var(--bg-light);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    font-weight: 700;
+}
+
+#study-connect-view .choice-btn.selected {
+    border-color: var(--primary-yellow-dark);
+    background: var(--primary-yellow-light);
+    transform: translateY(-1px);
+}
