@@ -6,6 +6,58 @@ let editingListId = null;
 let mergeMode = false;
 let selectedListsForMerge = [];
 
+// Haptic Feedback Helper
+function triggerHaptic(type = 'light') {
+    if (!navigator.vibrate) return;
+    
+    switch(type) {
+        case 'light':
+            navigator.vibrate(10); // Korte, lichte tik (bijv. knop indrukken)
+            break;
+        case 'medium':
+            navigator.vibrate(30); // Iets steviger (bijv. lijst openen)
+            break;
+        case 'heavy':
+            navigator.vibrate(50); // Zwaar (bijv. fout antwoord)
+            break;
+        case 'success':
+            navigator.vibrate([20, 50, 20]); // Twee korte tikjes (bijv. goed antwoord, lijst opgeslagen)
+            break;
+        case 'error':
+            navigator.vibrate([50, 50, 50]); // Twee zwaardere tikken (bijv. foutmelding)
+            break;
+        case 'complete':
+            navigator.vibrate([30, 50, 30, 50, 50]); // Feestelijk patroon (bijv. lijst afgerond)
+            break;
+    }
+}
+
+// Focus the next-question button and enable Enter key navigation after answering
+function focusNextButton() {
+    setTimeout(() => {
+        const nextBtn = document.querySelector('.btn-next:not(.hidden)');
+        if (nextBtn) nextBtn.focus();
+    }, 50);
+}
+
+// Global Enter key handler: when a .btn-next is visible and the input is disabled, Enter triggers next question
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    
+    // Don't interfere if an enabled input is focused
+    const active = document.activeElement;
+    if (active && active.tagName === 'INPUT' && !active.disabled) return;
+    if (active && active.tagName === 'TEXTAREA') return;
+    
+    // Find visible btn-next
+    const nextBtn = document.querySelector('.btn-next:not(.hidden)');
+    if (nextBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        nextBtn.click();
+    }
+});
+
 // Supabase auth
 let supabaseClient = null;
 let authUser = null;
@@ -239,6 +291,7 @@ function showView(viewId) {
 }
 
 function showHome() {
+    triggerHaptic('light');
     // Clear study state when going home
     currentListId = null;
     currentStudyMode = null;
@@ -251,6 +304,7 @@ function showHome() {
 }
 
 function showCreateList() {
+    triggerHaptic('light');
     editingListId = null;
     document.getElementById('create-title').textContent = 'Nieuwe Woordenlijst';
     document.getElementById('list-title').value = '';
@@ -277,6 +331,7 @@ function showCreateList() {
 }
 
 function showListDetail(listId) {
+    triggerHaptic('medium');
     currentListId = listId;
     const list = wordLists.find(l => l.id === listId);
     if (!list) return;
@@ -850,6 +905,7 @@ function importWords() {
 
 // ===== Save List =====
 async function saveList() {
+    triggerHaptic('light');
     const title = document.getElementById('list-title').value.trim();
     const langFrom = document.getElementById('lang-from').value.trim();
     const langTo = document.getElementById('lang-to').value.trim();
@@ -969,10 +1025,12 @@ function editCurrentList() {
     if (langFromSelect) filterLanguageSelect(fromSearch?.value || '', langFromSelect);
     if (langToSelect) filterLanguageSelect(toSearch?.value || '', langToSelect);
     
+    triggerHaptic('medium');
     showView('create-view');
 }
 
 async function deleteCurrentList() {
+    triggerHaptic('heavy');
     // allow fallback to dataset on container if currentListId was lost
     const container = document.querySelector('.list-detail-container');
     const id = currentListId || (container && container.dataset.listId);
@@ -1320,8 +1378,6 @@ function openAppSettings() {
     if (colorPicker) colorPicker.value = accent;
     if (colorInput) colorInput.value = accent;
     renderPresetColors();
-    const lastTab = localStorage.getItem(LAST_SETTINGS_TAB_KEY) || 'general';
-    setAppSettingsTab(lastTab);
     if (modal) modal.classList.remove('hidden');
 }
 
@@ -1331,16 +1387,13 @@ function closeAppSettings() {
 }
 
 function saveAppSettings() {
-    // Settings now auto-save on change, so this just closes the modal
     closeAppSettings();
 }
 
-function setAppSettingsTab(tab) {
-    const tabs = document.querySelectorAll('.settings-tabs .tab-btn');
-    const panels = document.querySelectorAll('.tab-panels .tab-panel');
-    tabs.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-    panels.forEach(panel => panel.classList.toggle('active', panel.id === `tab-${tab}`));
-    localStorage.setItem(LAST_SETTINGS_TAB_KEY, tab);
+function toggleAccordion(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('open');
 }
 
 function isDarkModeEnabled() {
@@ -2193,6 +2246,10 @@ function startStudyMode(mode, options = {}) {
     const usesTyping = mode === 'steps' || mode === 'typing' || mode === 'exam';
     typingSettings.classList.toggle('hidden', !usesTyping);
 
+    const learnStagesAccordion = document.getElementById('acc-learn-stages');
+    if (learnStagesAccordion) {
+        learnStagesAccordion.classList.toggle('hidden', mode !== 'steps');
+    }
     const learnStagesSettings = document.getElementById('learn-stages-settings');
     if (learnStagesSettings) {
         learnStagesSettings.classList.toggle('hidden', mode !== 'steps');
@@ -2836,10 +2893,13 @@ function showStepCopy(word, qa) {
                 <i class="fas fa-pencil-alt"></i> Overtypen
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
-            <p class="setting-hint">Voorbeeld: ${escapeHtml(qa.answer)}</p>
+            <div class="copy-target-box">
+                <p class="copy-target-label">Typ dit exact over:</p>
+                <div class="copy-target-text">${escapeHtml(qa.answer)}</div>
+            </div>
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-copy-input"
-                       placeholder="Typ exact over..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="Typ het antwoord hier..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" id="step-copy-submit" onclick="checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
                     <i class="fas fa-check"></i> Controleer
@@ -2863,6 +2923,7 @@ function checkStepCopy(wordId, correct) {
     recordAnswer(wordId, isCorrect);
 
     if (isCorrect) {
+        triggerHaptic('success');
         input.classList.add('correct');
         studySession.correctCount++;
         playCorrectSound();
@@ -2872,6 +2933,7 @@ function checkStepCopy(wordId, correct) {
             <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> Volgende vraag</button>
         `;
     } else {
+        triggerHaptic('heavy');
         input.classList.add('wrong');
         studySession.wrongCount++;
         studySession.stepsWrongWords.push(wordId);
@@ -2879,12 +2941,20 @@ function checkStepCopy(wordId, correct) {
         feedback.innerHTML = `
             <div class="feedback-message wrong"><i class="fas fa-times-circle"></i> Nog niet goed, probeer opnieuw.</div>
             ${diff}
-            <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> Volgende vraag</button>
+            <div class="feedback-actions">
+                <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepCopy('${wordId}')">
+                    <i class="fas fa-check"></i> Ik bedoelde dit
+                </button>
+                <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()">
+                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                </button>
+            </div>
         `;
     }
 
     input.disabled = true;
     if (submitBtn) submitBtn.classList.add('hidden');
+    focusNextButton();
     saveActiveSession();
 }
 
@@ -2924,6 +2994,7 @@ function checkStepHint(wordId, correct) {
     recordAnswer(wordId, isCorrect);
 
     if (isCorrect) {
+        triggerHaptic('success');
         input.classList.add('correct');
         studySession.correctCount++;
         playCorrectSound();
@@ -2933,6 +3004,7 @@ function checkStepHint(wordId, correct) {
             <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> Volgende vraag</button>
         `;
     } else {
+        triggerHaptic('heavy');
         input.classList.add('wrong');
         studySession.wrongCount++;
         studySession.stepsWrongWords.push(wordId);
@@ -2940,12 +3012,20 @@ function checkStepHint(wordId, correct) {
         feedback.innerHTML = `
             <div class="feedback-message wrong"><i class="fas fa-times-circle"></i> Fout.</div>
             ${diff}
-            <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> Volgende vraag</button>
+            <div class="feedback-actions">
+                <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepHint('${wordId}')">
+                    <i class="fas fa-check"></i> Ik bedoelde dit
+                </button>
+                <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()">
+                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                </button>
+            </div>
         `;
     }
 
     input.disabled = true;
     if (submitBtn) submitBtn.classList.add('hidden');
+    focusNextButton();
     saveActiveSession();
 }
 
@@ -2991,6 +3071,7 @@ function checkStepChoice(wordId, btn, selected, correct) {
     pushPendingAnswer(wordId, selected, correct, isCorrect);
 
     if (isCorrect) {
+        triggerHaptic('success');
         if (!examMode) {
             btn.classList.add('correct');
         }
@@ -3013,6 +3094,7 @@ function checkStepChoice(wordId, btn, selected, correct) {
             `;
         }
     } else {
+        triggerHaptic('heavy');
         if (!examMode) {
             btn.classList.add('wrong');
         }
@@ -3079,6 +3161,7 @@ function checkStepTyping(wordId, correct) {
     recordAnswer(wordId, isCorrect);
 
     if (isCorrect) {
+        triggerHaptic('success');
         if (!examMode) {
             input.classList.add('correct');
         }
@@ -3140,6 +3223,7 @@ function checkStepTyping(wordId, correct) {
         saveActiveSession();
         return;
     } else {
+        triggerHaptic('heavy');
         if (!examMode) {
             input.classList.add('wrong');
         }
@@ -3177,6 +3261,7 @@ function checkStepTyping(wordId, correct) {
         if (submitBtn) {
             submitBtn.classList.add('hidden');
         }
+        focusNextButton();
         saveActiveSession();
     }
 }
@@ -3326,6 +3411,7 @@ function checkStepReviewTyping(wordId, correct) {
     if (submitBtn) {
         submitBtn.classList.add('hidden');
     }
+    focusNextButton();
     saveActiveSession();
 }
 
@@ -3550,6 +3636,7 @@ function checkTypingAnswer(wordId, correct) {
         if (submitBtn) {
             submitBtn.classList.add('hidden');
         }
+        focusNextButton();
         saveActiveSession();
     }
 }
@@ -3684,6 +3771,7 @@ function checkTypingReview(wordId, correct) {
     if (submitBtn) {
         submitBtn.classList.add('hidden');
     }
+    focusNextButton();
     saveActiveSession();
 }
 
@@ -3836,6 +3924,7 @@ function initConnectMode() {
     connectState.totalPairs = words.length;
     connectState.timeLeft = Math.max(45, words.length * 12);
     connectState.lockInput = false;
+    connectState.wrongPairIds = []; // Track wrong pairs for animation
 
     studySession.correctCount = 0;
     studySession.wrongCount = 0;
@@ -3868,6 +3957,13 @@ function updateConnectHeader() {
         const min = Math.floor(Math.max(connectState.timeLeft, 0) / 60);
         const sec = Math.max(connectState.timeLeft, 0) % 60;
         timer.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+        
+        // Add warning class when time is running out
+        if (connectState.timeLeft <= 10 && connectState.timeLeft > 0) {
+            timer.classList.add('timer-warning');
+        } else {
+            timer.classList.remove('timer-warning');
+        }
     }
 }
 
@@ -3877,20 +3973,26 @@ function renderConnectBoard() {
 
     const selected = new Set(connectState.selectedCardIds);
     const matched = new Set(connectState.matchedPairIds);
+    const wrong = new Set(connectState.wrongPairIds);
 
     container.innerHTML = `
-        <div class="question-card">
-            <div class="question-type-label"><i class="fas fa-link"></i> Koppelrace</div>
-            <p class="setting-hint">Kies telkens 2 kaartjes die bij elkaar horen.</p>
-            <div class="choice-options">
+        <div class="connect-board-container">
+            <div class="connect-grid">
                 ${connectState.cards.map(card => {
                     const isMatched = matched.has(card.pairId);
                     const isSelected = selected.has(card.cardId);
-                    const classes = [isMatched ? 'correct' : '', isSelected ? 'selected' : ''].filter(Boolean).join(' ');
+                    const isWrong = wrong.has(card.cardId);
+                    
+                    let classes = ['connect-card'];
+                    if (isMatched) classes.push('matched');
+                    if (isSelected) classes.push('selected');
+                    if (isWrong) classes.push('wrong-shake');
+                    
                     return `
-                        <button class="choice-btn ${classes}" ${isMatched ? 'disabled' : ''}
+                        <button class="${classes.join(' ')}" 
+                                ${isMatched ? 'disabled' : ''}
                                 onclick="pickConnectCard('${card.cardId}')">
-                            ${escapeHtml(card.label)}
+                            <span class="connect-card-text">${escapeHtml(card.label)}</span>
                         </button>
                     `;
                 }).join('')}
@@ -3901,12 +4003,19 @@ function renderConnectBoard() {
 
 function pickConnectCard(cardId) {
     if (connectState.lockInput) return;
-    if (connectState.selectedCardIds.includes(cardId)) return;
+    if (connectState.selectedCardIds.includes(cardId)) {
+        // Deselect if clicked again
+        triggerHaptic('light');
+        connectState.selectedCardIds = connectState.selectedCardIds.filter(id => id !== cardId);
+        renderConnectBoard();
+        return;
+    }
 
     const card = connectState.cards.find(c => c.cardId === cardId);
     if (!card) return;
     if (connectState.matchedPairIds.includes(card.pairId)) return;
 
+    triggerHaptic('light');
     connectState.selectedCardIds.push(cardId);
     renderConnectBoard();
 
@@ -3918,29 +4027,46 @@ function pickConnectCard(cardId) {
     const second = connectState.cards.find(c => c.cardId === secondId);
     const isMatch = first && second && first.pairId === second.pairId;
 
-    setTimeout(() => {
-        if (isMatch) {
-            connectState.matchedPairIds.push(first.pairId);
-            studySession.correctCount++;
-            playCorrectSound();
-            recordAnswer(first.pairId, true);
-        } else {
-            studySession.wrongCount++;
-            if (first) recordAnswer(first.pairId, false);
-            if (second) recordAnswer(second.pairId, false);
-        }
+    if (isMatch) {
+        triggerHaptic('success');
+        connectState.matchedPairIds.push(first.pairId);
+        studySession.correctCount++;
+        playCorrectSound();
+        recordAnswer(first.pairId, true);
+        
+        // Add a small delay before removing matched cards for better visual feedback
+        setTimeout(() => {
+            connectState.selectedCardIds = [];
+            connectState.lockInput = false;
+            updateConnectHeader();
 
-        connectState.selectedCardIds = [];
-        connectState.lockInput = false;
-        updateConnectHeader();
-
-        if (connectState.matchedPairIds.length >= connectState.totalPairs) {
-            finishConnectMode(true);
-            return;
-        }
-
+            if (connectState.matchedPairIds.length >= connectState.totalPairs) {
+                finishConnectMode(true);
+                return;
+            }
+            renderConnectBoard();
+        }, 300);
+    } else {
+        triggerHaptic('heavy');
+        studySession.wrongCount++;
+        if (first) recordAnswer(first.pairId, false);
+        if (second) recordAnswer(second.pairId, false);
+        
+        // Show wrong animation
+        connectState.wrongPairIds = [firstId, secondId];
         renderConnectBoard();
-    }, 450);
+        
+        // Time penalty for wrong answer
+        connectState.timeLeft = Math.max(0, connectState.timeLeft - 3);
+        updateConnectHeader();
+        
+        setTimeout(() => {
+            connectState.wrongPairIds = [];
+            connectState.selectedCardIds = [];
+            connectState.lockInput = false;
+            renderConnectBoard();
+        }, 600);
+    }
 }
 
 function finishConnectMode(won) {
@@ -4333,6 +4459,7 @@ function finalizeCardSession() {
     document.getElementById('complete-message').innerHTML =
         `Je hebt alle woordjes geoefend met ${accuracy}% nauwkeurigheid (cijfer <span class="grade-score ${gradeClass}">${grade}</span>).${hintPart}`;
 
+    triggerHaptic('complete');
     playCompleteSound();
     createConfetti();
     showView('complete-view');
@@ -4340,6 +4467,7 @@ function finalizeCardSession() {
 }
 
 function showComplete() {
+    triggerHaptic('complete');
     finalizeSessionStats();
 
     // Update last studied timestamp
@@ -5130,37 +5258,44 @@ function overrideAnswerToCorrect(wordId) {
     saveData();
 }
 
-function acceptIntendedTyping(wordId) {
+function removeLastOccurrence(arr, value) {
+    const idx = arr.lastIndexOf(value);
+    if (idx !== -1) arr.splice(idx, 1);
+}
+
+function acceptIntendedStepCopy(wordId) {
     overrideAnswerToCorrect(wordId);
+    triggerHaptic('success');
     playCorrectSound();
-    const progress = studySession.typingProgress[wordId];
-    if (progress) {
-        if (progress.needsExtraCorrect > 0) {
-            progress.needsExtraCorrect--;
-        }
-        if (progress.needsExtraCorrect === 0) {
-            progress.completed = true;
-        } else {
-            progress.cooldown = Math.max(progress.cooldown, 3);
-        }
-        updateTypingProgress();
-    }
+    removeLastOccurrence(studySession.stepsWrongWords, wordId);
+    advanceLearnPhase(wordId);
+    updateStepsProgress();
     saveActiveSession();
-    showNextTypingQuestion();
+    showNextStepQuestion();
+}
+
+function acceptIntendedStepHint(wordId) {
+    overrideAnswerToCorrect(wordId);
+    triggerHaptic('success');
+    playCorrectSound();
+    removeLastOccurrence(studySession.stepsWrongWords, wordId);
+    advanceLearnPhase(wordId);
+    updateStepsProgress();
+    saveActiveSession();
+    showNextStepQuestion();
 }
 
 function acceptIntendedStepTyping(wordId) {
     overrideAnswerToCorrect(wordId);
+    triggerHaptic('success');
     playCorrectSound();
+    removeLastOccurrence(studySession.stepsWrongWords, wordId);
     const progress = studySession.wordProgress[wordId];
     if (progress) {
-        if (progress.typingRemaining > 0) {
-            progress.typingRemaining--;
-        }
+        // Revert the typingRemaining = 2 that was set on wrong answer
+        progress.typingRemaining = Math.max(0, progress.typingRemaining - 1);
         if (progress.typingRemaining === 0) {
-            markWordLearned(wordId);
-        } else {
-            progress.typingCooldown = Math.max(progress.typingCooldown, 3);
+            advanceLearnPhase(wordId);
         }
         updateStepsProgress();
     }
@@ -5168,9 +5303,37 @@ function acceptIntendedStepTyping(wordId) {
     showNextStepQuestion();
 }
 
+function acceptIntendedTyping(wordId) {
+    overrideAnswerToCorrect(wordId);
+    triggerHaptic('success');
+    playCorrectSound();
+    const progress = studySession.typingProgress[wordId];
+    if (progress) {
+        // Revert the needsExtraCorrect = 2 that was set on wrong answer
+        if (progress.needsExtraCorrect > 0) {
+            progress.needsExtraCorrect--;
+        }
+        if (progress.needsExtraCorrect === 0) {
+            progress.completed = true;
+        }
+        updateTypingProgress();
+    }
+    // Remove from typingWrongWords
+    const idx = studySession.typingWrongWords.indexOf(wordId);
+    if (idx !== -1) studySession.typingWrongWords.splice(idx, 1);
+    saveActiveSession();
+    showNextTypingQuestion();
+}
+
 function acceptIntendedTypingReview(wordId) {
     overrideAnswerToCorrect(wordId);
+    triggerHaptic('success');
     playCorrectSound();
+    // Remove the re-added entry from the end of the queue
+    const lastIdx = studySession.typingReviewQueue.lastIndexOf(wordId);
+    if (lastIdx > studySession.typingReviewIndex) {
+        studySession.typingReviewQueue.splice(lastIdx, 1);
+    }
     if (!studySession.typingReviewCorrectIds) studySession.typingReviewCorrectIds = [];
     if (!studySession.typingReviewCorrectIds.includes(wordId)) {
         studySession.typingReviewCorrectIds.push(wordId);
@@ -5182,7 +5345,13 @@ function acceptIntendedTypingReview(wordId) {
 
 function acceptIntendedStepReview(wordId) {
     overrideAnswerToCorrect(wordId);
+    triggerHaptic('success');
     playCorrectSound();
+    // Remove the re-added entry from the end of the queue
+    const lastIdx = studySession.stepsReviewQueue.lastIndexOf(wordId);
+    if (lastIdx > studySession.stepsReviewIndex) {
+        studySession.stepsReviewQueue.splice(lastIdx, 1);
+    }
     if (!studySession.stepsReviewCorrectIds) studySession.stepsReviewCorrectIds = [];
     if (!studySession.stepsReviewCorrectIds.includes(wordId)) {
         studySession.stepsReviewCorrectIds.push(wordId);

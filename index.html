@@ -2,8 +2,13 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Loek it Up">
+    <meta name="theme-color" content="#fdc204">
     <title>Loek it Up - Woordjes Leren</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" sizes="180x180" href="images/fav.png">
     <link rel="stylesheet" href="styles.css">
@@ -450,106 +455,140 @@
             <div id="settings-modal" class="modal hidden">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3><i class="fas fa-cog"></i> Instellingen</h3>
+                        <h3><i class="fas fa-sliders-h"></i> Oefening instellen</h3>
                         <button class="btn-close" onclick="closeSettingsModal()">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="setting-group">
-                            <label>Vraag richting</label>
-                            <div class="direction-selector">
-                                <button class="direction-btn active" data-direction="term-def">
-                                    <span id="dir-term-def">Term → Definitie</span>
-                                </button>
-                                <button class="direction-btn" data-direction="def-term">
-                                    <span id="dir-def-term">Definitie → Term</span>
-                                </button>
-                                <button class="direction-btn" data-direction="mixed">
-                                    <i class="fas fa-random"></i> Mix
-                                </button>
+
+                        <!-- Accordion: Vraagrichting -->
+                        <div class="settings-accordion open" id="acc-direction">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-direction')">
+                                <span><i class="fas fa-exchange-alt"></i> Vraagrichting</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div class="direction-selector">
+                                    <button class="direction-btn active" data-direction="term-def">
+                                        <span id="dir-term-def">Term → Definitie</span>
+                                    </button>
+                                    <button class="direction-btn" data-direction="def-term">
+                                        <span id="dir-def-term">Definitie → Term</span>
+                                    </button>
+                                    <button class="direction-btn" data-direction="mixed">
+                                        <i class="fas fa-random"></i> Mix
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <div id="typing-settings" class="typing-settings">
-                            <p id="emergency-hint" class="setting-hint hidden">Noodstop actief: je oefent alleen de 10 moeilijkste woorden.</p>
-                            <div class="setting-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="accept-slash-answers" checked>
-                                    <span class="toggle-switch">
-                                        <span class="toggle-slider"></span>
-                                    </span>
-                                    <span class="toggle-text">Accepteer beide antwoorden bij "/" (bijv. "licht/fel")</span>
-                                </label>
-                            </div>
-                            <div class="setting-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="ignore-parentheses" checked>
-                                    <span class="toggle-switch">
-                                        <span class="toggle-slider"></span>
-                                    </span>
-                                    <span class="toggle-text">Negeer tekst tussen haakjes</span>
-                                </label>
-                            </div>
-                            <div class="setting-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="case-sensitive-answers">
-                                    <span class="toggle-switch">
-                                        <span class="toggle-slider"></span>
-                                    </span>
-                                    <span class="toggle-text">Hoofdletters moeten exact kloppen</span>
-                                </label>
-                            </div>
-                            <div class="setting-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="strict-diacritics">
-                                    <span class="toggle-switch">
-                                        <span class="toggle-slider"></span>
-                                    </span>
-                                    <span class="toggle-text">Trema's en tekens (' &quot; ` ^) exact rekenen</span>
-                                </label>
-                            </div>
-                            <div class="setting-group">
-                                <label class="toggle-label">
-                                    <input type="checkbox" id="allow-minor-typos">
-                                    <span class="toggle-switch">
-                                        <span class="toggle-slider"></span>
-                                    </span>
-                                    <span class="toggle-text">Kleine typefoutjes toestaan</span>
-                                </label>
-                            </div>
-                            <div id="learn-stages-settings" class="setting-group">
-                                <label>Onderdelen in Leren-modus</label>
-                                <div class="study-parts-grid">
+                        <!-- Accordion: Antwoordcontrole -->
+                        <div class="settings-accordion open" id="typing-settings">
+                            <button class="accordion-header" onclick="toggleAccordion('typing-settings')">
+                                <span><i class="fas fa-spell-check"></i> Antwoordcontrole</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <p id="emergency-hint" class="setting-hint hidden">Noodstop actief: je oefent alleen de 10 moeilijkste woorden.</p>
+
+                                <div class="settings-item-row">
                                     <label class="toggle-label">
-                                        <input type="checkbox" id="learn-stage-flash" checked>
+                                        <input type="checkbox" id="strict-diacritics" checked>
                                         <span class="toggle-switch"><span class="toggle-slider"></span></span>
-                                        <span class="toggle-text">Woordkaartjes</span>
+                                        <span class="toggle-text">
+                                            <strong>Trema's &amp; accenten exact rekenen</strong>
+                                            <span class="toggle-hint">bijv. "ë" ≠ "e", "é" ≠ "e"</span>
+                                        </span>
                                     </label>
+                                </div>
+
+                                <div class="settings-item-row">
                                     <label class="toggle-label">
-                                        <input type="checkbox" id="learn-stage-copy">
+                                        <input type="checkbox" id="accept-slash-answers" checked>
                                         <span class="toggle-switch"><span class="toggle-slider"></span></span>
-                                        <span class="toggle-text">Overtypen</span>
+                                        <span class="toggle-text">
+                                            <strong>Accepteer beide bij "/"</strong>
+                                            <span class="toggle-hint">bijv. "licht/fel" → beide goed</span>
+                                        </span>
                                     </label>
+                                </div>
+
+                                <div class="settings-item-row">
                                     <label class="toggle-label">
-                                        <input type="checkbox" id="learn-stage-choice" checked>
+                                        <input type="checkbox" id="ignore-parentheses" checked>
                                         <span class="toggle-switch"><span class="toggle-slider"></span></span>
-                                        <span class="toggle-text">Meerkeuze</span>
+                                        <span class="toggle-text">
+                                            <strong>Negeer tekst tussen haakjes</strong>
+                                            <span class="toggle-hint">bijv. "(de) kat" → "kat" volstaat</span>
+                                        </span>
                                     </label>
+                                </div>
+
+                                <div class="settings-item-row">
                                     <label class="toggle-label">
-                                        <input type="checkbox" id="learn-stage-hint">
+                                        <input type="checkbox" id="allow-minor-typos">
                                         <span class="toggle-switch"><span class="toggle-slider"></span></span>
-                                        <span class="toggle-text">Hints</span>
+                                        <span class="toggle-text">
+                                            <strong>Kleine typefoutjes toestaan</strong>
+                                            <span class="toggle-hint">1 fout teken bij lange woorden</span>
+                                        </span>
                                     </label>
+                                </div>
+
+                                <div class="settings-item-row">
                                     <label class="toggle-label">
-                                        <input type="checkbox" id="learn-stage-typing" checked>
+                                        <input type="checkbox" id="case-sensitive-answers">
                                         <span class="toggle-switch"><span class="toggle-slider"></span></span>
-                                        <span class="toggle-text">Typen</span>
+                                        <span class="toggle-text">
+                                            <strong>Hoofdletters exact rekenen</strong>
+                                            <span class="toggle-hint">bijv. "De" ≠ "de"</span>
+                                        </span>
                                     </label>
                                 </div>
                             </div>
-                            <p class="setting-hint">Volgorde: Woordkaartjes → Overtypen → Meerkeuze → Hints → Typen.</p>
                         </div>
+
+                        <!-- Accordion: Leren-modus onderdelen -->
+                        <div class="settings-accordion open" id="acc-learn-stages">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-learn-stages')">
+                                <span><i class="fas fa-layer-group"></i> Leren-modus stappen</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div id="learn-stages-settings">
+                                    <p class="setting-hint" style="margin-bottom:.75rem">Kies welke stappen actief zijn. Volgorde: Kaartjes → Overtypen → Meerkeuze → Hints → Typen.</p>
+                                    <div class="study-parts-grid">
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-flash" checked>
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Woordkaartjes</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-copy">
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Overtypen</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-choice" checked>
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Meerkeuze</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-hint">
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Hints</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-typing" checked>
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Typen</strong></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" onclick="closeSettingsModal()">Annuleren</button>
@@ -564,72 +603,73 @@
             <div id="app-settings-modal" class="modal hidden">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3><i class="fas fa-cog"></i> Instellingen</h3>
+                        <h3><i class="fas fa-cog"></i> App Instellingen</h3>
                         <button class="btn-close" onclick="closeAppSettings()">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="settings-tabs">
-                            <button class="tab-btn active" data-tab="general" onclick="setAppSettingsTab('general')">
-                                <i class="fas fa-sliders-h"></i> Algemeen
-                            </button>
-                            <button class="tab-btn" data-tab="themes" onclick="setAppSettingsTab('themes')">
-                                <i class="fas fa-palette"></i> Thema's
-                            </button>
-                        </div>
 
-                        <div class="tab-panels">
-                            <div class="tab-panel active" id="tab-general">
-                                <div class="setting-group">
-                                    <label class="toggle-label">
-                                        <input type="checkbox" id="cloud-enabled-toggle" onchange="setCloudEnabled(this.checked)">
-                                        <span class="toggle-switch">
-                                            <span class="toggle-slider"></span>
-                                        </span>
-                                        <span class="toggle-text">Cloud functies inschakelen</span>
-                                    </label>
-                                    <p class="setting-hint">Hiermee krijg je inloggen, openbare lijsten en online sync.</p>
-                                </div>
-                            </div>
-
-                            <div class="tab-panel" id="tab-themes">
-                                <div class="setting-group">
+                        <!-- Accordion: Uiterlijk -->
+                        <div class="settings-accordion open" id="acc-appearance">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-appearance')">
+                                <span><i class="fas fa-palette"></i> Uiterlijk</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div class="settings-item-row">
                                     <label class="toggle-label">
                                         <input type="checkbox" id="dark-mode-toggle" onchange="setDarkModeEnabled(this.checked)">
-                                        <span class="toggle-switch">
-                                            <span class="toggle-slider"></span>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Dark mode</strong>
+                                            <span class="toggle-hint">Donker thema voor de hele app</span>
                                         </span>
-                                        <span class="toggle-text">Dark mode</span>
                                     </label>
-                                    <p class="setting-hint">Zet een donker thema aan voor de hele app.</p>
                                 </div>
 
-                                <div class="setting-group">
+                                <div class="settings-item-row">
                                     <label class="toggle-label">
                                         <input type="checkbox" id="dynamic-logo-toggle" onchange="setDynamicLogoEnabled(this.checked)">
-                                        <span class="toggle-switch">
-                                            <span class="toggle-slider"></span>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Logo kleur aanpassen</strong>
+                                            <span class="toggle-hint">Logo past mee met de accentkleur</span>
                                         </span>
-                                        <span class="toggle-text">Logo kleur aanpassen aan thema</span>
                                     </label>
-                                    <p class="setting-hint">Het gezichtje van het logo verandert mee met de gekozen accentkleur.</p>
                                 </div>
 
-                                <div class="setting-group">
-                                    <label for="accent-color-input">Accentkleur</label>
-                                    <div id="preset-colors" class="preset-colors-grid">
-                                        <!-- Preset colors will be rendered here -->
-                                    </div>
-                                    <div class="color-picker-row">
-                                        <input type="color" id="accent-color-picker" value="#FFD93D" aria-label="Accentkleur kiezen">
-                                        <input type="text" id="accent-color-input" value="#FFD93D" maxlength="7" aria-label="Accentkleur hex">
-                                        <button class="btn btn-secondary btn-small" onclick="resetAccentColor()">Standaard</button>
-                                    </div>
-                                    <p class="setting-hint">Kies een kleur om het uiterlijk van de app aan te passen.</p>
+                                <div class="settings-section-label">Accentkleur</div>
+                                <div id="preset-colors" class="preset-colors-grid"></div>
+                                <div class="color-picker-row">
+                                    <input type="color" id="accent-color-picker" value="#FFD93D" aria-label="Accentkleur kiezen">
+                                    <input type="text" id="accent-color-input" value="#FFD93D" maxlength="7" aria-label="Accentkleur hex">
+                                    <button class="btn btn-secondary btn-small" onclick="resetAccentColor()">Standaard</button>
+                                </div>
+                                <p class="setting-hint">Kies een kleur om het uiterlijk aan te passen.</p>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Cloud & Synchronisatie -->
+                        <div class="settings-accordion" id="acc-cloud">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-cloud')">
+                                <span><i class="fas fa-cloud"></i> Cloud &amp; Synchronisatie</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="cloud-enabled-toggle" onchange="setCloudEnabled(this.checked)">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Cloud functies inschakelen</strong>
+                                            <span class="toggle-hint">Inloggen, openbare lijsten en online sync</span>
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-primary" onclick="closeAppSettings()">
@@ -853,5 +893,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="confetti.js"></script>
     <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
