@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Loek it Up">
+    <meta name="theme-color" content="#fdc204">
+    <title>Loek it Up - Woordjes Leren</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/fav.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8Q831XS89"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-V8Q831XS89');
+        </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo" onclick="showHome()">
+                <svg viewBox="0 0 176 208" class="logo-image">
+                    <g transform="translate(-159.0253,-68.68503)">
+                        <path d="M181.26891,221.58907c0,-35.86713 -15.34531,-76.82861 -15.34531,-95.60829c0,-13.0457 32.33336,-40.63191 45.79687,-40.63191c17.32149,0 57.70153,0 86.87844,0c15.47817,0 31.1881,20.35903 31.1881,31.69111c0,18.98627 0,71.43517 0,108.68152c0,17.97676 -33.55751,45.55451 -48.41883,45.55451c-14.73709,0 -33.52207,-14.97104 -60.10484,-14.97104c-22.08538,0 -39.99443,-14.61957 -39.99443,-34.71588z" fill="#fcf1d1" stroke="#000000" stroke-width="10.5"/>
+                        <path class="logo-face" d="M164.2753,236.84929c0,-35.86713 0,-89.17972 0,-107.9594c0,-13.0457 16.98805,-28.2808 30.45156,-28.2808c17.32149,0 62.41166,0 91.58857,0c15.47817,0 26.47797,12.50881 26.47797,23.84089c0,18.98627 0,79.2854 0,116.53174c0,17.97676 -19.7093,30.58347 -34.57062,30.58347c-14.73709,0 -47.37028,0 -73.95305,0c-22.08538,0 -39.99443,-14.61957 -39.99443,-34.71588z" fill="#fdc204" stroke="#000000" stroke-width="10.5"/>
+                        <path d="M190.45269,198.23019l-25.47516,-7.12449" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+                        <path class="logo-nose" d="M231.85421,218.76247c0,-1.27379 -0.52642,-3.29545 -0.61386,-5.61272c-0.26314,-6.9742 -0.32251,-16.62602 -0.32251,-16.62602h16.38644c0,0 -0.26981,10.85447 -0.74615,17.80403c-0.1172,1.70987 -1.12659,3.18335 -1.12659,4.20061c0,2.35306 0.114,10.27828 -7.02376,9.84237c-5.5897,-0.09866 -6.55357,-7.7658 -6.55357,-9.60827z" fill="#e89d05"/>
+                        <path d="M231.1334,195.44147c1.09524,-2.06216 4.9423,-2.34092 6.96327,-2.34092c1.7688,0 5.76702,0.55632 6.84807,2.57501" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+                        <path d="M231.42856,202.26057c0,11.56814 -9.60111,20.94597 -21.44468,20.94597c-11.84357,0 -21.44468,-9.37783 -21.44468,-20.94597c0,-11.56814 9.60111,-20.94597 21.44468,-20.94597c11.84357,0 21.44468,9.37783 21.44468,20.94597z" fill="#fcfcfc" stroke="#000000" stroke-width="8.5"/>
+                        <path d="M288.39697,202.81283c0,11.56814 -9.60111,20.94597 -21.44468,20.94597c-11.84357,0 -21.44469,-9.37783 -21.44469,-20.94597c0,-11.56814 9.60112,-20.94597 21.44469,-20.94597c11.84357,0 21.44468,9.37783 21.44468,20.94597z" fill="#fcfcfc" stroke="#000000" stroke-width="8.5"/>
+                        <path d="M288.42805,196.44152l21.26151,-5.95403" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+                        <path d="M256.90206,237.9935c0,0 -3.16122,15.66449 -17.08871,15.45007c-14.93715,-0.57176 -17.08872,-15.45007 -17.08872,-15.45007" fill="none" stroke="#000000" stroke-width="5.5" stroke-linecap="round"/>
+                        <path d="M205.64506,200.0706c0,-3.61999 2.93458,-6.55457 6.55457,-6.55457c3.61999,0 6.55458,2.93458 6.55458,6.55458c0,3.61999 -2.93458,6.55458 -6.55457,6.55458c-3.61999,0 -6.55457,-2.93458 -6.55457,-6.55457z" fill="#000000" stroke="#000000" stroke-width="0.5"/>
+                        <path d="M262.58891,199.787c0,-3.61999 2.93458,-6.55457 6.55457,-6.55457c3.61999,0 6.55458,2.93458 6.55458,6.55458c0,3.61999 -2.93459,6.55458 -6.55457,6.55458c-3.61999,0 -6.55457,-2.93458 -6.55457,-6.55457z" fill="#000000" stroke="none" stroke-width="0"/>
+                        <path d="M200.71999,159.49466c0,0 5.23481,-8.77689 12.63142,-9.9159c10.80313,-1.66359 18.26872,6.40452 18.26872,6.40452" fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+                        <path d="M248.94293,156.21738c0,0 6.85263,-6.20051 17.86228,-5.44591c8.9574,0.61395 13.03785,8.95729 13.03785,8.95729" fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+                        <path d="M209.3206,116.68132c-9.91379,-3.09959 -18.80188,-14.9667 -23.63838,-22.56556c-14.59159,-22.92555 4.61742,-15.45305 6.78667,-14.61521c7.0794,2.50232 18.23168,10.40104 13.37438,-2.67487c-4.02674,-5.94388 3.66876,-6.3546 7.48965,-5.61724c3.8209,0.73736 19.00336,12.23009 23.00392,11.76945c3.14477,-0.3621 -3.45621,-7.61097 -0.53498,-9.62955c4.0414,-2.79261 11.97713,-2.89832 18.18915,0.80246c2.37993,1.41783 27.55058,25.1354 21.22596,27.7469c-3.30286,1.36379 -9.26644,1.78611 -13.70766,3.09569c-6.71153,1.97902 -13.26955,4.47796 -19.95993,6.13634c-14.09302,3.49331 -26.39174,7.37657 -32.22878,5.55159z" fill="#000000" stroke="#000000" stroke-width="4.5" stroke-linecap="round"/>
+                    </g>
+                </svg>
+                <span>Loek it Up</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" onclick="showHome()" data-view="home">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button class="nav-btn" onclick="showCreateList()" data-view="create">
+                    <i class="fas fa-plus"></i> Nieuwe Lijst
+                </button>
+                <button class="nav-btn" onclick="openAppSettings()" data-view="settings">
+                    <i class="fas fa-cog"></i> Instellingen
+                </button>
+                <button class="nav-btn" onclick="showSearchView()" data-view="search">
+                    <i class="fas fa-search"></i> Zoeken
+                </button>
+            </nav>
+            <div class="auth-controls cloud-only">
+                <button id="auth-menu-btn" class="auth-avatar-btn" onclick="toggleAuthMenu(event)" aria-label="Account">
+                    <span id="auth-avatar-initial" class="auth-avatar-initial">?</span>
+                </button>
+                <div id="auth-menu" class="auth-menu hidden">
+                    <div id="auth-user" class="auth-user hidden"></div>
+                    <button id="auth-login-btn" class="btn btn-secondary" onclick="openAuthModal('login')">
+                        <i class="fas fa-sign-in-alt"></i> Inloggen
+                    </button>
+                    <button id="auth-signup-btn" class="btn btn-primary" onclick="openAuthModal('signup')">
+                        <i class="fas fa-user-plus"></i> Account maken
+                    </button>
+                    <button id="auth-logout-btn" class="btn btn-secondary hidden" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Uitloggen
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home View -->
+            <div id="home-view" class="view active">
+                <div class="welcome-section">
+                    <div class="welcome-icon">
+                        <svg viewBox="0 0 176 208" class="welcome-logo-image">
+                            <g transform="translate(-159.0253,-68.68503)">
+                                <path d="M181.26891,221.58907c0,-35.86713 -15.34531,-76.82861 -15.34531,-95.60829c0,-13.0457 32.33336,-40.63191 45.79687,-40.63191c17.32149,0 57.70153,0 86.87844,0c15.47817,0 31.1881,20.35903 31.1881,31.69111c0,18.98627 0,71.43517 0,108.68152c0,17.97676 -33.55751,45.55451 -48.41883,45.55451c-14.73709,0 -33.52207,-14.97104 -60.10484,-14.97104c-22.08538,0 -39.99443,-14.61957 -39.99443,-34.71588z" fill="#fcf1d1" stroke="#000000" stroke-width="10.5"/>
+                                <path class="logo-face" d="M164.2753,236.84929c0,-35.86713 0,-89.17972 0,-107.9594c0,-13.0457 16.98805,-28.2808 30.45156,-28.2808c17.32149,0 62.41166,0 91.58857,0c15.47817,0 26.47797,12.50881 26.47797,23.84089c0,18.98627 0,79.2854 0,116.53174c0,17.97676 -19.7093,30.58347 -34.57062,30.58347c-14.73709,0 -47.37028,0 -73.95305,0c-22.08538,0 -39.99443,-14.61957 -39.99443,-34.71588z" fill="#fdc204" stroke="#000000" stroke-width="10.5"/>
+                                <path d="M190.45269,198.23019l-25.47516,-7.12449" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+                                <path class="logo-nose" d="M231.85421,218.76247c0,-1.27379 -0.52642,-3.29545 -0.61386,-5.61272c-0.26314,-6.9742 -0.32251,-16.62602 -0.32251,-16.62602h16.38644c0,0 -0.26981,10.85447 -0.74615,17.80403c-0.1172,1.70987 -1.12659,3.18335 -1.12659,4.20061c0,2.35306 0.114,10.27828 -7.02376,9.84237c-5.5897,-0.09866 -6.55357,-7.7658 -6.55357,-9.60827z" fill="#e89d05"/>
+                                <path d="M231.1334,195.44147c1.09524,-2.06216 4.9423,-2.34092 6.96327,-2.34092c1.7688,0 5.76702,0.55632 6.84807,2.57501" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+                                <path d="M231.42856,202.26057c0,11.56814 -9.60111,20.94597 -21.44468,20.94597c-11.84357,0 -21.44468,-9.37783 -21.44468,-20.94597c0,-11.56814 9.60111,-20.94597 21.44468,-20.94597c11.84357,0 21.44468,9.37783 21.44468,20.94597z" fill="#fcfcfc" stroke="#000000" stroke-width="8.5"/>
+                                <path d="M288.39697,202.81283c0,11.56814 -9.60111,20.94597 -21.44468,20.94597c-11.84357,0 -21.44469,-9.37783 -21.44469,-20.94597c0,-11.56814 9.60112,-20.94597 21.44469,-20.94597c11.84357,0 21.44468,9.37783 21.44468,20.94597z" fill="#fcfcfc" stroke="#000000" stroke-width="8.5"/>
+                                <path d="M288.42805,196.44152l21.26151,-5.95403" fill="none" stroke="#000000" stroke-width="10.5" stroke-linecap="round"/>
+                                <path d="M256.90206,237.9935c0,0 -3.16122,15.66449 -17.08871,15.45007c-14.93715,-0.57176 -17.08872,-15.45007 -17.08872,-15.45007" fill="none" stroke="#000000" stroke-width="5.5" stroke-linecap="round"/>
+                                <path d="M205.64506,200.0706c0,-3.61999 2.93458,-6.55457 6.55457,-6.55457c3.61999,0 6.55458,2.93458 6.55458,6.55458c0,3.61999 -2.93458,6.55458 -6.55457,6.55458c-3.61999,0 -6.55457,-2.93458 -6.55457,-6.55457z" fill="#000000" stroke="#000000" stroke-width="0.5"/>
+                                <path d="M262.58891,199.787c0,-3.61999 2.93458,-6.55457 6.55457,-6.55457c3.61999,0 6.55458,2.93458 6.55458,6.55458c0,3.61999 -2.93459,6.55458 -6.55457,6.55458c-3.61999,0 -6.55457,-2.93458 -6.55457,-6.55457z" fill="#000000" stroke="none" stroke-width="0"/>
+                                <path d="M200.71999,159.49466c0,0 5.23481,-8.77689 12.63142,-9.9159c10.80313,-1.66359 18.26872,6.40452 18.26872,6.40452" fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+                                <path d="M248.94293,156.21738c0,0 6.85263,-6.20051 17.86228,-5.44591c8.9574,0.61395 13.03785,8.95729 13.03785,8.95729" fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+                                <path d="M209.3206,116.68132c-9.91379,-3.09959 -18.80188,-14.9667 -23.63838,-22.56556c-14.59159,-22.92555 4.61742,-15.45305 6.78667,-14.61521c7.0794,2.50232 18.23168,10.40104 13.37438,-2.67487c-4.02674,-5.94388 3.66876,-6.3546 7.48965,-5.61724c3.8209,0.73736 19.00336,12.23009 23.00392,11.76945c3.14477,-0.3621 -3.45621,-7.61097 -0.53498,-9.62955c4.0414,-2.79261 11.97713,-2.89832 18.18915,0.80246c2.37993,1.41783 27.55058,25.1354 21.22596,27.7469c-3.30286,1.36379 -9.26644,1.78611 -13.70766,3.09569c-6.71153,1.97902 -13.26955,4.47796 -19.95993,6.13634c-14.09302,3.49331 -26.39174,7.37657 -32.22878,5.55159z" fill="#000000" stroke="#000000" stroke-width="4.5" stroke-linecap="round"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <h1>Welkom bij <span class="highlight">Loek it Up</span></h1>
+                    <p>De slimste manier om woordjes te leren!</p>
+                </div>
+                
+                <div class="lists-section">
+                    <div class="lists-header">
+                        <h2><i class="fas fa-folder-open"></i> Mijn Woordenlijsten</h2>
+                        <div class="lists-actions">
+                            <button id="merge-mode-btn" class="btn btn-secondary" onclick="toggleMergeMode()">
+                                <i class="fas fa-layer-group"></i> Samenvoegen
+                            </button>
+                            <button id="merge-action-btn" class="btn btn-primary hidden" onclick="mergeLists()">
+                                2 lijsten samenvoegen
+                            </button>
+                        </div>
+                    </div>
+                    <div id="word-lists-container" class="word-lists-grid">
+                        <!-- Word lists will be dynamically added here -->
+                    </div>
+                    <div id="empty-state" class="empty-state">
+                        <i class="fas fa-book"></i>
+                        <h3>Nog geen woordenlijsten</h3>
+                        <p>Maak je eerste woordenlijst om te beginnen met leren!</p>
+                        <button class="empty-add-btn" onclick="showCreateList()" aria-label="Nieuwe lijst maken">
+                            <span class="empty-add-inner">
+                                <i class="fas fa-plus"></i>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search View -->
+            <div id="search-view" class="view">
+                <div class="search-view-container">
+                    <h2><i class="fas fa-search"></i> Zoeken</h2>
+                    <div class="search-view-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="search" id="search-view-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" aria-label="Zoek woordenlijsten of oefeningen" placeholder="Zoek woordenlijsten of oefeningen..." oninput="debouncedPublicSearch()">
+                    </div>
+                    <div id="search-view-results" class="search-view-results"></div>
+                </div>
+            </div>
+
+            <!-- Create/Edit List View -->
+            <div id="create-view" class="view">
+                <div class="create-container">
+                    <h2><i class="fas fa-edit"></i> <span id="create-title">Nieuwe Woordenlijst</span></h2>
+                    
+                    <div class="form-group">
+                        <label for="list-title">Titel</label>
+                        <input type="text" id="list-title" placeholder="Bijv. Franse woordjes Hoofdstuk 3" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vak</label>
+                        <div class="subject-selector">
+                            <button class="subject-btn" data-subject="nederlands" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Nederlands
+                            </button>
+                            <button class="subject-btn" data-subject="engels" data-icon="fa-flag-usa">
+                                <i class="fas fa-flag-usa"></i> Engels
+                            </button>
+                            <button class="subject-btn" data-subject="frans" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Frans
+                            </button>
+                            <button class="subject-btn" data-subject="duits" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Duits
+                            </button>
+                            <button class="subject-btn" data-subject="spaans" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Spaans
+                            </button>
+                            <button class="subject-btn" data-subject="italiaans" data-icon="fa-flag">
+                                <i class="fas fa-flag"></i> Italiaans
+                            </button>
+                            <button class="subject-btn" data-subject="latijn" data-icon="fa-book-open">
+                                <i class="fas fa-book-open"></i> Latijn
+                            </button>
+                            <button class="subject-btn" data-subject="grieks" data-icon="fa-university">
+                                <i class="fas fa-university"></i> Grieks
+                            </button>
+                            <button class="subject-btn" data-subject="natuurkunde" data-icon="fa-atom">
+                                <i class="fas fa-atom"></i> Natuurkunde
+                            </button>
+                            <button class="subject-btn" data-subject="scheikunde" data-icon="fa-flask">
+                                <i class="fas fa-flask"></i> Scheikunde
+                            </button>
+                            <button class="subject-btn" data-subject="biologie" data-icon="fa-dna">
+                                <i class="fas fa-dna"></i> Biologie
+                            </button>
+                            <button class="subject-btn" data-subject="other" data-icon="fa-book">
+                                <i class="fas fa-book"></i> Overig
+                            </button>
+                        </div>
+                        <input type="hidden" id="selected-subject" value="">
+                        <input type="hidden" id="selected-icon" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Talen</label>
+                        <div class="language-inputs">
+                            <div class="language-select-wrapper">
+                                <input type="text" class="language-search" id="lang-from-search" name="lang-from-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoeken...">
+                                <select id="lang-from" aria-label="Taal van">
+                                    <option value="" selected disabled>Kies taal</option>
+                                    <option>Nederlands</option>
+                                    <option>Engels</option>
+                                    <option>Frans</option>
+                                    <option>Duits</option>
+                                    <option>Spaans</option>
+                                    <option>Italiaans</option>
+                                    <option>Portugees</option>
+                                    <option>Latijn</option>
+                                    <option>Grieks</option>
+                                    <option>Arabisch</option>
+                                    <option>Turks</option>
+                                    <option>Chinees</option>
+                                    <option>Japans</option>
+                                    <option>Koreaans</option>
+                                    <option>Russisch</option>
+                                    <option>Zweeds</option>
+                                    <option>Deens</option>
+                                    <option>Noors</option>
+                                    <option>Overig</option>
+                                </select>
+                            </div>
+                            <i class="fas fa-arrow-right"></i>
+                            <div class="language-select-wrapper">
+                                <input type="text" class="language-search" id="lang-to-search" name="lang-to-search" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" placeholder="Zoeken...">
+                                <select id="lang-to" aria-label="Taal naar">
+                                    <option value="" selected disabled>Kies taal</option>
+                                    <option>Nederlands</option>
+                                    <option>Engels</option>
+                                    <option>Frans</option>
+                                    <option>Duits</option>
+                                    <option>Spaans</option>
+                                    <option>Italiaans</option>
+                                    <option>Portugees</option>
+                                    <option>Latijn</option>
+                                    <option>Grieks</option>
+                                    <option>Arabisch</option>
+                                    <option>Turks</option>
+                                    <option>Chinees</option>
+                                    <option>Japans</option>
+                                    <option>Koreaans</option>
+                                    <option>Russisch</option>
+                                    <option>Zweeds</option>
+                                    <option>Deens</option>
+                                    <option>Noors</option>
+                                    <option>Overig</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group cloud-only">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="list-public" checked>
+                            <span class="toggle-switch">
+                                <span class="toggle-slider"></span>
+                            </span>
+                            <span class="toggle-text">Openbaar maken (anderen kunnen deze lijst vinden)</span>
+                        </label>
+                    </div>
+
+                    <div class="import-section">
+                        <button class="btn btn-secondary" onclick="toggleImport()">
+                            <i class="fas fa-file-import"></i> Importeren
+                        </button>
+                        <div id="import-area" class="import-area hidden">
+                            <div class="import-source-selector">
+                                <button class="import-source-btn active" data-source="plain" onclick="setImportSource('plain')">
+                                    <i class="fas fa-table"></i> Tab-gescheiden
+                                </button>
+                                <button class="import-source-btn" data-source="studygo" onclick="setImportSource('studygo')">
+                                    <i class="fas fa-graduation-cap"></i> StudyGo
+                                </button>
+                                <button class="import-source-btn" data-source="jojoschool" onclick="setImportSource('jojoschool')">
+                                    <i class="fas fa-book"></i> JoJoSchool
+                                </button>
+                            </div>
+                            <div id="import-instructions-plain" class="import-instructions">
+                                <p class="import-hint">Plak hier woordjes gescheiden door tabs (van Quizlet, etc.)</p>
+                            </div>
+                            <div id="import-instructions-studygo" class="import-instructions hidden">
+                                <div class="import-hint studygo-instructions">
+                                    <strong>Instructies:</strong>
+                                    <ol>
+                                        <li>Ga naar je StudyGo woordenlijst</li>
+                                        <li>Klik op opties (drie bolletjes &#8942;)</li>
+                                        <li>Klik op "Printen"</li>
+                                        <li>Selecteer alles (Ctrl+A)</li>
+                                        <li>Kopieer alles (Ctrl+C)</li>
+                                        <li>Plak alles hieronder (Ctrl+V)</li>
+                                    </ol>
+                                    <p>De titel en talen worden automatisch herkend.</p>
+                                </div>
+                            </div>
+                            <div id="import-instructions-jojoschool" class="import-instructions hidden">
+                                <div class="import-hint studygo-instructions">
+                                    <strong>Instructies:</strong>
+                                    <ol>
+                                        <li>Ga naar je JoJoSchool woordenlijst</li>
+                                        <li>Selecteer alles (Ctrl+A)</li>
+                                        <li>Kopieer alles (Ctrl+C)</li>
+                                        <li>Plak alles hieronder (Ctrl+V)</li>
+                                    </ol>
+                                    <p>De titel en taal worden automatisch herkend.</p>
+                                </div>
+                            </div>
+                            <textarea id="import-text" placeholder="woord1&#9;vertaling1&#10;woord2&#9;vertaling2"></textarea>
+                            <button class="btn btn-primary" onclick="importWords()">
+                                <i class="fas fa-check"></i> Importeren
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="words-editor">
+                        <h3>Woordjes</h3>
+                        <div id="words-list" class="words-list">
+                            <!-- Word entries will be added here -->
+                        </div>
+                        <button class="btn btn-add-word" onclick="addWordEntry()">
+                            <i class="fas fa-plus"></i> Woord toevoegen
+                        </button>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" onclick="showHome()">Annuleren</button>
+                        <button class="btn btn-primary" onclick="saveList()">
+                            <i class="fas fa-save"></i> Opslaan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Detail View -->
+            <div id="list-view" class="view">
+                <div class="list-detail-container">
+                    <div class="list-header">
+                        <button class="btn-back" onclick="showHome()">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="list-info">
+                            <div class="list-icon">
+                                <i id="list-detail-icon" class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <h2 id="list-detail-title">Woordenlijst</h2>
+                                <p id="list-detail-meta">0 woordjes</p>
+                            </div>
+                        </div>
+                        <div class="list-actions">
+                            <button class="btn btn-icon" onclick="editCurrentList()" title="Bewerken">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-icon" onclick="exportCurrentList()" title="Exporteren">
+                                <i class="fas fa-file-export"></i>
+                            </button>
+                            <button class="btn btn-icon" onclick="openQrShareModal()" title="QR delen">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                            <button class="btn btn-icon btn-danger" onclick="deleteCurrentList()" title="Verwijderen">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="study-modes">
+                        <h3>Kies een studiemodus</h3>
+                        <div class="modes-grid">
+                            <div class="mode-card" onclick="startStudyMode('steps')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <h4>Leren</h4>
+                                <p>De </p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('typing')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-keyboard"></i>
+                                </div>
+                                <h4>Typen</h4>
+                                <p>Typ alle vertalingen en leer door herhaling</p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('cards')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-clone"></i>
+                                </div>
+                                <h4>Woordkaartjes</h4>
+                                <p>Flip en swipe kaartjes om te leren</p>
+                            </div>
+                            <div class="mode-card" onclick="startEmergencyCram()">
+                                <div class="mode-icon">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <h4>Noodstop</h4>
+                                <p>Top 10 moeilijkste woorden, supersnel stampen</p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('exam')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <h4>Toets</h4>
+                                <p>Geen directe feedback, fouten duidelijk op het einde</p>
+                            </div>
+                            <div class="mode-card" onclick="startStudyMode('connect')">
+                                <div class="mode-icon">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <h4>Koppelrace</h4>
+                                <p>Verbind vertaling en betekenis tegen de klok</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="resume-banner" class="resume-banner hidden">
+                        <div class="resume-info">
+                            <i class="fas fa-play-circle"></i>
+                            <span id="resume-text">Je hebt een sessie openstaan.</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="resumeStudy()">
+                            <i class="fas fa-play"></i> Hervatten
+                        </button>
+                    </div>
+
+                    <div class="words-preview">
+                        <div class="words-preview-header">
+                            <h3>Woordjes in deze lijst</h3>
+                            <button class="btn btn-secondary btn-select-all" onclick="toggleSelectAllWords()">
+                                <i class="fas fa-check-double"></i> Selecteer alles
+                            </button>
+                        </div>
+                        <div id="words-preview-list" class="words-preview-list">
+                            <!-- Words will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study Settings Modal -->
+            <div id="settings-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-sliders-h"></i> Oefening instellen</h3>
+                        <button class="btn-close" onclick="closeSettingsModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                        <!-- Accordion: Vraagrichting -->
+                        <div class="settings-accordion open" id="acc-direction">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-direction')">
+                                <span><i class="fas fa-exchange-alt"></i> Vraagrichting</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div class="direction-selector">
+                                    <button class="direction-btn active" data-direction="term-def">
+                                        <span id="dir-term-def">Term → Definitie</span>
+                                    </button>
+                                    <button class="direction-btn" data-direction="def-term">
+                                        <span id="dir-def-term">Definitie → Term</span>
+                                    </button>
+                                    <button class="direction-btn" data-direction="mixed">
+                                        <i class="fas fa-random"></i> Mix
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Antwoordcontrole -->
+                        <div class="settings-accordion open" id="typing-settings">
+                            <button class="accordion-header" onclick="toggleAccordion('typing-settings')">
+                                <span><i class="fas fa-spell-check"></i> Antwoordcontrole</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <p id="emergency-hint" class="setting-hint hidden">Noodstop actief: je oefent alleen de 10 moeilijkste woorden.</p>
+
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="strict-diacritics" checked>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Trema's &amp; accenten exact rekenen</strong>
+                                            <span class="toggle-hint">bijv. "ë" ≠ "e", "é" ≠ "e"</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="accept-slash-answers" checked>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Accepteer beide bij "/"</strong>
+                                            <span class="toggle-hint">bijv. "licht/fel" → beide goed</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="ignore-parentheses" checked>
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Negeer tekst tussen haakjes</strong>
+                                            <span class="toggle-hint">bijv. "(de) kat" → "kat" volstaat</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="allow-minor-typos">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Kleine typefoutjes toestaan</strong>
+                                            <span class="toggle-hint">1 fout teken bij lange woorden</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="case-sensitive-answers">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Hoofdletters exact rekenen</strong>
+                                            <span class="toggle-hint">bijv. "De" ≠ "de"</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Leren-modus onderdelen -->
+                        <div class="settings-accordion open" id="acc-learn-stages">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-learn-stages')">
+                                <span><i class="fas fa-layer-group"></i> Leren-modus stappen</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div id="learn-stages-settings">
+                                    <p class="setting-hint" style="margin-bottom:.75rem">Kies welke stappen actief zijn. Volgorde: Kaartjes → Overtypen → Meerkeuze → Hints → Typen.</p>
+                                    <div class="study-parts-grid">
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-flash" checked>
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Woordkaartjes</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-copy">
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Overtypen</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-choice" checked>
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Meerkeuze</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-hint">
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Hints</strong></span>
+                                        </label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="learn-stage-typing" checked>
+                                            <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                            <span class="toggle-text"><strong>Typen</strong></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeSettingsModal()">Annuleren</button>
+                        <button class="btn btn-primary" onclick="confirmStartStudy()">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Settings Modal -->
+            <div id="app-settings-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-cog"></i> App Instellingen</h3>
+                        <button class="btn-close" onclick="closeAppSettings()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                        <!-- Accordion: Uiterlijk -->
+                        <div class="settings-accordion open" id="acc-appearance">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-appearance')">
+                                <span><i class="fas fa-palette"></i> Uiterlijk</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="dark-mode-toggle" onchange="setDarkModeEnabled(this.checked)">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Dark mode</strong>
+                                            <span class="toggle-hint">Donker thema voor de hele app</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="dynamic-logo-toggle" onchange="setDynamicLogoEnabled(this.checked)">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Logo kleur aanpassen</strong>
+                                            <span class="toggle-hint">Logo past mee met de accentkleur</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="settings-section-label">Accentkleur</div>
+                                <div id="preset-colors" class="preset-colors-grid"></div>
+                                <div class="color-picker-row">
+                                    <input type="color" id="accent-color-picker" value="#FFD93D" aria-label="Accentkleur kiezen">
+                                    <input type="text" id="accent-color-input" value="#FFD93D" maxlength="7" aria-label="Accentkleur hex">
+                                    <button class="btn btn-secondary btn-small" onclick="resetAccentColor()">Standaard</button>
+                                </div>
+                                <p class="setting-hint">Kies een kleur om het uiterlijk aan te passen.</p>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Cloud & Synchronisatie -->
+                        <div class="settings-accordion" id="acc-cloud">
+                            <button class="accordion-header" onclick="toggleAccordion('acc-cloud')">
+                                <span><i class="fas fa-cloud"></i> Cloud &amp; Synchronisatie</span>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" id="cloud-enabled-toggle" onchange="setCloudEnabled(this.checked)">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong>Cloud functies inschakelen</strong>
+                                            <span class="toggle-hint">Inloggen, openbare lijsten en online sync</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" onclick="closeAppSettings()">
+                            <i class="fas fa-check"></i> Klaar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Share Modal -->
+            <div id="qr-share-modal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-qrcode"></i> QR delen</h3>
+                        <button class="btn-close" onclick="closeQrShareModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Scan deze code om de lijst direct te importeren.</p>
+                        <div style="display:flex;justify-content:center;margin:1rem 0;">
+                            <img id="qr-share-image" alt="QR code voor lijst delen" style="max-width:220px;width:100%;height:auto;">
+                        </div>
+                        <input type="text" id="qr-share-link" readonly aria-label="Deellink">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeQrShareModal()">Sluiten</button>
+                        <button class="btn btn-primary" onclick="copyQrShareLink()">
+                            <i class="fas fa-copy"></i> Kopieer link
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auth Modal -->
+            <div id="auth-modal" class="modal hidden cloud-only">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="auth-title"><i class="fas fa-user"></i> Inloggen</h3>
+                        <button class="btn-close" onclick="closeAuthModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="auth-email">E-mail</label>
+                            <input type="text" id="auth-email" placeholder="jij@mail.com" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-password">Wachtwoord</label>
+                            <input type="password" id="auth-password" placeholder="••••••••">
+                        </div>
+                        <p id="auth-error" class="auth-error hidden"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeAuthModal()">Annuleren</button>
+                        <button id="auth-submit-btn" class="btn btn-primary" onclick="submitAuth()">
+                            <i class="fas fa-check"></i> Ga door
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study View - Steps Mode -->
+            <div id="study-steps-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="steps-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="steps-progress-text">0/0</span>
+                        </div>
+                    </div>
+
+                    <div id="steps-content" class="study-content">
+                        <!-- Dynamic content for steps mode -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study View - Typing Mode -->
+            <div id="study-typing-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="typing-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="typing-progress-text">0/0</span>
+                        </div>
+                    </div>
+
+                    <div id="typing-content" class="study-content">
+                        <!-- Dynamic content for typing mode -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Woordkaartjes Mode -->
+            <div id="study-cards-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="cards-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="cards-progress-text">0/0</span>
+                        </div>
+                    </div>
+
+                    <div id="cards-content" class="study-content cards-container">
+                        <!-- Card will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="study-exam-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="exam-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="exam-progress-text">0/0</span>
+                        </div>
+                    </div>
+                    <div id="exam-content" class="study-content"></div>
+                </div>
+            </div>
+
+            <div id="study-connect-view" class="view study-view">
+                <div class="study-container">
+                    <div class="study-header">
+                        <button class="btn-back" onclick="exitStudy()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="connect-progress" class="progress-fill"></div>
+                            </div>
+                            <span id="connect-progress-text">0/0</span>
+                            <span id="connect-timer" class="setting-hint">0:00</span>
+                        </div>
+                    </div>
+                    <div id="connect-content" class="study-content"></div>
+                </div>
+            </div>
+
+            <!-- Confetti Canvas -->
+            <canvas id="confetti-canvas" class="hidden"></canvas>
+
+            <!-- Completion View -->
+            <div id="complete-view" class="view">
+                <div class="complete-container">
+                    <div class="complete-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h2>Gefeliciteerd!</h2>
+                    <p id="complete-message">Je hebt alle woordjes geleerd!</p>
+                    <div class="complete-stats">
+                        <div class="stat">
+                            <span class="stat-value" id="stat-correct">0</span>
+                            <span class="stat-label">Goed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="stat-wrong">0</span>
+                            <span class="stat-label">Fout</span>
+                        </div>
+                    </div>
+                    <div class="complete-summary" id="complete-summary"></div>
+                    <div class="complete-actions">
+                        <button class="btn btn-secondary" onclick="showListDetail(currentListId)">
+                            <i class="fas fa-arrow-left"></i> Terug naar lijst
+                        </button>
+                        <button class="btn btn-primary" onclick="restartStudy()">
+                            <i class="fas fa-redo"></i> Opnieuw
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav class="mobile-nav">
+            <button class="mobile-nav-btn active" onclick="showHome()" data-view="home" aria-label="Home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </button>
+            <button class="mobile-nav-btn" onclick="showCreateList()" data-view="create" aria-label="Nieuwe Lijst">
+                <i class="fas fa-plus"></i>
+                <span>Nieuw</span>
+            </button>
+            <button class="mobile-nav-btn" onclick="openAppSettings()" data-view="settings" aria-label="Instellingen">
+                <i class="fas fa-cog"></i>
+                <span>Inst.</span>
+            </button>
+            <button id="mobile-nav-search-btn" class="mobile-nav-btn" onclick="showSearchView()" data-view="search" aria-label="Zoeken">
+                <i class="fas fa-search"></i>
+                <span>Zoek</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="correct-sound" preload="auto"></audio>
+    <audio id="complete-sound" preload="auto"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="confetti.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

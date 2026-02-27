@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loek-it-up-v1';
+const CACHE_NAME = 'loek-it-up-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,6 +7,12 @@ const ASSETS_TO_CACHE = [
   './confetti.js',
   './images/logo.svg',
   './images/fav.png',
+  './dictonary/eng-nld.json',
+  './dictonary/nld-eng.json',
+  './dictonary/deu-nld.json',
+  './dictonary/nld-deu.json',
+  './dictonary/fra-nld.json',
+  './dictonary/nld-fra.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 

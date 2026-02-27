@@ -1684,13 +1684,10 @@ function applyCloudState() {
         closeAuthMenu();
         updateAuthUI();
 
-        const publicInput = document.getElementById('public-search-input');
-        const publicResults = document.getElementById('public-search-results');
+        const publicInput = document.getElementById('search-view-input');
+        const publicResults = document.getElementById('search-view-results');
         if (publicInput) publicInput.value = '';
-        if (publicResults) {
-            publicResults.innerHTML = '';
-            publicResults.classList.add('hidden');
-        }
+        if (publicResults) publicResults.innerHTML = '';
     } else {
         initSupabase();
     }
@@ -2054,19 +2051,13 @@ function searchLocalLists(query) {
 }
 
 async function performSearch() {
-    const mobileOverlay = document.getElementById('mobile-search-overlay');
-    const mobileInput = document.getElementById('mobile-public-search-input');
-    const desktopInput = document.getElementById('public-search-input');
-
-    const isMobileOpen = mobileOverlay && !mobileOverlay.classList.contains('hidden');
-    const input = isMobileOpen ? (mobileInput || desktopInput) : (desktopInput || mobileInput);
-    const results = isMobileOpen ? document.getElementById('mobile-public-search-results') : document.getElementById('public-search-results');
+    const input = document.getElementById('search-view-input');
+    const results = document.getElementById('search-view-results');
     if (!input || !results) return;
 
     const query = (input.value || '').trim();
     if (!query) {
-        results.innerHTML = '';
-        results.classList.add('hidden');
+        results.innerHTML = '<p class="search-view-prompt"><i class="fas fa-search"></i> Typ om te zoeken naar woordenlijsten of oefeningen.</p>';
         return;
     }
 
@@ -2138,41 +2129,26 @@ async function performSearch() {
     } else {
         results.innerHTML = html;
     }
-    results.classList.remove('hidden');
 }
 
-// Mobile search open/close helpers
-function openMobileSearch() {
-    const overlay = document.getElementById('mobile-search-overlay');
-    if (!overlay) return;
-    overlay.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    const mobileInput = document.getElementById('mobile-public-search-input');
-    const desktopInput = document.getElementById('public-search-input');
-    if (mobileInput && desktopInput) mobileInput.value = desktopInput.value || '';
+function showSearchView() {
+    triggerHaptic('light');
+    showView('search-view');
     setTimeout(() => {
-        const focusInput = document.getElementById('mobile-public-search-input');
-        if (focusInput) focusInput.focus();
-    }, 50);
-    // mark mobile nav search button active
-    const navBtn = document.getElementById('mobile-nav-search-btn');
-    if (navBtn) navBtn.classList.add('active');
+        const input = document.getElementById('search-view-input');
+        if (input) input.focus();
+    }, 100);
+    // Show prompt if no query yet
+    const results = document.getElementById('search-view-results');
+    const input = document.getElementById('search-view-input');
+    if (results && input && !input.value) {
+        results.innerHTML = '<p class="search-view-prompt"><i class="fas fa-search"></i> Typ om te zoeken naar woordenlijsten of oefeningen.</p>';
+    }
 }
 
-function closeMobileSearch() {
-    const overlay = document.getElementById('mobile-search-overlay');
-    if (!overlay) return;
-    overlay.classList.add('hidden');
-    document.body.style.overflow = '';
-    const mobileResults = document.getElementById('mobile-public-search-results');
-    if (mobileResults) {
-        mobileResults.innerHTML = '';
-        mobileResults.classList.add('hidden');
-    }
-    // remove active state from mobile nav search button
-    const navBtn = document.getElementById('mobile-nav-search-btn');
-    if (navBtn) navBtn.classList.remove('active');
-}
+// Legacy aliases kept for backwards compat (e.g. bookmarks/PWA)
+function openMobileSearch() { showSearchView(); }
+function closeMobileSearch() { showHome(); }
 
 async function importPublicList(listId) {
     if (!isCloudEnabled()) return;
@@ -2492,19 +2468,24 @@ function buildHintText(correctAnswer, level) {
     }
 
     if (level === 2) {
-        const dotted = Array.from(answer).map(ch => /\s/.test(ch) ? ' ' : '•').join('');
+        const dotted = Array.from(answer).map(ch => /\s/.test(ch) ? ' ' : '&bull;').join('');
         return `Hint 2: Lengte: ${dotted}`;
     }
 
-    const vowels = /[aeiouyáàâäãåéèêëíìîïóòôöõúùûü]/i;
-    const masked = Array.from(answer)
-        .map(ch => {
-            if (/\s/.test(ch)) return ' ';
-            return vowels.test(ch) ? ch : '_';
-        })
-        .join('');
-    return `Hint 3: Klinkers: ${masked}`;
+    if (level === 3) {
+        const vowels = /[aeiouyáàâäãåéèêëíìîïóòôöõúùûü]/i;
+        const masked = Array.from(answer)
+            .map(ch => {
+                if (/\s/.test(ch)) return ' ';
+                return vowels.test(ch) ? ch : '_';
+            })
+            .join('');
+        return `Hint 3: Klinkers: ${masked}`;
+    }
+
+    return '';
 }
+
 
 function renderHintButton(wordId, correctAnswer, hintContainerId) {
     return '';
@@ -4670,16 +4651,6 @@ document.addEventListener('DOMContentLoaded', () => {
         closeAuthMenu();
     });
 
-    // Close search results when clicking outside
-    document.addEventListener('click', (event) => {
-        const searchContainer = document.querySelector('.header-search');
-        const results = document.getElementById('public-search-results');
-        if (!searchContainer || !results) return;
-        if (results.classList.contains('hidden')) return;
-        if (searchContainer.contains(event.target)) return;
-        results.classList.add('hidden');
-    });
-
     // Restore last view (session persistence)
     restoreLastView();
 });
@@ -4979,48 +4950,18 @@ function buildTypingDiff(userAnswer, correctAnswer) {
         `;
     }
 
-    // Split into words for word-level alignment
-    const userWords = user.split(/(\s+)/);
-    const correctWords = correct.split(/(\s+)/);
-
-    // Use word-level LCS to align words, then character-level diff within mismatched words
-    const wordOps = alignWords(
-        userWords.filter(w => w.trim()),
-        correctWords.filter(w => w.trim())
-    );
-
-    let userHtml = [];
-    let correctHtml = [];
-
-    for (const op of wordOps) {
-        if (op.type === 'equal') {
-            userHtml.push(`<span class="diff-char correct">${escapeHtml(op.userWord)}</span>`);
-            correctHtml.push(`<span class="diff-char correct">${escapeHtml(op.correctWord)}</span>`);
-        } else if (op.type === 'replace') {
-            // Character-level diff within the word
-            const charDiff = charLevelDiff(op.userWord, op.correctWord);
-            userHtml.push(charDiff.userHtml);
-            correctHtml.push(charDiff.correctHtml);
-        } else if (op.type === 'insert') {
-            // Word missing from user's answer
-            userHtml.push(`<span class="diff-char missing">_</span>`);
-            correctHtml.push(`<span class="diff-char expected">${escapeHtml(op.correctWord)}</span>`);
-        } else if (op.type === 'delete') {
-            // Extra word in user's answer
-            userHtml.push(`<span class="diff-char wrong">${escapeHtml(op.userWord)}</span>`);
-            correctHtml.push(`<span class="diff-char expected"></span>`);
-        }
-    }
+    // Use character-level diff on the entire string for better alignment of spaces and punctuation
+    const diff = charLevelDiff(user, correct);
 
     return `
         <div class="typing-diff">
             <div class="diff-row">
                 <span class="diff-label">Jij:</span>
-                <span class="diff-text">${userHtml.join(' ')}</span>
+                <span class="diff-text">${diff.userHtml}</span>
             </div>
             <div class="diff-row">
                 <span class="diff-label">Juist:</span>
-                <span class="diff-text">${correctHtml.join(' ')}</span>
+                <span class="diff-text">${diff.correctHtml}</span>
             </div>
         </div>
     `;
@@ -5174,10 +5115,12 @@ function charLevelDiff(userWord, correctWord) {
         }
         if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
             userParts.push(`<span class="diff-char wrong">${escapeHtml(uChars[i - 1])}</span>`);
+            correctParts.push(`<span class="diff-char expected">_</span>`);
             i--;
             continue;
         }
         if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) {
+            userParts.push(`<span class="diff-char missing">_</span>`);
             correctParts.push(`<span class="diff-char expected">${escapeHtml(cChars[j - 1])}</span>`);
             j--;
             continue;
@@ -5289,14 +5232,13 @@ function acceptIntendedStepTyping(wordId) {
     overrideAnswerToCorrect(wordId);
     triggerHaptic('success');
     playCorrectSound();
-    removeLastOccurrence(studySession.stepsWrongWords, wordId);
+    // Remove all occurrences from wrong list
+    studySession.stepsWrongWords = studySession.stepsWrongWords.filter(id => id !== wordId);
     const progress = studySession.wordProgress[wordId];
     if (progress) {
-        // Revert the typingRemaining = 2 that was set on wrong answer
-        progress.typingRemaining = Math.max(0, progress.typingRemaining - 1);
-        if (progress.typingRemaining === 0) {
-            advanceLearnPhase(wordId);
-        }
+        // Mark typing as fully done — no re-typing required
+        progress.typingRemaining = 0;
+        advanceLearnPhase(wordId);
         updateStepsProgress();
     }
     saveActiveSession();
@@ -5309,18 +5251,13 @@ function acceptIntendedTyping(wordId) {
     playCorrectSound();
     const progress = studySession.typingProgress[wordId];
     if (progress) {
-        // Revert the needsExtraCorrect = 2 that was set on wrong answer
-        if (progress.needsExtraCorrect > 0) {
-            progress.needsExtraCorrect--;
-        }
-        if (progress.needsExtraCorrect === 0) {
-            progress.completed = true;
-        }
+        // Mark fully completed — no extra typing required
+        progress.needsExtraCorrect = 0;
+        progress.completed = true;
         updateTypingProgress();
     }
-    // Remove from typingWrongWords
-    const idx = studySession.typingWrongWords.indexOf(wordId);
-    if (idx !== -1) studySession.typingWrongWords.splice(idx, 1);
+    // Remove from typingWrongWords entirely
+    studySession.typingWrongWords = studySession.typingWrongWords.filter(id => id !== wordId);
     saveActiveSession();
     showNextTypingQuestion();
 }
