@@ -5,6 +5,8 @@ let currentStudyMode = null;
 let editingListId = null;
 let mergeMode = false;
 let selectedListsForMerge = [];
+let _progressSyncTimer = null; // debounce timer for progress sync
+let _hashNavigating = false;  // flag to prevent recursive hash updates
 
 // Haptic Feedback Helper
 function triggerHaptic(type = 'light') {
@@ -123,6 +125,226 @@ let studySession = {
     hintPenalty: 0,
     pendingAnswers: []
 };
+
+// ===== Hash Routing =====
+function updateHash(viewId) {
+    if (_hashNavigating) return;
+    let hash = '';
+    switch (viewId) {
+        case 'home-view':
+            hash = '';
+            break;
+        case 'search-view':
+            hash = '#search';
+            break;
+        case 'create-view':
+            hash = editingListId ? '#edit/' + editingListId : '#create';
+            break;
+        case 'list-view':
+            if (currentListId) hash = '#list/' + currentListId;
+            break;
+        case 'study-steps-view':
+        case 'study-typing-view':
+        case 'study-cards-view':
+        case 'study-exam-view':
+        case 'study-connect-view':
+            if (currentListId && currentStudyMode) {
+                hash = '#list/' + currentListId + '/study/' + currentStudyMode;
+            }
+            break;
+        case 'complete-view':
+            if (currentListId) hash = '#list/' + currentListId + '/complete';
+            break;
+    }
+    if (window.location.hash !== hash) {
+        window.history.replaceState(null, '', hash || window.location.pathname + window.location.search);
+    }
+}
+
+function parseHash() {
+    const hash = window.location.hash;
+    if (!hash || hash === '#') return { view: 'home' };
+    // #list/<id>/study/<mode>
+    const studyMatch = hash.match(/^#list\/([^\/]+)\/study\/(.+)$/);
+    if (studyMatch) return { view: 'study', listId: studyMatch[1], mode: studyMatch[2] };
+    // #list/<id>/complete
+    const completeMatch = hash.match(/^#list\/([^\/]+)\/complete$/);
+    if (completeMatch) return { view: 'complete', listId: completeMatch[1] };
+    // #list/<id>
+    const listMatch = hash.match(/^#list\/([^\/]+)$/);
+    if (listMatch) return { view: 'list', listId: listMatch[1] };
+    // #search
+    if (hash === '#search') return { view: 'search' };
+    // #create or #edit/<id>
+    if (hash === '#create') return { view: 'create' };
+    const editMatch = hash.match(/^#edit\/([^\/]+)$/);
+    if (editMatch) return { view: 'edit', listId: editMatch[1] };
+    return { view: 'home' };
+}
+
+function handleHashChange() {
+    const route = parseHash();
+    _hashNavigating = true;
+    try {
+        switch (route.view) {
+            case 'home':
+                showHome();
+                break;
+            case 'search':
+                showSearchView();
+                break;
+            case 'create':
+                showCreateList();
+                break;
+            case 'edit':
+                if (route.listId) {
+                    currentListId = route.listId;
+                    editCurrentList();
+                } else {
+                    showCreateList();
+                }
+                break;
+            case 'list':
+                if (route.listId) {
+                    const list = wordLists.find(l => l.id === route.listId);
+                    if (list) {
+                        showListDetail(route.listId);
+                    } else {
+                        showHome();
+                    }
+                } else {
+                    showHome();
+                }
+                break;
+            case 'study':
+                // Study session restore: only show the list detail;
+                // the actual session data is in localStorage activeStudySession
+                if (route.listId) {
+                    const list = wordLists.find(l => l.id === route.listId);
+                    if (list) {
+                        currentListId = route.listId;
+                        currentStudyMode = route.mode;
+                        // Try to restore active session
+                        const raw = localStorage.getItem('activeStudySession');
+                        if (raw) {
+                            try {
+                                const data = JSON.parse(raw);
+                                if (data && data.listId === route.listId && data.mode === route.mode && data.state && data.state.words && data.state.words.length > 0) {
+                                    studySession = data.state;
+                                    restoreStudyView(route.mode);
+                                    return;
+                                }
+                            } catch(e) { /* ignore */ }
+                        }
+                        // No active session to restore, show list detail instead
+                        showListDetail(route.listId);
+                    } else {
+                        showHome();
+                    }
+                } else {
+                    showHome();
+                }
+                break;
+            case 'complete':
+                // Can't restore a completion screen; show the list instead
+                if (route.listId) {
+                    const list = wordLists.find(l => l.id === route.listId);
+                    if (list) {
+                        showListDetail(route.listId);
+                    } else {
+                        showHome();
+                    }
+                } else {
+                    showHome();
+                }
+                break;
+            default:
+                showHome();
+        }
+    } finally {
+        _hashNavigating = false;
+    }
+}
+
+function restoreStudyView(mode) {
+    switch (mode) {
+        case 'steps':
+            showView('study-steps-view');
+            updateStepsProgress();
+            if (studySession.stepsReviewMode) {
+                showNextStepsReviewQuestion();
+            } else {
+                showNextStepQuestion();
+            }
+            break;
+        case 'typing':
+            showView('study-typing-view');
+            updateTypingProgress();
+            if (studySession.typingReviewMode) {
+                showNextTypingReviewQuestion();
+            } else {
+                showNextTypingQuestion();
+            }
+            break;
+        case 'exam':
+            showView('study-exam-view');
+            updateExamProgress();
+            showNextExamQuestion();
+            break;
+        case 'cards':
+            // Cards can't easily be restored, show list
+            if (currentListId) {
+                showListDetail(currentListId);
+            } else {
+                showHome();
+            }
+            break;
+    }
+}
+
+// ===== Progress Calculation =====
+function calculateListProgress(list) {
+    if (!list || !list.words || list.words.length === 0) {
+        return { status: 'not_started', progressPct: 0, totalCorrect: 0, totalWrong: 0 };
+    }
+    const grouped = groupWordsByMastery(list.words);
+    const total = list.words.length;
+    const masteredCount = grouped.mastered.length;
+    const learningCount = grouped.learning.length;
+    const progressPct = Math.round((masteredCount / total) * 100);
+
+    let totalCorrect = 0;
+    let totalWrong = 0;
+    list.words.forEach(w => {
+        const s = w.stats || { correct: 0, wrong: 0 };
+        totalCorrect += s.correct;
+        totalWrong += s.wrong;
+    });
+
+    let status = 'not_started';
+    if (masteredCount === total) {
+        status = 'completed';
+    } else if (learningCount > 0 || masteredCount > 0 || list.lastStudied) {
+        status = 'in_progress';
+    }
+
+    return { status, progressPct, totalCorrect, totalWrong };
+}
+
+function syncProgressToRemote(listId) {
+    if (!supabaseClient || !authUser || !isCloudEnabled()) return;
+    saveListToRemote(listId).catch(err => {
+        console.error('Progress sync failed:', err);
+    });
+}
+
+function debouncedSyncProgress(listId) {
+    if (_progressSyncTimer) clearTimeout(_progressSyncTimer);
+    _progressSyncTimer = setTimeout(() => {
+        _progressSyncTimer = null;
+        syncProgressToRemote(listId);
+    }, 3000);
+}
 
 // ===== Save Data =====
 function saveData() {
@@ -288,6 +510,9 @@ function showView(viewId) {
     if (currentStudyMode && viewKey.startsWith('study-')) {
         localStorage.setItem(LAST_STUDY_MODE_KEY, currentStudyMode);
     }
+
+    // Update URL hash for multi-tab support
+    updateHash(viewId);
 }
 
 function showHome() {
@@ -383,6 +608,16 @@ function renderWordLists() {
             </div>
         ` : '';
 
+        const progress = calculateListProgress(list);
+        const progressBarHtml = progress.status !== 'not_started' ? `
+            <div class="card-progress">
+                <div class="card-progress-bar">
+                    <div class="card-progress-fill" style="width: ${progress.progressPct}%"></div>
+                </div>
+                <span class="card-progress-text">${progress.progressPct}% geleerd</span>
+            </div>
+        ` : '';
+
         return `
         <div class="word-list-card ${isSelected ? 'selected' : ''}" onclick="${mergeMode ? `toggleListSelection('${list.id}')` : `showListDetail('${list.id}')`}">
             ${checkboxHtml}
@@ -400,6 +635,7 @@ function renderWordLists() {
                 <i class="fas fa-arrow-right"></i>
                 <span>${escapeHtml(list.langTo)}</span>
             </div>
+            ${progressBarHtml}
         </div>
     `;
     }).join('');
@@ -1786,7 +2022,12 @@ async function loadRemoteLists() {
         icon: row.icon,
         words: row.words || [],
         isPublic: row.is_public,
-        createdAt: row.created_at
+        createdAt: row.created_at,
+        lastStudied: row.last_studied ? new Date(row.last_studied).getTime() : null,
+        status: row.status || 'not_started',
+        progressPct: row.progress_pct || 0,
+        totalCorrect: row.total_correct || 0,
+        totalWrong: row.total_wrong || 0
     }));
 
     saveData();
@@ -1805,6 +2046,7 @@ async function saveListToRemote(listId) {
     const searchText = list.words.map(w => `${w.term} ${w.definition}`).join(' ').slice(0, 2000);
 
     // Build payload and omit id if it's not a valid UUID so Postgres can generate one
+    const progress = calculateListProgress(list);
     const payload = {
         user_id: authUser.id,
         title: list.title,
@@ -1815,7 +2057,12 @@ async function saveListToRemote(listId) {
         words: list.words,
         is_public: !!list.isPublic,
         search_text: searchText,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        status: progress.status,
+        progress_pct: progress.progressPct,
+        total_correct: progress.totalCorrect,
+        total_wrong: progress.totalWrong,
+        last_studied: list.lastStudied ? new Date(list.lastStudied).toISOString() : null
     };
     if (isValidUUID(list.id)) payload.id = list.id;
 
@@ -4107,6 +4354,12 @@ function finishConnectMode(won) {
 
     showView('complete-view');
     clearActiveSession();
+
+    // Force immediate progress sync for connect mode completion
+    if (currentListId) {
+        if (_progressSyncTimer) { clearTimeout(_progressSyncTimer); _progressSyncTimer = null; }
+        syncProgressToRemote(currentListId);
+    }
 }
 
 // ===== Utility Functions =====
@@ -4479,6 +4732,12 @@ function finalizeCardSession() {
     createConfetti();
     showView('complete-view');
     clearActiveSession();
+
+    // Force immediate progress sync for card session completion
+    if (currentListId) {
+        if (_progressSyncTimer) { clearTimeout(_progressSyncTimer); _progressSyncTimer = null; }
+        syncProgressToRemote(currentListId);
+    }
 }
 
 function showComplete() {
@@ -4521,6 +4780,12 @@ function showComplete() {
     createConfetti();
     showView('complete-view');
     clearActiveSession();
+
+    // Force immediate progress sync to Supabase on study completion
+    if (currentListId) {
+        if (_progressSyncTimer) { clearTimeout(_progressSyncTimer); _progressSyncTimer = null; }
+        syncProgressToRemote(currentListId);
+    }
 }
 
 function cleanupCardHandlers() {
@@ -4565,6 +4830,19 @@ function restartStudy() {
 }
 
 function restoreLastView() {
+    // PRIORITY 1: URL hash takes precedence (supports multi-tab)
+    const route = parseHash();
+    if (route.view !== 'home') {
+        _hashNavigating = true;
+        try {
+            handleHashChange();
+        } finally {
+            _hashNavigating = false;
+        }
+        return;
+    }
+
+    // PRIORITY 2: Fall back to localStorage-based restore
     const lastView = localStorage.getItem(LAST_VIEW_KEY);
     const lastListId = localStorage.getItem(LAST_LIST_ID_KEY);
     const lastStudyMode = localStorage.getItem(LAST_STUDY_MODE_KEY);
@@ -4687,6 +4965,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Restore last view (session persistence)
     restoreLastView();
+
+    // Listen for hash changes (back/forward navigation, multi-tab)
+    window.addEventListener('hashchange', handleHashChange);
 });
 
 function applyImportFromUrl() {
@@ -5237,9 +5518,12 @@ function recordAnswer(wordId, isCorrect) {
     }
 
     saveData();
+
+    // Debounced sync to Supabase (every 3s during practice)
+    if (currentListId) debouncedSyncProgress(currentListId);
 }
 
-function overrideAnswerToCorrect(wordId) {
+function overrideAnswerToCorrect(wordId, { skipSessionCounters = false } = {}) {
     const list = wordLists.find(l => l.id === currentListId);
     if (!list) return;
 
@@ -5261,10 +5545,15 @@ function overrideAnswerToCorrect(wordId) {
     }
     studySession.sessionResults[wordId].correct += 1;
 
-    if (studySession.wrongCount > 0) {
-        studySession.wrongCount -= 1;
+    if (!skipSessionCounters) {
+        if (studySession.wrongCount > 0) {
+            studySession.wrongCount -= 1;
+        }
+        studySession.correctCount += 1;
     }
-    studySession.correctCount += 1;
+
+    // Apply hint penalty just like a normal correct answer would
+    applyHintPenaltyIfNeeded(wordId, true);
 
     saveData();
 }
@@ -5300,8 +5589,8 @@ function acceptIntendedStepTyping(wordId) {
     overrideAnswerToCorrect(wordId);
     triggerHaptic('success');
     playCorrectSound();
-    // Remove all occurrences from wrong list
-    studySession.stepsWrongWords = studySession.stepsWrongWords.filter(id => id !== wordId);
+    // Remove only the last occurrence (the one just added by this wrong answer)
+    removeLastOccurrence(studySession.stepsWrongWords, wordId);
     const progress = studySession.wordProgress[wordId];
     if (progress) {
         // Mark typing as fully done — no re-typing required
@@ -5331,7 +5620,7 @@ function acceptIntendedTyping(wordId) {
 }
 
 function acceptIntendedTypingReview(wordId) {
-    overrideAnswerToCorrect(wordId);
+    overrideAnswerToCorrect(wordId, { skipSessionCounters: true });
     triggerHaptic('success');
     playCorrectSound();
     // Remove the re-added entry from the end of the queue
@@ -5349,7 +5638,7 @@ function acceptIntendedTypingReview(wordId) {
 }
 
 function acceptIntendedStepReview(wordId) {
-    overrideAnswerToCorrect(wordId);
+    overrideAnswerToCorrect(wordId, { skipSessionCounters: true });
     triggerHaptic('success');
     playCorrectSound();
     // Remove the re-added entry from the end of the queue

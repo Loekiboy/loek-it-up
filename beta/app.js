@@ -5355,7 +5355,7 @@ function recordAnswer(wordId, isCorrect) {
     saveData();
 }
 
-function overrideAnswerToCorrect(wordId) {
+function overrideAnswerToCorrect(wordId, { skipSessionCounters = false } = {}) {
     const list = wordLists.find(l => l.id === currentListId);
     if (!list) return;
 
@@ -5377,10 +5377,15 @@ function overrideAnswerToCorrect(wordId) {
     }
     studySession.sessionResults[wordId].correct += 1;
 
-    if (studySession.wrongCount > 0) {
-        studySession.wrongCount -= 1;
+    if (!skipSessionCounters) {
+        if (studySession.wrongCount > 0) {
+            studySession.wrongCount -= 1;
+        }
+        studySession.correctCount += 1;
     }
-    studySession.correctCount += 1;
+
+    // Apply hint penalty just like a normal correct answer would
+    applyHintPenaltyIfNeeded(wordId, true);
 
     saveData();
 }
@@ -5416,8 +5421,8 @@ function acceptIntendedStepTyping(wordId) {
     overrideAnswerToCorrect(wordId);
     triggerHaptic('success');
     playCorrectSound();
-    // Remove all occurrences from wrong list
-    studySession.stepsWrongWords = studySession.stepsWrongWords.filter(id => id !== wordId);
+    // Remove only the last occurrence (the one just added by this wrong answer)
+    removeLastOccurrence(studySession.stepsWrongWords, wordId);
     const progress = studySession.wordProgress[wordId];
     if (progress) {
         // Mark typing as fully done — no re-typing required
@@ -5447,7 +5452,7 @@ function acceptIntendedTyping(wordId) {
 }
 
 function acceptIntendedTypingReview(wordId) {
-    overrideAnswerToCorrect(wordId);
+    overrideAnswerToCorrect(wordId, { skipSessionCounters: true });
     triggerHaptic('success');
     playCorrectSound();
     // Remove the re-added entry from the end of the queue
@@ -5465,7 +5470,7 @@ function acceptIntendedTypingReview(wordId) {
 }
 
 function acceptIntendedStepReview(wordId) {
-    overrideAnswerToCorrect(wordId);
+    overrideAnswerToCorrect(wordId, { skipSessionCounters: true });
     triggerHaptic('success');
     playCorrectSound();
     // Remove the re-added entry from the end of the queue
