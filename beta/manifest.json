@@ -1,11 +1,15 @@
 {
-  "name": "Loek it Up",
+  "name": "Loek it Up Beta",
   "short_name": "Loek it Up",
-  "description": "Woordjes Leren",
-  "start_url": "./index.html",
+  "description": "Gratis woordjes leren app. Maak je eigen woordenlijsten en oefen met meerdere modi.",
+  "lang": "nl",
+  "id": "/loek-it-up/beta/",
+  "start_url": "/loek-it-up/beta/",
+  "scope": "/loek-it-up/beta/",
   "display": "standalone",
   "background_color": "#fcf1d1",
   "theme_color": "#fdc204",
+  "categories": ["education"],
   "icons": [
     {
       "src": "images/fav.png",

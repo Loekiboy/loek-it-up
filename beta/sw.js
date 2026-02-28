@@ -1,5 +1,7 @@
-const CACHE_NAME = 'loek-it-up-v2';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'loek-it-up-v3';
+
+// Lokale assets — moeten slagen voor install
+const LOCAL_ASSETS = [
   './',
   './index.html',
   './styles.css',
@@ -13,17 +15,31 @@ const ASSETS_TO_CACHE = [
   './dictonary/nld-deu.json',
   './dictonary/fra-nld.json',
   './dictonary/nld-fra.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Install event: cache assets
+// Externe assets — optioneel, falen blokkeert install NIET
+const EXTERNAL_ASSETS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+];
+
+// Install event: cache lokale assets (must succeed) + externe assets (best-effort)
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(ASSETS_TO_CACHE);
-      })
+    caches.open(CACHE_NAME).then(async (cache) => {
+      console.log('Opened cache');
+      // Lokale bestanden moeten slagen
+      await cache.addAll(LOCAL_ASSETS);
+      // Externe bestanden: probeer te cachen, maar falen is geen blocker
+      await Promise.allSettled(
+        EXTERNAL_ASSETS.map(url =>
+          fetch(url, { mode: 'cors' })
+            .then(res => {
+              if (res.ok) return cache.put(url, res);
+            })
+            .catch(err => console.warn('Extern asset niet gecached:', url, err))
+        )
+      );
+    })
   );
 });
 
@@ -42,33 +58,40 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event: serve from cache or network
+// Fetch event: cache-first + stale-while-revalidate voor externe CDN resources
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  const isExternal = url.origin !== self.location.origin;
+
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).then(
-          function(response) {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+    caches.match(event.request).then(cachedResponse => {
+      if (cachedResponse) {
+        // Stale-while-revalidate voor externe assets (Font Awesome, etc.)
+        if (isExternal) {
+          const fetchPromise = fetch(event.request).then(networkResponse => {
+            if (networkResponse && networkResponse.ok) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
             }
+            return networkResponse;
+          }).catch(() => cachedResponse);
+        }
+        return cachedResponse;
+      }
 
-            // Clone the response
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
-      })
+      return fetch(event.request).then(response => {
+        // Cache same-origin responses
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+        }
+        // Cache ook cross-origin (opaque/cors) responses voor Font Awesome fonts etc.
+        if (response && response.status === 200 && isExternal) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+        }
+        return response;
+      });
+    })
   );
 });

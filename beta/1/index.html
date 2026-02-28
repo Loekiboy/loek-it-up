@@ -7,31 +7,23 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Loek it Up">
     <meta name="theme-color" content="#fdc204">
-
-    <!-- SEO & Social -->
-    <meta name="description" content="Loek it Up — gratis woordjes leren app. Maak je eigen woordenlijsten en oefen met meerdere modi.">
-    <link rel="canonical" href="https://loek.oerlemans.tv/loek-it-up/">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="nl_NL">
-    <meta property="og:title" content="Loek it Up - Woordjes Leren">
-    <meta property="og:description" content="Gratis woordjes leren app. Maak je eigen woordenlijsten en oefen met meerdere modi.">
-    <meta property="og:url" content="https://loek.oerlemans.tv/loek-it-up/">
-    <meta property="og:image" content="https://loek.oerlemans.tv/loek-it-up/images/fav.png">
-    <meta property="og:site_name" content="Loek it Up">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Loek it Up - Woordjes Leren">
-    <meta name="twitter:description" content="Gratis woordjes leren app. Maak je eigen woordenlijsten en oefen met meerdere modi.">
-    <meta name="twitter:image" content="https://loek.oerlemans.tv/loek-it-up/images/fav.png">
-
     <title>Loek it Up - Woordjes Leren</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" sizes="180x180" href="images/fav.png">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8Q831XS89"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-V8Q831XS89');
+        </script>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Naar inhoud</a>
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -90,7 +82,7 @@
         </header>
 
         <!-- Main Content -->
-        <main class="main-content" id="main-content">
+        <main class="main-content">
             <!-- Home View -->
             <div id="home-view" class="view active">
                 <div class="welcome-section">
@@ -965,7 +957,7 @@
     <audio id="correct-sound" preload="auto"></audio>
     <audio id="complete-sound" preload="auto"></audio>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="confetti.js"></script>
     <script src="app.js"></script>
     <script>

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Grote JSON woordenboekbestanden niet indexeren
+Disallow: /beta/dictonary/
+Disallow: /dictonary/
+
+Sitemap: https://loek.oerlemans.tv/loek-it-up/sitemap.xml

@@ -6,87 +6,6 @@ let editingListId = null;
 let mergeMode = false;
 let selectedListsForMerge = [];
 
-// ===== Dictionary System =====
-const dictionaryCache = {};
-
-const langNameToCode = {
-    'engels': 'eng', 'english': 'eng',
-    'frans': 'fra', 'french': 'fra', 'français': 'fra',
-    'duits': 'deu', 'german': 'deu', 'deutsch': 'deu',
-    'nederlands': 'nld', 'dutch': 'nld'
-};
-
-function getDictKey(fromLang, toLang) {
-    const from = langNameToCode[(fromLang || '').toLowerCase()];
-    const to = langNameToCode[(toLang || '').toLowerCase()];
-    if (!from || !to) return null;
-    return `${from}-${to}`;
-}
-
-async function loadDictionary(fromLang, toLang) {
-    const key = getDictKey(fromLang, toLang);
-    if (!key) return null;
-    if (dictionaryCache[key]) return dictionaryCache[key];
-    try {
-        const resp = await fetch(`dictonary/${key}.json`);
-        if (!resp.ok) return null;
-        const data = await resp.json();
-        dictionaryCache[key] = data;
-        return data;
-    } catch (e) {
-        return null;
-    }
-}
-
-function lookupDictionary(word, fromLang, toLang) {
-    const key = getDictKey(fromLang, toLang);
-    if (!key || !dictionaryCache[key]) return null;
-    const dict = dictionaryCache[key];
-    const normalized = (word || '').toLowerCase().trim();
-    if (!normalized) return null;
-    return dict[normalized] || null;
-}
-
-function getDictLangs() {
-    const list = wordLists.find(l => l.id === currentListId);
-    if (!list) return { from: '', to: '' };
-    return { from: list.langFrom || '', to: list.langTo || '' };
-}
-
-function lookupQuestionWord(questionWord, isTermToDef) {
-    const { from, to } = getDictLangs();
-    if (!from || !to) return null;
-    if (isTermToDef) {
-        return lookupDictionary(questionWord, from, to);
-    } else {
-        return lookupDictionary(questionWord, to, from);
-    }
-}
-
-function lookupUserAnswer(userAnswer, isTermToDef) {
-    const { from, to } = getDictLangs();
-    if (!from || !to) return null;
-    // User answer is in the answer language: look it up in reverse direction
-    if (isTermToDef) {
-        // answer language = langTo, look up in langTo -> langFrom
-        return lookupDictionary(userAnswer, to, from);
-    } else {
-        // answer language = langFrom, look up in langFrom -> langTo
-        return lookupDictionary(userAnswer, from, to);
-    }
-}
-
-async function preloadDictionaries() {
-    const list = wordLists.find(l => l.id === currentListId);
-    if (!list) return;
-    const from = list.langFrom || '';
-    const to = list.langTo || '';
-    await Promise.all([
-        loadDictionary(from, to),
-        loadDictionary(to, from)
-    ]);
-}
-
 // Haptic Feedback Helper
 function triggerHaptic(type = 'light') {
     if (!navigator.vibrate) return;
@@ -1288,67 +1207,33 @@ async function exportCurrentList() {
     }
 }
 
-// Bouw een korte share-URL via Supabase 'shares' tabel, met fallback naar query-params
-async function buildShareUrlForList(list) {
+function buildShareUrlForList(list) {
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
-    const shareData = {
-        title: list.title || '',
-        langFrom: list.langFrom || '',
-        langTo: list.langTo || '',
-        words: (list.words || []).map(w => ({ term: w.term, definition: w.definition }))
-    };
-
-    // Probeer via Supabase korte link te maken
-    if (supabaseClient) {
-        try {
-            const { data, error } = await supabaseClient
-                .from('shares')
-                .insert([{ data: shareData }])
-                .select('id')
-                .single();
-            if (!error && data) {
-                return `${baseUrl}?share=${data.id}`;
-            }
-            console.warn('Share insert mislukt, fallback naar query-params:', error);
-        } catch (e) {
-            console.warn('Share via Supabase mislukt, fallback:', e);
-        }
-    }
-
-    // Fallback: oude methode via query-params
-    const dataStr = (list.words || []).map(w => `${w.term}\t${w.definition}`).join('\n');
+    const data = (list.words || []).map(w => `${w.term}\t${w.definition}`).join('\n');
     const params = new URLSearchParams({
         import: '1',
         title: list.title || '',
         langFrom: list.langFrom || '',
         langTo: list.langTo || '',
-        data: dataStr
+        data
     });
-    const fullUrl = `${baseUrl}?${params.toString()}`;
-    if (fullUrl.length > 2000) {
-        alert('Waarschuwing: deze deellink is erg lang en werkt mogelijk niet in alle browsers. Gebruik bij voorkeur een kleiner woordenlijst.');
-    }
-    return fullUrl;
+    return `${baseUrl}?${params.toString()}`;
 }
 
-async function openQrShareModal() {
+function openQrShareModal() {
     const list = wordLists.find(l => l.id === currentListId);
     if (!list) return;
 
+    const shareUrl = buildShareUrlForList(list);
     const qrImage = document.getElementById('qr-share-image');
     const linkInput = document.getElementById('qr-share-link');
     const modal = document.getElementById('qr-share-modal');
     if (!qrImage || !linkInput || !modal) return;
 
-    // Toon modal alvast met loading state
-    linkInput.value = 'Link genereren...';
-    modal.classList.remove('hidden');
-    qrImage.src = '';
-
-    const shareUrl = await buildShareUrlForList(list);
     const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
     qrImage.src = qrSrc;
     linkInput.value = shareUrl;
+    modal.classList.remove('hidden');
 }
 
 function closeQrShareModal() {
@@ -2422,9 +2307,6 @@ function confirmStartStudy() {
 
     closeSettingsModal();
 
-    // Pre-load dictionaries for hint system (non-blocking)
-    preloadDictionaries();
-
     switch (currentStudyMode) {
         case 'steps':
             initStepsMode();
@@ -2604,21 +2486,6 @@ function buildHintText(correctAnswer, level) {
     return '';
 }
 
-function buildDictionaryHintHtml(userAnswer, isTermToDef) {
-    const trimmed = (userAnswer || '').trim();
-    if (!trimmed) return '';
-    const translations = lookupUserAnswer(trimmed, isTermToDef);
-    if (!translations || translations.length === 0) return '';
-    const display = translations.slice(0, 4).map(t => escapeHtml(t)).join(', ');
-    return `
-        <div class="dictionary-hint">
-            <i class="fas fa-book"></i>
-            <span><strong>${escapeHtml(trimmed)}</strong> betekent <strong>${display}</strong></span>
-        </div>
-    `;
-}
-
-let currentDictContext = { questionWord: '', isTermToDef: true };
 
 function renderHintButton(wordId, correctAnswer, hintContainerId) {
     return '';
@@ -3000,7 +2867,6 @@ function continueStepFlash(wordId) {
 }
 
 function showStepCopy(word, qa) {
-    currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
     content.innerHTML = `
         <div class="question-card">
@@ -3074,7 +2940,6 @@ function checkStepCopy(wordId, correct) {
 }
 
 function showStepHint(word, qa) {
-    currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
     const hintPattern = buildHintPattern(qa.answer);
     content.innerHTML = `
@@ -3125,11 +2990,9 @@ function checkStepHint(wordId, correct) {
         studySession.wrongCount++;
         studySession.stepsWrongWords.push(wordId);
         const diff = buildTypingDiff(userAnswer, correct);
-        const dictHintFeedback = buildDictionaryHintHtml(userAnswer, currentDictContext.isTermToDef);
         feedback.innerHTML = `
             <div class="feedback-message wrong"><i class="fas fa-times-circle"></i> Fout.</div>
             ${diff}
-            ${dictHintFeedback}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepHint('${wordId}')">
                     <i class="fas fa-check"></i> Ik bedoelde dit
@@ -3148,7 +3011,6 @@ function checkStepHint(wordId, correct) {
 }
 
 function showStepChoice(word, qa) {
-    currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const list = wordLists.find(l => l.id === currentListId);
     const otherWords = list.words.filter(w => w.id !== word.id);
     const candidateStrings = otherWords.map(w => (qa.isTermToDef ? w.definition : w.term));
@@ -3241,7 +3103,6 @@ function continueStepChoice() {
 }
 
 function showStepTyping(word, qa) {
-    currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'step-typing-hint');
     content.innerHTML = `
@@ -3353,7 +3214,6 @@ function checkStepTyping(wordId, correct) {
         progress.typingCooldown = Math.max(progress.typingCooldown, 3);
         const diff = buildTypingDiff(userAnswer, correct);
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
-        const dictHintFeedback = buildDictionaryHintHtml(userAnswer, currentDictContext.isTermToDef);
         if (feedback) {
             feedback.innerHTML = examMode ? `
                 <div class="feedback-message">
@@ -3368,7 +3228,6 @@ function checkStepTyping(wordId, correct) {
                 </div>
                 ${diff}
                 ${relatedHint}
-                ${dictHintFeedback}
                 <div class="feedback-actions">
                     <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepTyping('${wordId}')">
                         <i class="fas fa-check"></i> Ik bedoelde dit
@@ -3435,7 +3294,6 @@ function showNextStepsReviewQuestion() {
     }
 
     const qa = getQuestion(word);
-    currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'step-review-hint');
     content.innerHTML = `
@@ -3506,7 +3364,6 @@ function checkStepReviewTyping(wordId, correct) {
         studySession.stepsReviewQueue.push(wordId);
         const diff = buildTypingDiff(userAnswer, correct);
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
-        const dictHintFeedback = buildDictionaryHintHtml(userAnswer, currentDictContext.isTermToDef);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
                 <i class="fas fa-check"></i> Antwoord opgeslagen.
@@ -3520,7 +3377,6 @@ function checkStepReviewTyping(wordId, correct) {
             </div>
             ${diff}
             ${relatedHint}
-            ${dictHintFeedback}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepReview('${wordId}')">
                     <i class="fas fa-check"></i> Ik bedoelde dit
@@ -3616,7 +3472,6 @@ function showNextTypingQuestion() {
     
     reduceTypingCooldowns();
     const qa = getQuestion(nextWord);
-    currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const progress = studySession.typingProgress[nextWord.id];
     const extraHint = progress.needsExtraCorrect > 0 
         ? `<p class="extra-hint">Nog ${progress.needsExtraCorrect}x goed typen</p>` 
@@ -3736,7 +3591,6 @@ function checkTypingAnswer(wordId, correct) {
         }
         const diff = buildTypingDiff(userAnswer, correct);
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
-        const dictHintFeedback = buildDictionaryHintHtml(userAnswer, currentDictContext.isTermToDef);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
                 <i class="fas fa-check"></i> Antwoord opgeslagen.
@@ -3750,7 +3604,6 @@ function checkTypingAnswer(wordId, correct) {
             </div>
             ${diff}
             ${relatedHint}
-            ${dictHintFeedback}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedTyping('${wordId}')">
                     <i class="fas fa-check"></i> Ik bedoelde dit
@@ -3802,7 +3655,6 @@ function showNextTypingReviewQuestion() {
     }
 
     const qa = getQuestion(word);
-    currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('typing-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'typing-review-hint');
     content.innerHTML = `
@@ -3872,7 +3724,6 @@ function checkTypingReview(wordId, correct) {
         studySession.typingReviewQueue.push(wordId);
         const diff = buildTypingDiff(userAnswer, correct);
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
-        const dictHintFeedback = buildDictionaryHintHtml(userAnswer, currentDictContext.isTermToDef);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
                 <i class="fas fa-check"></i> Antwoord opgeslagen.
@@ -3886,7 +3737,6 @@ function checkTypingReview(wordId, correct) {
             </div>
             ${diff}
             ${relatedHint}
-            ${dictHintFeedback}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedTypingReview('${wordId}')">
                     <i class="fas fa-check"></i> Ik bedoelde dit
@@ -4807,40 +4657,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function applyImportFromUrl() {
     const params = new URLSearchParams(window.location.search);
-
-    // Nieuwe methode: korte share-link via Supabase
-    const shareId = params.get('share');
-    if (shareId && supabaseClient) {
-        supabaseClient
-            .from('shares')
-            .select('data')
-            .eq('id', shareId)
-            .single()
-            .then(({ data, error }) => {
-                if (error || !data) {
-                    console.error('Share ophalen mislukt:', error);
-                    alert('Deze deellink is ongeldig of verlopen.');
-                    return;
-                }
-                const s = data.data;
-                showCreateList();
-                if (s.title) document.getElementById('list-title').value = s.title;
-                setSelectValue('lang-from', s.langFrom);
-                setSelectValue('lang-to', s.langTo);
-                const fromSearch = document.getElementById('lang-from-search');
-                const toSearch = document.getElementById('lang-to-search');
-                if (fromSearch && s.langFrom) fromSearch.value = s.langFrom;
-                if (toSearch && s.langTo) toSearch.value = s.langTo;
-                const wordsList = document.getElementById('words-list');
-                wordsList.innerHTML = '';
-                if (!s.words || s.words.length === 0) { addWordEntry(); return; }
-                s.words.forEach(w => addWordEntry(w.term, w.definition));
-                window.history.replaceState({}, document.title, window.location.pathname);
-            });
-        return;
-    }
-
-    // Legacy methode: import via query-params
     if (params.get('import') !== '1') return;
 
     const title = params.get('title') ? decodeURIComponent(params.get('title')) : '';
@@ -5593,5 +5409,174 @@ function resumeStudy() {
             updateExamProgress();
             showNextExamQuestion();
             break;
+    }
+}
+
+// ===== Feedback System =====
+const FEEDBACK_COOLDOWN_KEY = 'lastFeedbackSubmit';
+const FEEDBACK_COOLDOWN_MS = 60000; // 1 minuut cooldown tussen inzendingen
+
+function openFeedbackModal() {
+    const modal = document.getElementById('feedback-modal');
+    if (!modal) return;
+    // Reset form
+    document.getElementById('feedback-subject').value = '';
+    document.getElementById('feedback-description').value = '';
+    document.getElementById('feedback-email').value = authUser?.email || '';
+    document.getElementById('feedback-type').value = 'feature';
+    document.getElementById('feedback-char-count').textContent = '0';
+    document.getElementById('feedback-error').classList.add('hidden');
+    document.getElementById('feedback-success').classList.add('hidden');
+    document.getElementById('feedback-submit-btn').disabled = false;
+    // Reset type buttons
+    document.querySelectorAll('.feedback-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === 'feature');
+    });
+    modal.classList.remove('hidden');
+    triggerHaptic('light');
+}
+
+function closeFeedbackModal() {
+    const modal = document.getElementById('feedback-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function selectFeedbackType(type) {
+    document.getElementById('feedback-type').value = type;
+    document.querySelectorAll('.feedback-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+    });
+    // Update placeholder op basis van type
+    const subjectInput = document.getElementById('feedback-subject');
+    const descInput = document.getElementById('feedback-description');
+    if (type === 'bug') {
+        subjectInput.placeholder = 'Bijv. App crasht bij openen lijst';
+        descInput.placeholder = 'Beschrijf de bug: wat deed je, wat verwachtte je, en wat gebeurde er?\n\nStappen om te reproduceren:\n1. ...\n2. ...\n3. ...';
+    } else {
+        subjectInput.placeholder = 'Bijv. Dark mode toevoegen';
+        descInput.placeholder = 'Beschrijf je idee zo duidelijk mogelijk...';
+    }
+    triggerHaptic('light');
+}
+
+// Character counter voor beschrijving
+document.addEventListener('DOMContentLoaded', function() {
+    const desc = document.getElementById('feedback-description');
+    const counter = document.getElementById('feedback-char-count');
+    if (desc && counter) {
+        desc.addEventListener('input', () => {
+            counter.textContent = desc.value.length;
+        });
+    }
+});
+
+function sanitizeFeedbackInput(str) {
+    if (!str) return '';
+    // Strip HTML tags en trim
+    return str.replace(/<[^>]*>/g, '').trim();
+}
+
+async function submitFeedback() {
+    const errorEl = document.getElementById('feedback-error');
+    const successEl = document.getElementById('feedback-success');
+    const submitBtn = document.getElementById('feedback-submit-btn');
+    errorEl.classList.add('hidden');
+    successEl.classList.add('hidden');
+
+    const type = document.getElementById('feedback-type').value;
+    const subject = sanitizeFeedbackInput(document.getElementById('feedback-subject').value);
+    const description = sanitizeFeedbackInput(document.getElementById('feedback-description').value);
+    const email = document.getElementById('feedback-email').value.trim();
+
+    // Validatie
+    if (!subject || subject.length < 3) {
+        errorEl.textContent = 'Vul een onderwerp in (minimaal 3 tekens).';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+    if (!description || description.length < 10) {
+        errorEl.textContent = 'Vul een beschrijving in (minimaal 10 tekens).';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorEl.textContent = 'Vul een geldig e-mailadres in of laat het veld leeg.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    // Rate limiting (client-side)
+    const lastSubmit = parseInt(localStorage.getItem(FEEDBACK_COOLDOWN_KEY) || '0', 10);
+    if (Date.now() - lastSubmit < FEEDBACK_COOLDOWN_MS) {
+        const secondsLeft = Math.ceil((FEEDBACK_COOLDOWN_MS - (Date.now() - lastSubmit)) / 1000);
+        errorEl.textContent = `Wacht nog ${secondsLeft} seconden voordat je weer feedback kunt versturen.`;
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    // Check of Supabase beschikbaar is
+    if (!supabaseClient) {
+        // Probeer Supabase te initialiseren als dat nog niet is gebeurd
+        if (window.supabase) {
+            const SUPABASE_URL = 'https://sngiduythwiuthrtzmch.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuZ2lkdXl0aHdpdXRocnR6bWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNDY5MzUsImV4cCI6MjA4NTYyMjkzNX0.xNecbmT6VRPPhBVnW5WQv-QdJp4o2MDZq4tV-jsJXLI';
+            if (!window.__loek_supabase_client) {
+                window.__loek_supabase_client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+            supabaseClient = window.__loek_supabase_client;
+        }
+    }
+
+    if (!supabaseClient) {
+        errorEl.textContent = 'Kan geen verbinding maken met de server. Probeer het later opnieuw.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Versturen...';
+
+    try {
+        const payload = {
+            type,
+            subject: subject.slice(0, 150),
+            description: description.slice(0, 2000),
+            email: email || null,
+            user_id: authUser?.id || null,
+            user_agent: navigator.userAgent.slice(0, 500)
+        };
+
+        const { error } = await supabaseClient
+            .from('feedback')
+            .insert([payload]);
+
+        if (error) {
+            console.error('Feedback submit error:', error);
+            errorEl.textContent = 'Versturen mislukt. Probeer het later opnieuw.';
+            errorEl.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Versturen';
+            return;
+        }
+
+        // Succes!
+        localStorage.setItem(FEEDBACK_COOLDOWN_KEY, Date.now().toString());
+        successEl.textContent = 'Bedankt voor je feedback! We lezen het zo snel mogelijk.';
+        successEl.classList.remove('hidden');
+        triggerHaptic('success');
+
+        // Sluit modal na 2 seconden
+        setTimeout(() => {
+            closeFeedbackModal();
+        }, 2000);
+
+    } catch (err) {
+        console.error('Feedback submit exception:', err);
+        errorEl.textContent = 'Er ging iets mis. Probeer het later opnieuw.';
+        errorEl.classList.remove('hidden');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Versturen';
     }
 }
