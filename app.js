@@ -85,6 +85,9 @@ const PRESET_COLORS = [
     '#FFA07A'  // Oranje
 ];
 
+// Stores the current question's word ID and correct answer to avoid apostrophe-in-onclick bugs
+let currentCheckContext = { wordId: null, correct: null };
+
 // Study session state
 let studySession = {
     words: [],
@@ -526,6 +529,8 @@ function showHome() {
     renderWordLists();
     document.querySelector('.nav-btn[data-view="home"]').classList.add('active');
     document.querySelector('.nav-btn[data-view="create"]').classList.remove('active');
+    // BULK_IMPORT_FEATURE: restore undo banner if applicable
+    checkBulkImportUndoState();
 }
 
 function showCreateList() {
@@ -1138,6 +1143,227 @@ function importWords() {
     document.getElementById('import-text').value = '';
     document.getElementById('import-area').classList.add('hidden');
 }
+
+// ===== Bulk Import =====
+// BULK_IMPORT_FEATURE: Remove this entire section (until END marker) to disable bulk import
+
+const BULK_IMPORT_LAST_IDS_KEY = 'lastBulkImportIds';
+
+const BULK_IMPORT_FORMAT_EXAMPLE = `[
+  {
+    "title": "Lijst 1",
+    "langFrom": "Engels",
+    "langTo": "Nederlands",
+    "subject": "engels",
+    "words": [
+      {"term": "hello", "definition": "hallo"},
+      {"term": "world", "definition": "wereld"}
+    ]
+  },
+  {
+    "title": "Lijst 2",
+    "langFrom": "Frans",
+    "langTo": "Nederlands",
+    "subject": "frans",
+    "words": [
+      {"term": "bonjour", "definition": "goedendag"},
+      {"term": "merci", "definition": "dankjewel"}
+    ]
+  }
+]`;
+
+function openBulkImportModal() {
+    document.getElementById('bulk-import-modal').classList.remove('hidden');
+    document.getElementById('bulk-import-text').value = '';
+    document.getElementById('bulk-import-progress').classList.add('hidden');
+    document.getElementById('bulk-import-submit-btn').disabled = false;
+    document.getElementById('bulk-import-progress-fill').style.width = '0%';
+    document.getElementById('bulk-import-status').textContent = 'Lijsten importeren...';
+}
+
+function closeBulkImportModal() {
+    document.getElementById('bulk-import-modal').classList.add('hidden');
+}
+
+function copyBulkImportFormat() {
+    navigator.clipboard.writeText(BULK_IMPORT_FORMAT_EXAMPLE).then(() => {
+        const btn = document.querySelector('.btn-copy-format');
+        if (!btn) return;
+        btn.innerHTML = '<i class="fas fa-check"></i> Gekopieerd!';
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Kopieer voorbeeld'; }, 2000);
+    }).catch(() => {
+        // Fallback: select text in pre
+        const pre = document.querySelector('.bulk-import-pre');
+        if (pre) {
+            const range = document.createRange();
+            range.selectNode(pre);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+        }
+    });
+}
+
+async function executeBulkImport() {
+    const text = document.getElementById('bulk-import-text').value.trim();
+    if (!text) {
+        alert('Voer JSON in om te importeren.');
+        return;
+    }
+
+    let lists;
+    try {
+        lists = JSON.parse(text);
+    } catch (e) {
+        alert('Ongeldige JSON: ' + e.message);
+        return;
+    }
+
+    if (!Array.isArray(lists) || lists.length === 0) {
+        alert('Verwacht een JSON-array met één of meer woordenlijsten.');
+        return;
+    }
+
+    // Validate all lists before starting
+    for (let i = 0; i < lists.length; i++) {
+        const l = lists[i];
+        if (!l.title || typeof l.title !== 'string') {
+            alert(`Lijst ${i + 1}: "title" ontbreekt of is ongeldig.`);
+            return;
+        }
+        if (!l.langFrom || !l.langTo) {
+            alert(`Lijst "${l.title}": "langFrom" en "langTo" zijn verplicht.`);
+            return;
+        }
+        if (!Array.isArray(l.words) || l.words.length === 0) {
+            alert(`Lijst "${l.title}": "words" moet een niet-lege array zijn.`);
+            return;
+        }
+        for (let j = 0; j < l.words.length; j++) {
+            const w = l.words[j];
+            if (!w.term || !w.definition) {
+                alert(`Lijst "${l.title}", woord ${j + 1}: "term" en "definition" zijn verplicht.`);
+                return;
+            }
+        }
+    }
+
+    // Show progress UI
+    const progressEl = document.getElementById('bulk-import-progress');
+    const progressFill = document.getElementById('bulk-import-progress-fill');
+    const statusText = document.getElementById('bulk-import-status');
+    const submitBtn = document.getElementById('bulk-import-submit-btn');
+    progressEl.classList.remove('hidden');
+    submitBtn.disabled = true;
+
+    const importedIds = [];
+    const total = lists.length;
+    let cloudFailed = 0;
+
+    for (let i = 0; i < total; i++) {
+        const l = lists[i];
+        statusText.textContent = `Lijst ${i + 1}/${total}: "${l.title}" aanmaken...`;
+        progressFill.style.width = `${Math.round((i / total) * 100)}%`;
+
+        const newList = {
+            id: generateId(),
+            title: l.title,
+            langFrom: l.langFrom,
+            langTo: l.langTo,
+            subject: l.subject || 'overig',
+            icon: l.icon || 'fa-book',
+            isPublic: l.isPublic !== false,
+            createdAt: new Date().toISOString(),
+            words: l.words.map(w => ({
+                id: generateId(),
+                term: String(w.term),
+                definition: String(w.definition),
+                stats: { correct: 0, wrong: 0 }
+            }))
+        };
+
+        wordLists.push(newList);
+        importedIds.push(newList.id);
+
+        if (authUser && supabaseClient) {
+            try {
+                statusText.textContent = `Lijst ${i + 1}/${total}: "${l.title}" opslaan in cloud...`;
+                await saveListToRemote(newList.id);
+            } catch (err) {
+                console.error(`Cloud opslaan mislukt voor "${l.title}":`, err);
+                cloudFailed++;
+            }
+        }
+    }
+
+    progressFill.style.width = '100%';
+    const cloudMsg = (authUser && supabaseClient && cloudFailed === 0) ? ' (cloud opgeslagen)' : (cloudFailed > 0 ? ` (${cloudFailed} cloud fout${cloudFailed !== 1 ? 'en' : ''})` : '');
+    statusText.textContent = `${total} lijst${total !== 1 ? 'en' : ''} geïmporteerd${cloudMsg}!`;
+
+    // Always save locally as well
+    saveData();
+
+    // Store imported IDs for undo functionality
+    localStorage.setItem(BULK_IMPORT_LAST_IDS_KEY, JSON.stringify(importedIds));
+
+    setTimeout(() => {
+        closeBulkImportModal();
+        renderWordLists();
+        showBulkImportUndoBanner(total);
+        triggerHaptic('success');
+    }, 900);
+}
+
+function showBulkImportUndoBanner(count) {
+    const banner = document.getElementById('bulk-import-undo-banner');
+    const text = document.getElementById('bulk-import-undo-text');
+    if (!banner || !text) return;
+    text.textContent = `${count} woordenlijst${count !== 1 ? 'en' : ''} geïmporteerd!`;
+    banner.classList.remove('hidden');
+}
+
+function dismissBulkImportBanner() {
+    const banner = document.getElementById('bulk-import-undo-banner');
+    if (banner) banner.classList.add('hidden');
+}
+
+async function undoLastBulkImport() {
+    const ids = JSON.parse(localStorage.getItem(BULK_IMPORT_LAST_IDS_KEY) || '[]');
+    if (ids.length === 0) {
+        alert('Er is geen recente bulk import om ongedaan te maken.');
+        return;
+    }
+
+    if (!confirm(`Weet je zeker dat je de laatste bulk import ongedaan wilt maken? Dit verwijdert ${ids.length} woordenlijst${ids.length !== 1 ? 'en' : ''}.`)) return;
+
+    for (const id of ids) {
+        wordLists = wordLists.filter(l => l.id !== id);
+        if (authUser && supabaseClient) {
+            try {
+                await deleteListFromRemote(id);
+            } catch (err) {
+                console.error(`Verwijderen uit cloud mislukt voor ${id}:`, err);
+            }
+        }
+    }
+
+    localStorage.removeItem(BULK_IMPORT_LAST_IDS_KEY);
+    saveData();
+    dismissBulkImportBanner();
+    renderWordLists();
+    triggerHaptic('success');
+}
+
+// Called on showHome() to restore undo banner if a recent bulk import exists
+function checkBulkImportUndoState() {
+    const ids = JSON.parse(localStorage.getItem(BULK_IMPORT_LAST_IDS_KEY) || '[]');
+    if (ids.length > 0) {
+        showBulkImportUndoBanner(ids.length);
+    } else {
+        dismissBulkImportBanner();
+    }
+}
+
+// END BULK_IMPORT_FEATURE
 
 // ===== Save List =====
 async function saveList() {
@@ -3149,6 +3375,7 @@ function continueStepFlash(wordId) {
 
 function showStepCopy(word, qa) {
     const content = document.getElementById('steps-content');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3170,6 +3397,8 @@ function showStepCopy(word, qa) {
             <div id="step-copy-feedback"></div>
         </div>
     `;
+    document.getElementById('step-copy-submit').onclick = () => checkStepCopy(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-copy-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepCopy(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-copy-input')?.focus(), 100);
 }
 
@@ -3223,6 +3452,7 @@ function checkStepCopy(wordId, correct) {
 function showStepHint(word, qa) {
     const content = document.getElementById('steps-content');
     const hintPattern = buildHintPattern(qa.answer);
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3241,6 +3471,8 @@ function showStepHint(word, qa) {
             <div id="step-hint-feedback"></div>
         </div>
     `;
+    document.getElementById('step-hint-submit').onclick = () => checkStepHint(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-hint-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepHint(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-hint-input')?.focus(), 100);
 }
 
@@ -3386,6 +3618,7 @@ function continueStepChoice() {
 function showStepTyping(word, qa) {
     const content = document.getElementById('steps-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'step-typing-hint');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3405,6 +3638,8 @@ function showStepTyping(word, qa) {
         </div>
     `;
 
+    document.getElementById('step-typing-submit').onclick = () => checkStepTyping(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-typing-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepTyping(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-typing-input').focus(), 100);
 }
 
@@ -3577,6 +3812,7 @@ function showNextStepsReviewQuestion() {
     const qa = getQuestion(word);
     const content = document.getElementById('steps-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'step-review-hint');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3596,6 +3832,8 @@ function showNextStepsReviewQuestion() {
         </div>
     `;
 
+    document.getElementById('step-review-submit').onclick = () => checkStepReviewTyping(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-review-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepReviewTyping(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-review-input').focus(), 100);
 }
 
@@ -3758,7 +3996,7 @@ function showNextTypingQuestion() {
         ? `<p class="extra-hint">Nog ${progress.needsExtraCorrect}x goed typen</p>` 
         : '';
     const hintUi = renderHintButton(nextWord.id, qa.answer, 'typing-hint-box');
-    
+    currentCheckContext = { wordId: nextWord.id, correct: qa.answer };
     const content = document.getElementById('typing-content');
     content.innerHTML = `
         <div class="question-card">
@@ -3780,6 +4018,8 @@ function showNextTypingQuestion() {
         </div>
     `;
     
+    document.getElementById('typing-submit').onclick = () => checkTypingAnswer(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('typing-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkTypingAnswer(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('typing-input').focus(), 100);
 }
 
@@ -3938,6 +4178,7 @@ function showNextTypingReviewQuestion() {
     const qa = getQuestion(word);
     const content = document.getElementById('typing-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'typing-review-hint');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3957,6 +4198,8 @@ function showNextTypingReviewQuestion() {
         </div>
     `;
 
+    document.getElementById('typing-review-submit').onclick = () => checkTypingReview(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('typing-review-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkTypingReview(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('typing-review-input').focus(), 100);
 }
 
