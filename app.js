@@ -835,7 +835,14 @@ function updateSubjectButtonTexts() {
 }
 
 // ===== Data Storage =====
-let wordLists = JSON.parse(localStorage.getItem('wordLists')) || [];
+let wordLists = [];
+try {
+    wordLists = JSON.parse(localStorage.getItem('wordLists')) || [];
+} catch (e) {
+    console.error('Corrupted wordLists in localStorage, resetting:', e);
+    wordLists = [];
+    localStorage.removeItem('wordLists');
+}
 let currentListId = null;
 let currentStudyMode = null;
 let editingListId = null;
@@ -994,6 +1001,9 @@ function updateHash(viewId) {
         case 'complete-view':
             if (currentListId) hash = '#list/' + currentListId + '/complete';
             break;
+        case 'stats-view':
+            hash = '#stats';
+            break;
     }
     if (window.location.hash !== hash) {
         window.history.replaceState(null, '', hash || window.location.pathname + window.location.search);
@@ -1014,6 +1024,8 @@ function parseHash() {
     if (listMatch) return { view: 'list', listId: listMatch[1] };
     // #search
     if (hash === '#search') return { view: 'search' };
+    // #stats
+    if (hash === '#stats') return { view: 'stats' };
     // #create or #edit/<id>
     if (hash === '#create') return { view: 'create' };
     const editMatch = hash.match(/^#edit\/([^\/]+)$/);
@@ -1031,6 +1043,9 @@ function handleHashChange() {
                 break;
             case 'search':
                 showSearchView();
+                break;
+            case 'stats':
+                showStatsView();
                 break;
             case 'create':
                 showCreateList();
@@ -1186,9 +1201,27 @@ function debouncedSyncProgress(listId) {
 }
 
 // ===== Save Data =====
+let _saveDataTimer = null;
 function saveData() {
     ensureAllWordMetadata();
-    localStorage.setItem('wordLists', JSON.stringify(wordLists));
+    try {
+        localStorage.setItem('wordLists', JSON.stringify(wordLists));
+    } catch (e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+            console.error('localStorage quota exceeded:', e);
+            showToast('Opslagruimte is vol! Verwijder oude lijsten om ruimte te maken.', 'error');
+        } else {
+            console.error('Failed to save data:', e);
+        }
+    }
+}
+
+function debouncedSaveData() {
+    if (_saveDataTimer) clearTimeout(_saveDataTimer);
+    _saveDataTimer = setTimeout(() => {
+        _saveDataTimer = null;
+        saveData();
+    }, 1500);
 }
 
 function ensureWordMetadata(word) {
@@ -1323,6 +1356,10 @@ function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
     
+    // Toggle body class for :has() fallback (older Firefox/Safari)
+    const isStudyView = viewId.startsWith('study-');
+    document.body.classList.toggle('study-active', isStudyView);
+    
     const viewKey = viewId.replace('-view', '');
     
     // Update header nav buttons
@@ -1409,8 +1446,8 @@ function showListDetail(listId) {
     
     document.getElementById('list-detail-icon').className = `fas ${list.icon || 'fa-book'}`;
     document.getElementById('list-detail-title').textContent = list.title;
-    document.getElementById('list-detail-meta').textContent =
-        t('list_meta', {count: list.words.length, s: list.words.length !== 1 ? 's' : '', from: list.langFrom, to: list.langTo});
+    document.getElementById('list-detail-meta').textContent = 
+        `${list.words.length} woordjes • ${list.langFrom} → ${list.langTo}`;
     
     // Update direction labels
     document.getElementById('dir-term-def').textContent = `${list.langFrom} → ${list.langTo}`;
@@ -1881,7 +1918,7 @@ function importWords() {
         const result = parseStudyGoText(text);
 
         if (result.pairs.length === 0) {
-            alert(t('alert_import_no_pairs'));
+            alert('Geen woordparen gevonden. Controleer of je de juiste tekst hebt geplakt.');
             return;
         }
 
@@ -1920,7 +1957,7 @@ function importWords() {
         const result = parseJojoSchoolText(text);
 
         if (result.pairs.length === 0) {
-            alert(t('alert_import_no_pairs'));
+            alert('Geen woordparen gevonden. Controleer of je de juiste tekst hebt geplakt.');
             return;
         }
 
@@ -2220,12 +2257,12 @@ async function saveList() {
     }, {});
     
     if (!title) {
-        alert(t('alert_save_title'));
+        alert('Voer een titel in voor je woordenlijst');
         return;
     }
 
     if (!langFrom || !langTo) {
-        alert(t('alert_save_langs'));
+        alert('Kies beide talen voor je woordenlijst');
         return;
     }
     
@@ -2246,7 +2283,7 @@ async function saveList() {
     });
     
     if (words.length === 0) {
-        alert(t('alert_save_words'));
+        alert('Voeg minimaal één woord toe');
         return;
     }
     
@@ -2286,7 +2323,7 @@ async function saveList() {
         } catch (err) {
             console.error('Online opslaan mislukt, lokaal opgeslagen.', err);
             saveData();
-            alert(t('alert_save_cloud_fail'));
+            alert('Online opslaan mislukt. Je lijst is wel lokaal opgeslagen. Controleer je RLS policies.');
         }
     } else {
         saveData();
@@ -2337,11 +2374,11 @@ async function deleteCurrentList() {
     const id = currentListId || (container && container.dataset.listId);
 
     if (!id) {
-        alert(t('alert_delete_none'));
+        alert('Geen woordenlijst geselecteerd om te verwijderen.');
         return;
     }
 
-    if (!confirm(t('confirm_delete'))) return;
+    if (!confirm('Weet je zeker dat je deze woordenlijst wilt verwijderen?')) return;
 
     // show immediate UI feedback by disabling delete button
     const deleteBtn = document.querySelector('.btn-danger');
@@ -2353,7 +2390,7 @@ async function deleteCurrentList() {
     if (wordLists.length === beforeCount) {
         // nothing removed — restore button and warn
         if (deleteBtn) deleteBtn.disabled = false;
-        alert(t('alert_not_found'));
+        alert('Woordlijst niet gevonden of al verwijderd.');
         return;
     }
 
@@ -2421,7 +2458,7 @@ function updateMergeButton() {
 
 function mergeLists() {
     if (selectedListsForMerge.length < 2) {
-        alert(t('alert_merge_min'));
+        alert('Selecteer minstens 2 woordenlijsten om samen te voegen.');
         return;
     }
 
@@ -2478,9 +2515,9 @@ function mergeLists() {
     }
 
     // Verwijder oude woorden en voeg nieuwe toe
-    document.getElementById('words-container').innerHTML = '';
+    document.getElementById('words-list').innerHTML = '';
     allWords.forEach(word => {
-        addWordEntry(word.term, word.definition, word.id, word.stats);
+        addWordEntry(word.term, word.definition, word.id);
     });
 
     // Reset merge mode en ga naar create view
@@ -2501,10 +2538,10 @@ async function exportCurrentList() {
 
     try {
         await navigator.clipboard.writeText(text);
-        alert(t('export_copied'));
+        alert('Woordlijst gekopieerd naar je klembord.');
     } catch (err) {
         console.error('Kopiëren mislukt', err);
-        alert(t('export_copy_fail'));
+        alert('Kopiëren naar klembord is mislukt. Probeer het in een veilige (https) omgeving.');
     }
 }
 
@@ -2546,7 +2583,7 @@ async function buildShareUrlForList(list) {
     });
     const fullUrl = `${baseUrl}?${params.toString()}`;
     if (fullUrl.length > 2000) {
-        alert(t('share_long_url_warning'));
+        alert('Waarschuwing: deze deellink is erg lang en werkt mogelijk niet in alle browsers. Gebruik bij voorkeur een kleiner woordenlijst.');
     }
     return fullUrl;
 }
@@ -2582,7 +2619,7 @@ async function copyQrShareLink() {
     const input = document.getElementById('qr-share-link');
     if (!input || !input.value) return;
     await navigator.clipboard.writeText(input.value);
-    alert(t('share_link_copied'));
+    alert('Deellink gekopieerd!');
 }
 
 // ===== Supabase Auth & Sync =====
@@ -3034,6 +3071,7 @@ async function submitAuth() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
     const errorEl = document.getElementById('auth-error');
+    const submitBtn = document.getElementById('auth-submit-btn');
 
     if (!email || !password) {
         errorEl.textContent = t('auth_error_fill');
@@ -3041,21 +3079,37 @@ async function submitAuth() {
         return;
     }
 
-    let result;
-    if (authMode === 'signup') {
-        result = await supabaseClient.auth.signUp({ email, password });
-    } else {
-        result = await supabaseClient.auth.signInWithPassword({ email, password });
-    }
+    // Loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Bezig...';
+    errorEl.classList.add('hidden');
 
-    if (result.error) {
-        errorEl.textContent = result.error.message;
+    try {
+        let result;
+        if (authMode === 'signup') {
+            result = await supabaseClient.auth.signUp({ email, password });
+        } else {
+            result = await supabaseClient.auth.signInWithPassword({ email, password });
+        }
+
+        if (result.error) {
+            errorEl.textContent = result.error.message;
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        showToast(authMode === 'signup' ? 'Account aangemaakt!' : 'Ingelogd!', 'success');
+        closeAuthModal();
+        closeAuthMenu();
+    } catch (err) {
+        errorEl.textContent = 'Er ging iets mis. Probeer het later opnieuw.';
         errorEl.classList.remove('hidden');
-        return;
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = authMode === 'signup'
+            ? '<i class="fas fa-check"></i> Registreren'
+            : '<i class="fas fa-check"></i> Inloggen';
     }
-
-    closeAuthModal();
-    closeAuthMenu();
 }
 
 async function logout() {
@@ -3074,7 +3128,7 @@ async function loadRemoteLists() {
 
     if (error) {
         console.error('Load lists failed', error);
-        alert(t('online_load_fail'));
+        alert('Online lijsten laden is mislukt. Controleer je Supabase RLS policies.');
         return;
     }
 
@@ -3228,12 +3282,12 @@ async function debugRestSave(list) {
 
     console.debug('Debug REST save request url:', url);
     console.debug('Debug REST save request headers:', Object.keys(headers));
-    console.debug('Debug REST save payload sample:', payload[0]);
+    console.debug('Debug REST save payload sample:', restPayload[0]);
 
     const resp = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify(payload)
+        body: JSON.stringify(restPayload)
     });
 
     const text = await resp.text();
@@ -3448,7 +3502,7 @@ async function performSearch() {
                 .from('word_lists')
                 .select('id,title,lang_from,lang_to,subject,icon,words,user_id')
                 .eq('is_public', true)
-                .or(`title.ilike.%${query}%,search_text.ilike.%${query}%`)
+                .or(`title.ilike.%${query.replace(/[%_\\]/g, '')}%,search_text.ilike.%${query.replace(/[%_\\]/g, '')}%`)
                 .order('updated_at', { ascending: false })
                 .limit(20);
 
@@ -3613,7 +3667,7 @@ function confirmStartStudy() {
         : ['typing'];
 
     if (currentStudyMode === 'steps' && learnStages.length === 0) {
-        alert(t('alert_min_learn_stages'));
+        alert('Kies minimaal 1 onderdeel voor Leren-modus.');
         return;
     }
 
@@ -3792,16 +3846,20 @@ function stripOptionalTokens(answer, ignoreParentheses) {
 
 function getQuestion(word) {
     const { direction } = studySession;
+    const list = wordLists.find(l => l.id === currentListId);
+    const langFrom = list ? list.langFrom : '';
+    const langTo = list ? list.langTo : '';
     
     if (direction === 'mixed') {
-        return Math.random() < 0.5 
-            ? { question: word.term, answer: word.definition, isTermToDef: true }
-            : { question: word.definition, answer: word.term, isTermToDef: false };
+        const isTermToDef = Math.random() < 0.5;
+        return isTermToDef
+            ? { question: word.term, answer: word.definition, isTermToDef: true, questionLang: langFrom, answerLang: langTo }
+            : { question: word.definition, answer: word.term, isTermToDef: false, questionLang: langTo, answerLang: langFrom };
     }
     
     return direction === 'term-def'
-        ? { question: word.term, answer: word.definition, isTermToDef: true }
-        : { question: word.definition, answer: word.term, isTermToDef: false };
+        ? { question: word.term, answer: word.definition, isTermToDef: true, questionLang: langFrom, answerLang: langTo }
+        : { question: word.definition, answer: word.term, isTermToDef: false, questionLang: langTo, answerLang: langFrom };
 }
 
 function buildHintText(correctAnswer, level) {
@@ -3972,7 +4030,7 @@ function initStepsMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert(t('alert_no_words'));
+        alert('Geen woorden gevonden met je huidige selectie/filters.');
         showListDetail(currentListId);
         return;
     }
@@ -4766,7 +4824,7 @@ function initTypingMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert(t('alert_no_words'));
+        alert('Geen woorden gevonden met je huidige selectie/filters.');
         showListDetail(currentListId);
         return;
     }
@@ -5158,7 +5216,7 @@ function initExamMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert(t('alert_no_words'));
+        alert('Geen woorden gevonden met je huidige selectie/filters.');
         showListDetail(currentListId);
         return;
     }
@@ -5250,7 +5308,7 @@ function initConnectMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert(t('alert_no_words'));
+        alert('Geen woorden gevonden met je huidige selectie/filters.');
         showListDetail(currentListId);
         return;
     }
@@ -5403,6 +5461,7 @@ function pickConnectCard(cardId) {
         // Time penalty for wrong answer
         connectState.timeLeft = Math.max(0, connectState.timeLeft - 3);
         updateConnectHeader();
+        showConnectPenalty();
         
         setTimeout(() => {
             connectState.wrongPairIds = [];
@@ -5446,6 +5505,9 @@ function finishConnectMode(won) {
 
 // ===== Utility Functions =====
 function generateId() {
+    if (crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
@@ -5459,9 +5521,8 @@ function shuffleArray(array) {
 }
 
 function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    if (text == null) return '';
+    return String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 // ===== Woordkaartjes Mode =====
@@ -5488,7 +5549,7 @@ function initCardsMode() {
 
     const words = getStudyWordsFromSelection(list.words);
     if (!words.length) {
-        alert(t('alert_no_words'));
+        alert('Geen woorden gevonden met je huidige selectie/filters.');
         showListDetail(currentListId);
         return;
     }
@@ -6058,8 +6119,29 @@ function applyImportFromUrl() {
 
     // Nieuwe methode: korte share-link via Supabase
     const shareId = params.get('share');
-    if (shareId && supabaseClient) {
-        supabaseClient
+    if (shareId) {
+        // Zorg ervoor dat Supabase beschikbaar is voor share links,
+        // zelfs als cloud niet is ingeschakeld door de gebruiker
+        let client = supabaseClient;
+        if (!client && window.supabase) {
+            try {
+                const SUPABASE_URL = 'https://sngiduythwiuthrtzmch.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuZ2lkdXl0aHdpdXRocnR6bWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNDY5MzUsImV4cCI6MjA4NTYyMjkzNX0.xNecbmT6VRPPhBVnW5WQv-QdJp4o2MDZq4tV-jsJXLI';
+                if (window.__loek_supabase_client) {
+                    client = window.__loek_supabase_client;
+                } else {
+                    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    window.__loek_supabase_client = client;
+                }
+            } catch (e) {
+                console.warn('Supabase init voor share link mislukt:', e);
+            }
+        }
+        if (!client) {
+            showToast('Kan deellink niet laden. Probeer de pagina opnieuw te laden.', 'error');
+            return;
+        }
+        client
             .from('shares')
             .select('data')
             .eq('id', shareId)
@@ -6067,7 +6149,7 @@ function applyImportFromUrl() {
             .then(({ data, error }) => {
                 if (error || !data) {
                     console.error('Share ophalen mislukt:', error);
-                    alert(t('share_invalid'));
+                    alert('Deze deellink is ongeldig of verlopen.');
                     return;
                 }
                 const s = data.data;
@@ -6466,11 +6548,11 @@ function wordSimilarity(a, b) {
     if (la === lb) return 1;
     const maxLen = Math.max(la.length, lb.length);
     if (maxLen === 0) return 1;
-    const dist = levenshteinDistance(la, lb);
+    const dist = levenshteinDistanceWithTranspose(la, lb);
     return 1 - dist / maxLen;
 }
 
-function levenshteinDistance(a, b) {
+function levenshteinDistanceWithTranspose(a, b) {
     const m = a.length, n = b.length;
     const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
     for (let i = 0; i <= m; i++) dp[i][0] = i;
@@ -7020,3 +7102,629 @@ async function submitFeedback() {
         submitBtn.innerHTML = `<i class="fas fa-paper-plane"></i> ${t('feedback_send_btn')}`;
     }
 }
+
+// =====================================================
+// ===== TOAST NOTIFICATION SYSTEM =====
+// =====================================================
+function showToast(message, type = 'info', duration = 3500) {
+    const container = document.getElementById('toast-container');
+    if (!container) { console.warn('Toast:', message); return; }
+
+    const iconMap = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <i class="fas ${iconMap[type] || iconMap.info}"></i>
+        <span class="toast-text">${escapeHtml(message)}</span>
+        <button class="toast-close" onclick="this.parentElement.classList.add('removing'); setTimeout(()=>this.parentElement.remove(),300)" aria-label="Sluiten">&times;</button>
+    `;
+    container.appendChild(toast);
+    const autoRemove = setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+    toast.querySelector('.toast-close').addEventListener('click', () => clearTimeout(autoRemove));
+}
+
+// ===== CUSTOM CONFIRM DIALOG =====
+function showConfirm(title, message = '') {
+    return new Promise(resolve => {
+        const overlay = document.getElementById('confirm-dialog');
+        const titleEl = document.getElementById('confirm-title');
+        const msgEl = document.getElementById('confirm-message');
+        const okBtn = document.getElementById('confirm-ok');
+        const cancelBtn = document.getElementById('confirm-cancel');
+        if (!overlay) { resolve(confirm(title)); return; }
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        msgEl.style.display = message ? '' : 'none';
+        overlay.classList.remove('hidden');
+
+        function cleanup(result) {
+            overlay.classList.add('hidden');
+            okBtn.removeEventListener('click', onOk);
+            cancelBtn.removeEventListener('click', onCancel);
+            overlay.removeEventListener('click', onOverlay);
+            document.removeEventListener('keydown', onKey);
+            resolve(result);
+        }
+        function onOk() { cleanup(true); }
+        function onCancel() { cleanup(false); }
+        function onOverlay(e) { if (e.target === overlay) cleanup(false); }
+        function onKey(e) { if (e.key === 'Escape') cleanup(false); if (e.key === 'Enter') cleanup(true); }
+
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        overlay.addEventListener('click', onOverlay);
+        document.addEventListener('keydown', onKey);
+        cancelBtn.focus();
+    });
+}
+
+// =====================================================
+// ===== GAMIFICATION SYSTEM (Streaks, XP, Daily Goals, Achievements) =====
+// =====================================================
+const GAMIFICATION_KEY = 'gamificationData';
+const DAILY_GOAL_WORDS = 20; // default daily goal
+
+function getGamificationData() {
+    try {
+        return JSON.parse(localStorage.getItem(GAMIFICATION_KEY)) || createDefaultGamificationData();
+    } catch { return createDefaultGamificationData(); }
+}
+
+function createDefaultGamificationData() {
+    return {
+        streak: 0,
+        longestStreak: 0,
+        lastStudyDate: null,
+        totalXp: 0,
+        totalCorrect: 0,
+        totalWrong: 0,
+        totalSessions: 0,
+        dailyGoal: DAILY_GOAL_WORDS,
+        todayWords: 0,
+        todayDate: null,
+        weeklyActivity: {}, // { 'YYYY-MM-DD': wordsCount }
+        achievements: [],
+        sessionHistory: [] // last 50 sessions: { date, mode, correct, wrong, xp }
+    };
+}
+
+function saveGamificationData(data) {
+    try { localStorage.setItem(GAMIFICATION_KEY, JSON.stringify(data)); } catch (e) { console.error('Gamification save failed', e); }
+}
+
+function getTodayStr() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function updateStreak(data) {
+    const today = getTodayStr();
+    if (data.lastStudyDate === today) return; // already updated today
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (data.lastStudyDate === yesterdayStr) {
+        data.streak++;
+    } else if (data.lastStudyDate !== today) {
+        data.streak = 1; // reset
+    }
+    data.longestStreak = Math.max(data.longestStreak, data.streak);
+    data.lastStudyDate = today;
+}
+
+function awardXp(correct, wrong, mode) {
+    const data = getGamificationData();
+    const today = getTodayStr();
+
+    // Reset daily counter if new day
+    if (data.todayDate !== today) {
+        data.todayWords = 0;
+        data.todayDate = today;
+    }
+
+    // XP calculation
+    let xp = correct * 10;
+    if (mode === 'typing' || mode === 'exam') xp = correct * 15; // harder modes give more
+    if (mode === 'connect') xp = correct * 12;
+
+    // Streak bonus
+    if (data.streak >= 7) xp = Math.round(xp * 1.5);
+    else if (data.streak >= 3) xp = Math.round(xp * 1.2);
+
+    data.totalXp += xp;
+    data.totalCorrect += correct;
+    data.totalWrong += wrong;
+    data.totalSessions++;
+    data.todayWords += correct;
+
+    // Weekly activity
+    if (!data.weeklyActivity) data.weeklyActivity = {};
+    data.weeklyActivity[today] = (data.weeklyActivity[today] || 0) + correct;
+
+    // Clean old activity data (keep only last 14 days)
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 14);
+    for (const dateStr of Object.keys(data.weeklyActivity)) {
+        if (new Date(dateStr) < cutoff) delete data.weeklyActivity[dateStr];
+    }
+
+    // Session history (keep last 50)
+    if (!data.sessionHistory) data.sessionHistory = [];
+    data.sessionHistory.push({ date: today, mode, correct, wrong, xp });
+    if (data.sessionHistory.length > 50) data.sessionHistory = data.sessionHistory.slice(-50);
+
+    updateStreak(data);
+    checkAchievements(data);
+    saveGamificationData(data);
+    updateGamificationUI(data);
+
+    // Show XP toast
+    if (xp > 0) {
+        showToast(`+${xp} XP verdiend!`, 'success', 2500);
+    }
+
+    return xp;
+}
+
+function checkAchievements(data) {
+    if (!data.achievements) data.achievements = [];
+    const earned = new Set(data.achievements);
+
+    const checks = [
+        { id: 'first_session', condition: data.totalSessions >= 1 },
+        { id: 'streak_3', condition: data.streak >= 3 },
+        { id: 'streak_7', condition: data.streak >= 7 },
+        { id: 'streak_30', condition: data.streak >= 30 },
+        { id: 'xp_100', condition: data.totalXp >= 100 },
+        { id: 'xp_1000', condition: data.totalXp >= 1000 },
+        { id: 'xp_5000', condition: data.totalXp >= 5000 },
+        { id: 'correct_50', condition: data.totalCorrect >= 50 },
+        { id: 'correct_500', condition: data.totalCorrect >= 500 },
+        { id: 'correct_2000', condition: data.totalCorrect >= 2000 },
+        { id: 'sessions_10', condition: data.totalSessions >= 10 },
+        { id: 'sessions_50', condition: data.totalSessions >= 50 },
+        { id: 'daily_goal', condition: data.todayWords >= data.dailyGoal },
+    ];
+
+    for (const { id, condition } of checks) {
+        if (condition && !earned.has(id)) {
+            data.achievements.push(id);
+            const meta = ACHIEVEMENT_META[id];
+            if (meta) {
+                showToast(`Prestatie ontgrendeld: ${meta.name}`, 'success', 4000);
+            }
+        }
+    }
+}
+
+const ACHIEVEMENT_META = {
+    first_session: { name: 'Eerste Stappen', desc: 'Voltooi je eerste oefensessie', icon: 'fa-bullseye' },
+    streak_3: { name: '3 Dagen Op Rij', desc: 'Leer 3 dagen achter elkaar', icon: 'fa-fire' },
+    streak_7: { name: 'Weekstrijder', desc: 'Leer 7 dagen achter elkaar', icon: 'fa-dumbbell' },
+    streak_30: { name: 'Maandmonster', desc: 'Leer 30 dagen achter elkaar', icon: 'fa-medal' },
+    xp_100: { name: 'XP Beginner', desc: 'Verdien 100 XP', icon: 'fa-star' },
+    xp_1000: { name: 'XP Pro', desc: 'Verdien 1.000 XP', icon: 'fa-star-half-stroke' },
+    xp_5000: { name: 'XP Legende', desc: 'Verdien 5.000 XP', icon: 'fa-wand-magic-sparkles' },
+    correct_50: { name: '50 Goed', desc: '50 woorden correct beantwoord', icon: 'fa-circle-check' },
+    correct_500: { name: '500 Goed', desc: '500 woorden correct beantwoord', icon: 'fa-graduation-cap' },
+    correct_2000: { name: 'Woordenmeester', desc: '2.000 woorden correct beantwoord', icon: 'fa-crown' },
+    sessions_10: { name: '10 Sessies', desc: 'Voltooi 10 oefensessies', icon: 'fa-book-open' },
+    sessions_50: { name: '50 Sessies', desc: 'Voltooi 50 oefensessies', icon: 'fa-trophy' },
+    daily_goal: { name: 'Dagdoel Gehaald!', desc: 'Bereik je dagelijkse doel', icon: 'fa-bullseye' },
+};
+
+function updateGamificationUI(data) {
+    if (!data) data = getGamificationData();
+    const bar = document.getElementById('gamification-bar');
+    if (bar) bar.classList.remove('hidden');
+
+    const streakEl = document.getElementById('streak-count');
+    const xpEl = document.getElementById('xp-count');
+    const goalEl = document.getElementById('daily-goal-progress');
+    const goalFill = document.getElementById('daily-goal-fill');
+
+    if (streakEl) streakEl.textContent = data.streak || 0;
+    if (xpEl) xpEl.textContent = data.totalXp || 0;
+
+    const today = getTodayStr();
+    const todayWords = data.todayDate === today ? (data.todayWords || 0) : 0;
+    const goal = data.dailyGoal || DAILY_GOAL_WORDS;
+    if (goalEl) goalEl.textContent = `${Math.min(todayWords, goal)}/${goal}`;
+    if (goalFill) goalFill.style.width = `${Math.min(100, (todayWords / goal) * 100)}%`;
+}
+
+// =====================================================
+// ===== STATISTICS VIEW =====
+// =====================================================
+function showStatsView() {
+    showView('stats-view');
+    renderStatsView();
+}
+
+function renderStatsView() {
+    const data = getGamificationData();
+
+    // Overview stats
+    const streakEl = document.getElementById('stats-streak');
+    const xpEl = document.getElementById('stats-total-xp');
+    const correctEl = document.getElementById('stats-total-correct');
+    const sessionsEl = document.getElementById('stats-total-sessions');
+
+    if (streakEl) streakEl.textContent = data.streak || 0;
+    if (xpEl) xpEl.textContent = data.totalXp || 0;
+    if (correctEl) correctEl.textContent = data.totalCorrect || 0;
+    if (sessionsEl) sessionsEl.textContent = data.totalSessions || 0;
+
+    // Activity Chart (last 7 days)
+    const chartEl = document.getElementById('stats-activity-chart');
+    if (chartEl) {
+        const days = [];
+        const dayNames = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+        let maxVal = 1;
+
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const count = (data.weeklyActivity && data.weeklyActivity[dateStr]) || 0;
+            maxVal = Math.max(maxVal, count);
+            days.push({ label: dayNames[d.getDay()], count, dateStr });
+        }
+
+        chartEl.innerHTML = days.map(day => {
+            const heightPct = Math.max(4, (day.count / maxVal) * 100);
+            return `
+                <div class="activity-day" title="${day.count} woorden op ${day.dateStr}">
+                    <div class="activity-bar" style="height: ${heightPct}%"></div>
+                    <span class="activity-label">${day.label}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Achievements
+    const achEl = document.getElementById('stats-achievements');
+    if (achEl) {
+        const earned = new Set(data.achievements || []);
+        achEl.innerHTML = Object.entries(ACHIEVEMENT_META).map(([id, meta]) => {
+            const unlocked = earned.has(id);
+            return `
+                <div class="achievement-badge ${unlocked ? '' : 'locked'}" title="${meta.desc}">
+                    <div class="achievement-icon"><i class="fas ${meta.icon}"></i></div>
+                    <span class="achievement-name">${meta.name}</span>
+                    <span class="achievement-desc">${meta.desc}</span>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+// =====================================================
+// ===== TEXT-TO-SPEECH =====
+// =====================================================
+function speakText(text, lang) {
+    if (!('speechSynthesis' in window)) {
+        showToast('Tekst-naar-spraak wordt niet ondersteund in je browser.', 'warning');
+        return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+
+    // Map app language codes to BCP-47
+    const langMap = {
+        'nl': 'nl-NL', 'en': 'en-US', 'de': 'de-DE', 'fr': 'fr-FR',
+        'es': 'es-ES', 'it': 'it-IT', 'pt': 'pt-PT', 'ru': 'ru-RU',
+        'zh': 'zh-CN', 'ja': 'ja-JP', 'ko': 'ko-KR', 'ar': 'ar-SA',
+        'tr': 'tr-TR', 'pl': 'pl-PL', 'sv': 'sv-SE', 'da': 'da-DK',
+        'no': 'nb-NO', 'fi': 'fi-FI', 'el': 'el-GR', 'cs': 'cs-CZ',
+        'ro': 'ro-RO', 'hu': 'hu-HU', 'id': 'id-ID', 'th': 'th-TH',
+    };
+    utter.lang = langMap[lang] || lang || 'nl-NL';
+    utter.rate = 0.9;
+    utter.pitch = 1;
+
+    window.speechSynthesis.speak(utter);
+}
+
+function getTtsButton(text, lang) {
+    return `<button class="tts-btn" onclick="speakText('${escapeHtml(text).replace(/'/g, "\\'")}', '${lang || ''}')" title="Uitspreken" aria-label="Uitspreken"><i class="fas fa-volume-up"></i></button>`;
+}
+
+// =====================================================
+// ===== OFFLINE DETECTION =====
+// =====================================================
+function initOfflineDetection() {
+    const banner = document.getElementById('offline-banner');
+    if (!banner) return;
+
+    function updateStatus() {
+        if (navigator.onLine) {
+            banner.classList.add('hidden');
+        } else {
+            banner.classList.remove('hidden');
+        }
+    }
+    window.addEventListener('online', updateStatus);
+    window.addEventListener('offline', updateStatus);
+    updateStatus();
+}
+
+// =====================================================
+// ===== INSTALL PROMPT =====
+// =====================================================
+let deferredInstallPrompt = null;
+const INSTALL_DISMISSED_KEY = 'installPromptDismissed';
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    // Don't show if user already dismissed
+    const dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY);
+    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return; // 7 days
+
+    const prompt = document.getElementById('install-prompt');
+    if (prompt) prompt.classList.remove('hidden');
+});
+
+window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const prompt = document.getElementById('install-prompt');
+    if (prompt) prompt.classList.add('hidden');
+    showToast('Loek it Up is geïnstalleerd!', 'success');
+});
+
+function installApp() {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(choice => {
+        if (choice.outcome === 'accepted') {
+            showToast('Bedankt voor het installeren!', 'success');
+        }
+        deferredInstallPrompt = null;
+        const prompt = document.getElementById('install-prompt');
+        if (prompt) prompt.classList.add('hidden');
+    });
+}
+
+function dismissInstallPrompt() {
+    const prompt = document.getElementById('install-prompt');
+    if (prompt) prompt.classList.add('hidden');
+    localStorage.setItem(INSTALL_DISMISSED_KEY, Date.now().toString());
+}
+
+// =====================================================
+// ===== CONNECT MODE: -3s VISUAL PENALTY + VISIBILITY PAUSE =====
+// =====================================================
+function showConnectPenalty() {
+    const board = document.getElementById('connect-content');
+    if (!board) return;
+    const penalty = document.createElement('div');
+    penalty.className = 'connect-penalty';
+    penalty.textContent = '-3s';
+    board.style.position = 'relative';
+    board.appendChild(penalty);
+    setTimeout(() => penalty.remove(), 800);
+}
+
+// Pause connect timer when tab is hidden
+document.addEventListener('visibilitychange', () => {
+    if (!connectState || !connectState.timer) return;
+    if (document.hidden) {
+        clearInterval(connectState.timer);
+        connectState._paused = true;
+    } else if (connectState._paused) {
+        connectState._paused = false;
+        connectState.timer = setInterval(() => {
+            connectState.timeLeft--;
+            updateConnectHeader();
+            if (connectState.timeLeft <= 0) {
+                finishConnectMode(false);
+            }
+        }, 1000);
+    }
+});
+
+// =====================================================
+// ===== SPACED REPETITION SYSTEM (SRS) =====
+// =====================================================
+const SRS_KEY = 'srsData';
+
+function getSrsData() {
+    try { return JSON.parse(localStorage.getItem(SRS_KEY)) || {}; } catch { return {}; }
+}
+
+function saveSrsData(data) {
+    try { localStorage.setItem(SRS_KEY, JSON.stringify(data)); } catch (e) { console.error('SRS save failed', e); }
+}
+
+/**
+ * Simple SM-2 inspired algorithm
+ * Returns next review interval in days
+ */
+function calculateSrsInterval(wordId, correct) {
+    const data = getSrsData();
+    const entry = data[wordId] || { interval: 1, easeFactor: 2.5, repetitions: 0, nextReview: getTodayStr() };
+
+    if (correct) {
+        entry.repetitions++;
+        if (entry.repetitions === 1) {
+            entry.interval = 1;
+        } else if (entry.repetitions === 2) {
+            entry.interval = 3;
+        } else {
+            entry.interval = Math.round(entry.interval * entry.easeFactor);
+        }
+        entry.easeFactor = Math.max(1.3, entry.easeFactor + 0.1);
+    } else {
+        entry.repetitions = 0;
+        entry.interval = 1;
+        entry.easeFactor = Math.max(1.3, entry.easeFactor - 0.2);
+    }
+
+    const next = new Date();
+    next.setDate(next.getDate() + entry.interval);
+    entry.nextReview = next.toISOString().split('T')[0];
+
+    data[wordId] = entry;
+    saveSrsData(data);
+    return entry.interval;
+}
+
+function getWordsDueToday(listId) {
+    const list = wordLists.find(l => l.id === listId);
+    if (!list) return [];
+    const srs = getSrsData();
+    const today = getTodayStr();
+
+    return list.words.filter(word => {
+        const entry = srs[word.id];
+        if (!entry) return true; // never studied = due
+        return entry.nextReview <= today;
+    });
+}
+
+// =====================================================
+// ===== ACCESSIBILITY IMPROVEMENTS =====
+// =====================================================
+function addAriaAttributes() {
+    // Progress bars
+    document.querySelectorAll('.progress-fill').forEach(bar => {
+        const container = bar.parentElement;
+        if (container) {
+            container.setAttribute('role', 'progressbar');
+            container.setAttribute('aria-valuemin', '0');
+            container.setAttribute('aria-valuemax', '100');
+        }
+    });
+
+    // Modals
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+    });
+
+    // Close buttons
+    document.querySelectorAll('.btn-close, .btn-back').forEach(btn => {
+        if (!btn.getAttribute('aria-label')) {
+            btn.setAttribute('aria-label', 'Sluiten');
+        }
+    });
+}
+
+// Focus trapping in modals
+function trapFocus(element) {
+    const focusable = element.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    element._focusTrap = function(e) {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey) {
+            if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+        } else {
+            if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+    };
+    element.addEventListener('keydown', element._focusTrap);
+    first.focus();
+}
+
+function releaseFocus(element) {
+    if (element._focusTrap) {
+        element.removeEventListener('keydown', element._focusTrap);
+        delete element._focusTrap;
+    }
+}
+
+// =====================================================
+// ===== INTEGRATION: Hook into existing study completion =====
+// =====================================================
+const _originalClearActiveSession = typeof clearActiveSession === 'function' ? clearActiveSession : null;
+
+// Monkey-patch finishStudy functions to award XP
+(function patchStudyCompletion() {
+    // We watch for the complete-view being shown and award XP based on session stats
+    const observer = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            if (m.target.id === 'complete-view' && !m.target.classList.contains('hidden') && m.target.classList.contains('active')) {
+                const correct = studySession.correctCount || 0;
+                const wrong = studySession.wrongCount || 0;
+                const mode = currentStudyMode || 'unknown';
+                awardXp(correct, wrong, mode);
+
+                // Also update SRS for each word
+                if (studySession.words) {
+                    studySession.words.forEach(word => {
+                        const stats = word.stats || {};
+                        const wasCorrect = stats.correct > (stats._prevCorrect || 0);
+                        calculateSrsInterval(word.id, wasCorrect);
+                        stats._prevCorrect = stats.correct;
+                    });
+                }
+            }
+        }
+    });
+
+    const completeView = document.getElementById('complete-view');
+    if (completeView) {
+        observer.observe(completeView, { attributes: true, attributeFilter: ['class'] });
+    }
+})();
+
+// =====================================================
+// ===== INITIALIZATION OF NEW FEATURES =====
+// =====================================================
+(function initNewFeatures() {
+    // Init gamification UI
+    updateGamificationUI();
+
+    // Init offline detection
+    initOfflineDetection();
+
+    // Add ARIA attributes
+    addAriaAttributes();
+
+    // Show "words due today" indicator
+    if (currentListId) {
+        const due = getWordsDueToday(currentListId);
+        if (due.length > 0) {
+            // We could show this in the UI, but for now it's available via getWordsDueToday()
+        }
+    }
+
+    // Auto-add TTS buttons to question-word elements when content changes
+    const studyViews = ['steps-content', 'typing-content', 'cards-content', 'exam-content'];
+    studyViews.forEach(viewId => {
+        const el = document.getElementById(viewId);
+        if (!el) return;
+        const obs = new MutationObserver(() => {
+            el.querySelectorAll('.question-word:not(.tts-added)').forEach(qw => {
+                qw.classList.add('tts-added');
+                qw.style.display = 'flex';
+                qw.style.alignItems = 'center';
+                qw.style.justifyContent = 'center';
+                qw.style.gap = '0.5rem';
+                const text = qw.textContent.trim();
+                // Determine language from current study session qa context
+                const list = wordLists.find(l => l.id === currentListId);
+                const lang = list ? (studySession.direction === 'def-term' ? list.langTo : list.langFrom) : '';
+                const btn = document.createElement('button');
+                btn.className = 'tts-btn';
+                btn.setAttribute('aria-label', 'Uitspreken');
+                btn.title = 'Uitspreken';
+                btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                btn.onclick = (e) => { e.stopPropagation(); speakText(text, lang); };
+                qw.appendChild(btn);
+            });
+        });
+        obs.observe(el, { childList: true, subtree: true });
+    });
+})();
