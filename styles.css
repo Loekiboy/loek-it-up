@@ -1286,6 +1286,172 @@ body.default-yellow-theme .logo-nose {
     box-shadow: 0 0 0 3px var(--primary-yellow-light);
 }
 
+/* ===== Bulk Import Feature ===== */
+/* BULK_IMPORT_FEATURE: Remove this block (until END marker) to disable bulk import styles */
+
+.import-btn-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.bulk-import-modal-content {
+    max-width: 600px;
+    width: 96%;
+}
+
+.bulk-import-format-example {
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--bg-cream);
+}
+
+.bulk-import-format-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--bg-cream);
+    border-bottom: 1px solid var(--bg-cream);
+    gap: 0.5rem;
+}
+
+.btn-copy-format {
+    background: none;
+    border: 1px solid var(--primary-yellow);
+    border-radius: var(--radius-sm);
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: inherit;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.btn-copy-format:hover {
+    background: var(--primary-yellow-light);
+}
+
+.bulk-import-pre {
+    margin: 0;
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    white-space: pre;
+    font-family: monospace;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#bulk-import-text {
+    width: 100%;
+    min-height: 180px;
+    font-family: monospace;
+    font-size: 0.82rem;
+    padding: 0.75rem;
+    border: 2px solid var(--bg-cream);
+    border-radius: var(--radius-md);
+    resize: vertical;
+    box-sizing: border-box;
+    margin-top: 0.5rem;
+}
+
+#bulk-import-text:focus {
+    outline: none;
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 3px var(--primary-yellow-light);
+}
+
+.bulk-import-progress {
+    margin-top: 0.75rem;
+}
+
+.bulk-import-progress-bar {
+    height: 8px;
+    background: var(--bg-cream);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.4rem;
+}
+
+.bulk-import-progress-fill {
+    height: 100%;
+    background: var(--primary-yellow);
+    border-radius: 4px;
+    transition: width 0.35s ease;
+    width: 0%;
+}
+
+#bulk-import-status {
+    font-size: 0.82rem;
+    color: var(--text-medium);
+    margin: 0;
+}
+
+/* Undo banner on home view */
+.bulk-import-undo-banner {
+    margin: 0.75rem 1.5rem 0;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: var(--radius-md);
+    padding: 0.6rem 1rem;
+}
+
+body.dark .bulk-import-undo-banner {
+    background: #1a3a22;
+    color: #a8d5b5;
+    border-color: #2d5a35;
+}
+
+.bulk-import-undo-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.bulk-import-undo-inner > span {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.9rem;
+    min-width: 0;
+}
+
+.bulk-import-undo-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.btn-close-small {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    opacity: 0.7;
+    font-size: 0.85rem;
+}
+
+.btn-close-small:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.btn-sm {
+    padding: 4px 10px !important;
+    font-size: 0.8rem !important;
+}
+
+/* END BULK_IMPORT_FEATURE */
+
 .hidden {
     display: none !important;
 }

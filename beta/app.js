@@ -164,6 +164,9 @@ const PRESET_COLORS = [
     '#FFA07A'  // Oranje
 ];
 
+// Stores the current question's word ID and correct answer to avoid apostrophe-in-onclick bugs
+let currentCheckContext = { wordId: null, correct: null };
+
 // Study session state
 let studySession = {
     words: [],
@@ -3002,10 +3005,8 @@ function continueStepFlash(wordId) {
 function showStepCopy(word, qa) {
     currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
-        <div class="question-card">
-            <div class="question-type-label">
-                <i class="fas fa-pencil-alt"></i> Overtypen
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="copy-target-box">
@@ -3023,6 +3024,8 @@ function showStepCopy(word, qa) {
             <div id="step-copy-feedback"></div>
         </div>
     `;
+    document.getElementById('step-copy-submit').onclick = () => checkStepCopy(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-copy-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepCopy(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-copy-input')?.focus(), 100);
 }
 
@@ -3077,6 +3080,7 @@ function showStepHint(word, qa) {
     currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
     const hintPattern = buildHintPattern(qa.answer);
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3095,6 +3099,8 @@ function showStepHint(word, qa) {
             <div id="step-hint-feedback"></div>
         </div>
     `;
+    document.getElementById('step-hint-submit').onclick = () => checkStepHint(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-hint-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepHint(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-hint-input')?.focus(), 100);
 }
 
@@ -3244,6 +3250,7 @@ function showStepTyping(word, qa) {
     currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'step-typing-hint');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3263,6 +3270,8 @@ function showStepTyping(word, qa) {
         </div>
     `;
 
+    document.getElementById('step-typing-submit').onclick = () => checkStepTyping(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-typing-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepTyping(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-typing-input').focus(), 100);
 }
 
@@ -3438,6 +3447,7 @@ function showNextStepsReviewQuestion() {
     currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('steps-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'step-review-hint');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3457,6 +3467,8 @@ function showNextStepsReviewQuestion() {
         </div>
     `;
 
+    document.getElementById('step-review-submit').onclick = () => checkStepReviewTyping(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('step-review-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkStepReviewTyping(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('step-review-input').focus(), 100);
 }
 
@@ -3624,6 +3636,7 @@ function showNextTypingQuestion() {
     const hintUi = renderHintButton(nextWord.id, qa.answer, 'typing-hint-box');
     
     const content = document.getElementById('typing-content');
+    currentCheckContext = { wordId: nextWord.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3644,6 +3657,8 @@ function showNextTypingQuestion() {
         </div>
     `;
     
+    document.getElementById('typing-submit').onclick = () => checkTypingAnswer(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('typing-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkTypingAnswer(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('typing-input').focus(), 100);
 }
 
@@ -3805,6 +3820,7 @@ function showNextTypingReviewQuestion() {
     currentDictContext = { questionWord: qa.question, isTermToDef: qa.isTermToDef };
     const content = document.getElementById('typing-content');
     const hintUi = renderHintButton(word.id, qa.answer, 'typing-review-hint');
+    currentCheckContext = { wordId: word.id, correct: qa.answer };
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
@@ -3824,6 +3840,8 @@ function showNextTypingReviewQuestion() {
         </div>
     `;
 
+    document.getElementById('typing-review-submit').onclick = () => checkTypingReview(currentCheckContext.wordId, currentCheckContext.correct);
+    document.getElementById('typing-review-input').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); checkTypingReview(currentCheckContext.wordId, currentCheckContext.correct); } };
     setTimeout(() => document.getElementById('typing-review-input').focus(), 100);
 }
 

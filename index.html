@@ -160,34 +160,6 @@
                     <p>De slimste manier om woordjes te leren!</p>
                 </div>
 
-                <!-- Streaks & Quick Stats -->
-                <div id="gamification-bar" class="gamification-bar hidden">
-                    <div class="gamification-card streak-card" title="Aantal dagen op rij geleerd">
-                        <i class="fas fa-fire"></i>
-                        <div class="gamification-info">
-                            <span id="streak-count" class="gamification-value">0</span>
-                            <span class="gamification-label">Streak</span>
-                        </div>
-                    </div>
-                    <div class="gamification-card xp-card" title="Totaal verdiende XP">
-                        <i class="fas fa-star"></i>
-                        <div class="gamification-info">
-                            <span id="xp-count" class="gamification-value">0</span>
-                            <span class="gamification-label">XP</span>
-                        </div>
-                    </div>
-                    <div class="gamification-card goal-card" title="Dagelijks doel">
-                        <i class="fas fa-bullseye"></i>
-                        <div class="gamification-info">
-                            <span id="daily-goal-progress" class="gamification-value">0/20</span>
-                            <span class="gamification-label">Vandaag</span>
-                        </div>
-                        <div class="daily-goal-bar">
-                            <div id="daily-goal-fill" class="daily-goal-fill" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Feedback Knop -->
                 <div class="feedback-cta">
                     <div class="feedback-cta-inner">
@@ -417,9 +389,15 @@
                     </div>
 
                     <div class="import-section">
-                        <button class="btn btn-secondary" onclick="toggleImport()">
-                            <i class="fas fa-file-import"></i> Importeren
-                        </button>
+                        <!-- BULK_IMPORT_FEATURE: Contains bulk import button; remove .import-btn-row wrapper to revert -->
+                        <div class="import-btn-row">
+                            <button class="btn btn-secondary" onclick="toggleImport()">
+                                <i class="fas fa-file-import"></i> Importeren
+                            </button>
+                            <button class="btn btn-secondary" onclick="openBulkImportModal()">
+                                <i class="fas fa-layer-group"></i> Bulk Import
+                            </button>
+                        </div>
                         <div id="import-area" class="import-area hidden">
                             <div class="import-source-selector">
                                 <button class="import-source-btn active" data-source="plain" onclick="setImportSource('plain')">
@@ -818,6 +796,54 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Bulk Import Modal -->
+            <!-- BULK_IMPORT_FEATURE: Remove this entire block to disable bulk import -->
+            <div id="bulk-import-modal" class="modal hidden">
+                <div class="modal-content bulk-import-modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-layer-group"></i> Bulk Import</h3>
+                        <button class="btn-close" onclick="closeBulkImportModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="import-hint">Plak hieronder meerdere woordenlijsten tegelijk in JSON-formaat. Ze worden automatisch aangemaakt en in de cloud opgeslagen.</p>
+                        <div class="bulk-import-format-example">
+                            <div class="bulk-import-format-header">
+                                <span><i class="fas fa-code"></i> Verwacht formaat</span>
+                                <button class="btn-copy-format" onclick="copyBulkImportFormat()"><i class="fas fa-copy"></i> Kopieer voorbeeld</button>
+                            </div>
+                            <pre class="bulk-import-pre">[
+  {
+    "title": "Lijst 1",
+    "langFrom": "Engels",
+    "langTo": "Nederlands",
+    "subject": "engels",
+    "words": [
+      {"term": "hello", "definition": "hallo"},
+      {"term": "world", "definition": "wereld"}
+    ]
+  }
+]</pre>
+                        </div>
+                        <textarea id="bulk-import-text" placeholder="Plak hier je JSON..."></textarea>
+                        <div id="bulk-import-progress" class="bulk-import-progress hidden">
+                            <div class="bulk-import-progress-bar">
+                                <div id="bulk-import-progress-fill" class="bulk-import-progress-fill"></div>
+                            </div>
+                            <p id="bulk-import-status">Lijsten importeren...</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeBulkImportModal()">Annuleren</button>
+                        <button id="bulk-import-submit-btn" class="btn btn-primary" onclick="executeBulkImport()">
+                            <i class="fas fa-check"></i> Importeren
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- END BULK_IMPORT_FEATURE -->
 
             <!-- QR Share Modal -->
             <div id="qr-share-modal" class="modal hidden">
