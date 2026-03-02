@@ -1,3 +1,839 @@
+// ===== TRANSLATIONS SYSTEM =====
+const TRANSLATIONS = {
+    nl: {
+        // Page level
+        page_title: 'Loek it Up - Woordjes Leren',
+        meta_description: 'Loek it Up — gratis woordjes leren app. Maak je eigen woordenlijsten en oefen met meerdere modi.',
+        og_title: 'Loek it Up - Woordjes Leren',
+        og_description: 'Gratis woordjes leren app. Maak je eigen woordenlijsten en oefen met meerdere modi.',
+        // Navigation
+        skip_link: 'Naar inhoud',
+        nav_new_list: 'Nieuwe Lijst',
+        nav_settings: 'Instellingen',
+        nav_search: 'Zoeken',
+        auth_login: 'Inloggen',
+        auth_signup: 'Account maken',
+        auth_logout: 'Uitloggen',
+        // Home
+        home_welcome: 'Welkom bij',
+        home_subtitle: 'De slimste manier om woordjes te leren!',
+        bulk_undo_action: 'Ongedaan maken',
+        close_btn: 'Sluiten',
+        feedback_cta_title: 'Heb je een idee of bug gevonden?',
+        feedback_cta_desc: 'Help mij Loek it Up beter te maken! Deel je feedback, stel een nieuwe feature voor of meld een bug.',
+        feedback_cta_btn: 'Feedback versturen',
+        lists_heading: 'Mijn Woordenlijsten',
+        merge_btn: 'Samenvoegen',
+        empty_title: 'Nog geen woordenlijsten',
+        empty_desc: 'Maak je eerste woordenlijst om te beginnen met leren!',
+        empty_new_list_aria: 'Nieuwe lijst maken',
+        // Word list cards
+        pct_learned: '{pct}% geleerd',
+        public_badge: 'Openbaar',
+        words_count: '{count} woordje{s}',
+        // Word groups
+        group_new: 'Ken je nog niet',
+        group_learning: 'Aan het leren',
+        group_mastered: 'Gestampt!',
+        select_group_btn: 'Selecteer deze',
+        stat_correct_label: 'Goed: {count}',
+        stat_wrong_label: 'Fout: {count}',
+        // Select all button
+        select_all_btn: 'Selecteer alles',
+        deselect_all_btn: 'Selectie wissen',
+        // Feedback modal
+        feedback_modal_title: 'Feedback',
+        feedback_intro: 'Heb je een idee voor een nieuwe feature of een bug gevonden? Laat het mij weten!',
+        feedback_type_label: 'Type',
+        feedback_subject_label: 'Onderwerp',
+        feedback_subject_placeholder_feature: 'Bijv. Dark mode toevoegen',
+        feedback_subject_placeholder_bug: 'Bijv. App crasht bij openen lijst',
+        feedback_desc_label: 'Beschrijving',
+        feedback_desc_placeholder_feature: 'Beschrijf je idee of de bug zo duidelijk mogelijk...',
+        feedback_desc_placeholder_bug: 'Beschrijf de bug: wat deed je...',
+        feedback_email_label: 'E-mail',
+        feedback_email_optional: '(optioneel, voor follow-up)',
+        feedback_email_placeholder: 'jij@mail.com',
+        cancel_btn: 'Annuleren',
+        feedback_send_btn: 'Versturen',
+        // Search view
+        search_heading: 'Zoeken',
+        search_placeholder: 'Zoek woordenlijsten of oefeningen...',
+        search_aria: 'Zoek woordenlijsten of oefeningen',
+        search_prompt: '... Typ om te zoeken naar woordenlijsten of oefeningen.',
+        search_no_results: 'Geen resultaten gevonden.',
+        search_open_btn: 'Openen',
+        search_practice_btn: 'Oefenen',
+        search_import_btn: 'Importeren',
+        // Create/Edit list
+        create_heading: 'Nieuwe Woordenlijst',
+        edit_heading: 'Lijst bewerken',
+        title_label: 'Titel',
+        title_placeholder: 'Bijv. Franse woordjes Hoofdstuk 3',
+        subject_label: 'Vak',
+        subj_nl: 'Nederlands',
+        subj_en: 'Engels',
+        subj_fr: 'Frans',
+        subj_de: 'Duits',
+        subj_es: 'Spaans',
+        subj_it: 'Italiaans',
+        subj_la: 'Latijn',
+        subj_gr: 'Grieks',
+        subj_nat: 'Natuurkunde',
+        subj_chem: 'Scheikunde',
+        subj_bio: 'Biologie',
+        subj_other: 'Overig',
+        lang_section_label: 'Talen',
+        lang_search_placeholder: 'Zoeken...',
+        lang_from_aria: 'Taal van',
+        lang_to_aria: 'Taal naar',
+        lang_choose: 'Kies taal',
+        lang_nl: 'Nederlands',
+        lang_en: 'Engels',
+        lang_fr: 'Frans',
+        lang_de: 'Duits',
+        lang_es: 'Spaans',
+        lang_it: 'Italiaans',
+        lang_pt: 'Portugees',
+        lang_la: 'Latijn',
+        lang_el: 'Grieks',
+        lang_ar: 'Arabisch',
+        lang_tr: 'Turks',
+        lang_zh: 'Chinees',
+        lang_ja: 'Japans',
+        lang_ko: 'Koreaans',
+        lang_ru: 'Russisch',
+        lang_sv: 'Zweeds',
+        lang_da: 'Deens',
+        lang_no: 'Noors',
+        lang_other: 'Overig',
+        public_toggle_text: 'Openbaar maken (anderen kunnen deze lijst vinden)',
+        import_btn: 'Importeren',
+        bulk_import_btn_label: 'Bulk Import',
+        import_tab_source: 'Tab-gescheiden',
+        import_plain_hint: 'Plak hier woordjes gescheiden door tabs (van Quizlet, etc.)',
+        import_studygo_note: 'De titel en talen worden automatisch herkend.',
+        import_jojo_note: 'De titel en taal worden automatisch herkend.',
+        import_studygo_placeholder: 'Plak hier de gekopieerde StudyGo pagina...',
+        import_jojo_placeholder: 'Plak hier de gekopieerde JoJoSchool pagina...',
+        words_heading: 'Woordjes',
+        add_word_btn: 'Woord toevoegen',
+        save_btn: 'Opslaan',
+        word_placeholder: 'Woord',
+        definition_placeholder: 'Vertaling',
+        remove_word_title: 'Verwijderen',
+        // List detail
+        edit_list_title: 'Bewerken',
+        export_list_title: 'Exporteren',
+        qr_share_title: 'QR delen',
+        delete_list_title: 'Verwijderen',
+        study_modes_heading: 'Kies een studiemodus',
+        mode_steps_title: 'Leren',
+        mode_steps_desc: 'Leer stap voor stap met kaartjes, meerkeuze en typen',
+        mode_typing_title: 'Typen',
+        mode_typing_desc: 'Typ alle vertalingen en leer door herhaling',
+        mode_cards_title: 'Woordkaartjes',
+        mode_cards_desc: 'Flip en swipe kaartjes om te leren',
+        mode_cram_title: 'Noodstop',
+        mode_cram_desc: 'Top 10 moeilijkste woorden, supersnel stampen',
+        mode_exam_title: 'Toets',
+        mode_exam_desc: 'Geen directe feedback, fouten duidelijk op het einde',
+        mode_connect_title: 'Koppelrace',
+        mode_connect_desc: 'Verbind vertaling en betekenis tegen de klok',
+        resume_text: 'Je hebt een sessie openstaan.',
+        resume_banner_text: 'Je hebt een sessie openstaan ({mode}).',
+        resume_btn: 'Hervatten',
+        words_preview_heading: 'Woordjes in deze lijst',
+        list_meta: '{count} woordje{s} • {from} → {to}',
+        // Study settings modal
+        study_modal_title: 'Oefening instellen',
+        direction_accordion: 'Vraagrichting',
+        dir_mixed: 'Mix',
+        answer_check_accordion: 'Antwoordcontrole',
+        emergency_hint_text: 'Noodstop actief: je oefent alleen de 10 moeilijkste woorden.',
+        strict_diacritics_label: "Trema's & accenten exact rekenen",
+        strict_diacritics_hint: 'bijv. "ë" ≠ "e", "é" ≠ "e"',
+        accept_slash_label: 'Accepteer beide bij "/"',
+        accept_slash_hint: 'bijv. "licht/fel" → beide goed',
+        ignore_parens_label: 'Negeer tekst tussen haakjes',
+        ignore_parens_hint: 'bijv. "(de) kat" → "kat" volstaat',
+        allow_typos_label: 'Kleine typefoutjes toestaan',
+        allow_typos_hint: '1 fout teken bij lange woorden',
+        case_sensitive_label: 'Hoofdletters exact rekenen',
+        case_sensitive_hint: 'bijv. "De" ≠ "de"',
+        learn_stages_accordion: 'Leren-modus stappen',
+        learn_stages_hint: 'Kies welke stappen actief zijn. Volgorde: Kaartjes → Overtypen → Meerkeuze → Hints → Typen.',
+        stage_flash: 'Woordkaartjes',
+        stage_copy: 'Overtypen',
+        stage_choice: 'Meerkeuze',
+        stage_hint: 'Hints',
+        stage_typing: 'Typen',
+        study_cancel_btn: 'Annuleren',
+        study_start_btn: 'Start',
+        // App settings modal
+        app_settings_title: 'App Instellingen',
+        appearance_accordion: 'Uiterlijk',
+        dark_mode_label: 'Dark mode',
+        dark_mode_hint: 'Donker thema voor de hele app',
+        dynamic_logo_label: 'Logo kleur aanpassen',
+        dynamic_logo_hint: 'Logo past mee met de accentkleur',
+        accent_color_section: 'Accentkleur',
+        accent_color_picker_aria: 'Accentkleur kiezen',
+        accent_color_hex_aria: 'Accentkleur hex',
+        accent_color_reset: 'Standaard',
+        accent_color_hint: 'Kies een kleur om het uiterlijk aan te passen.',
+        cloud_accordion: 'Cloud & Synchronisatie',
+        cloud_toggle_label: 'Cloud functies inschakelen',
+        cloud_toggle_hint: 'Inloggen, openbare lijsten en online sync',
+        settings_language_label: 'Taal / Language',
+        settings_done_btn: 'Klaar',
+        // Bulk import modal
+        bulk_modal_title: 'Bulk Import',
+        bulk_intro: 'Plak hieronder meerdere woordenlijsten tegelijk in JSON-formaat. Ze worden automatisch aangemaakt en in de cloud opgeslagen.',
+        bulk_format_label: 'Verwacht formaat',
+        bulk_copy_format_btn: 'Kopieer voorbeeld',
+        bulk_copied: 'Gekopieerd!',
+        bulk_placeholder: 'Plak hier je JSON...',
+        bulk_importing: 'Lijsten importeren...',
+        bulk_cancel: 'Annuleren',
+        bulk_import_submit_btn: 'Importeren',
+        // QR modal
+        qr_modal_title: 'QR delen',
+        qr_desc: 'Scan deze code om de lijst direct te importeren.',
+        qr_alt: 'QR code voor lijst delen',
+        qr_close_btn: 'Sluiten',
+        qr_copy_link: 'Kopieer link',
+        // Auth modal
+        auth_modal_login_title: 'Inloggen',
+        auth_modal_signup_title: 'Account maken',
+        auth_email_label: 'E-mail',
+        auth_password_label: 'Wachtwoord',
+        auth_cancel_btn: 'Annuleren',
+        auth_submit_go: 'Ga door',
+        auth_submit_register_btn: 'Registreren',
+        auth_submit_login_btn: 'Inloggen',
+        // Completion view
+        complete_title: 'Gefeliciteerd!',
+        complete_message: 'Je hebt alle woordjes geleerd!',
+        complete_stat_correct: 'Goed',
+        complete_stat_wrong: 'Fout',
+        complete_back_btn: 'Terug naar lijst',
+        complete_restart_btn: 'Opnieuw',
+        complete_accuracy: 'Je hebt alle woordjes geoefend met {pct}% nauwkeurigheid (cijfer <span class="grade-score {gradeClass}">{grade}</span>).{hintPart}',
+        hint_penalty: ' Hints gebruikt: -{count} punt(en).',
+        // Mobile nav
+        mobile_nav_new: 'Nieuw',
+        mobile_nav_settings_short: 'Inst.',
+        mobile_nav_search_short: 'Zoek',
+        mobile_nav_new_aria: 'Nieuwe Lijst',
+        mobile_nav_settings_aria: 'Instellingen',
+        mobile_nav_search_aria: 'Zoeken',
+        // Validation alerts
+        alert_save_title: 'Voer een titel in voor je woordenlijst',
+        alert_save_langs: 'Kies beide talen voor je woordenlijst',
+        alert_save_words: 'Voeg minimaal één woord toe',
+        alert_save_cloud_fail: 'Online opslaan mislukt. Je lijst is wel lokaal opgeslagen. Controleer je RLS policies.',
+        alert_import_no_pairs: 'Geen woordparen gevonden. Controleer of je de juiste tekst hebt geplakt.',
+        alert_delete_none: 'Geen woordenlijst geselecteerd om te verwijderen.',
+        confirm_delete: 'Weet je zeker dat je deze woordenlijst wilt verwijderen?',
+        alert_not_found: 'Woordlijst niet gevonden of al verwijderd.',
+        alert_merge_min: 'Selecteer minstens 2 woordenlijsten om samen te voegen.',
+        export_copied: 'Woordlijst gekopieerd naar je klembord.',
+        export_copy_fail: 'Kopiëren naar klembord is mislukt. Probeer het in een veilige (https) omgeving.',
+        share_long_url_warning: 'Waarschuwing: deze deellink is erg lang en werkt mogelijk niet in alle browsers...',
+        share_link_copied: 'Deellink gekopieerd!',
+        share_invalid: 'Deze deellink is ongeldig of verlopen.',
+        qr_generating: 'Link genereren...',
+        alert_no_words: 'Geen woorden gevonden met je huidige selectie/filters.',
+        alert_min_learn_stages: 'Kies minimaal 1 onderdeel voor Leren-modus.',
+        merge_count_btn: '{count} lijst{s} samenvoegen',
+        online_load_fail: 'Online lijsten laden is mislukt. Controleer je Supabase RLS policies.',
+        // Bulk import status/errors
+        bulk_enter_json: 'Voer JSON in om te importeren.',
+        bulk_invalid_json: 'Ongeldige JSON: {msg}',
+        bulk_not_array: 'Verwacht een JSON-array met één of meer woordenlijsten.',
+        bulk_missing_title: 'Lijst {num}: "title" ontbreekt of is ongeldig.',
+        bulk_missing_langs: 'Lijst "{title}": "langFrom" en "langTo" zijn verplicht.',
+        bulk_missing_words: 'Lijst "{title}": "words" moet een niet-lege array zijn.',
+        bulk_missing_word_fields: 'Lijst "{title}", woord {num}: "term" en "definition" zijn verplicht.',
+        bulk_progress_creating: 'Lijst {num}/{total}: "{title}" aanmaken...',
+        bulk_progress_saving: 'Lijst {num}/{total}: "{title}" opslaan in cloud...',
+        bulk_cloud_saved: ' (cloud opgeslagen)',
+        bulk_cloud_error: ' ({count} cloud fout{s})',
+        bulk_done: '{count} lijst{s} geïmporteerd{extra}!',
+        bulk_undo_banner: '{count} woordenlijst{s} geïmporteerd!',
+        bulk_undo_alert: 'Er is geen recente bulk import om ongedaan te maken.',
+        bulk_undo_confirm: 'Weet je zeker dat je de laatste bulk import ongedaan wilt maken? Dit verwijdert {count} woordenlijst{s}.',
+        // Auth modal buttons
+        auth_modal_login_submit: 'Inloggen',
+        auth_modal_signup_submit: 'Registreren',
+        // Create list
+        new_list_title: 'Nieuwe Woordenlijst',
+        edit_list_heading: 'Lijst bewerken',
+        // Typing study extra hint
+        typing_extra_hint: 'Nog {count}x goed typen',
+        typing_partial_review: 'Goed! Nog {count}x',
+        // Auth errors
+        auth_error_fill: 'Vul e-mail en wachtwoord in.',
+        // Feedback errors/status
+        feedback_err_subject: 'Vul een onderwerp in (minimaal 3 tekens).',
+        feedback_err_desc: 'Vul een beschrijving in (minimaal 10 tekens).',
+        feedback_err_email: 'Vul een geldig e-mailadres in of laat het veld leeg.',
+        feedback_rate_limit: 'Wacht nog {sec} seconden voordat je weer feedback kunt versturen.',
+        feedback_no_client: 'Kan geen verbinding maken met de server. Probeer het later opnieuw.',
+        feedback_submitting_btn: 'Versturen...',
+        feedback_err_send: 'Versturen mislukt. Probeer het later opnieuw.',
+        feedback_success_msg: 'Bedankt voor je feedback! We lezen het zo snel mogelijk.',
+        feedback_generic_err: 'Er ging iets mis. Probeer het later opnieuw.',
+        // Export
+        export_header: 'Titel:\t{title}\nTalen:\t{from} -> {to}\n\n',
+        // Study mode strings
+        flash_flip_hint: 'Klik op de kaart om het antwoord te zien',
+        next_btn: 'Volgende',
+        next_question_btn: 'Volgende vraag',
+        check_btn: 'Controleer',
+        i_meant_this_btn: 'Ik bedoelde dit',
+        copy_type_label: 'Overtypen',
+        copy_target_label: 'Typ dit exact over:',
+        copy_input_placeholder: 'Typ het antwoord hier...',
+        copy_correct_feedback: 'Goed overgetypt!',
+        copy_wrong_feedback: 'Nog niet goed, probeer opnieuw.',
+        hint_type_label: 'Hint-modus',
+        hint_input_placeholder: 'Typ het volledige antwoord...',
+        hint_correct_feedback: 'Top!',
+        hint_wrong_feedback: 'Fout.',
+        choice_type_label: 'Meerkeuze',
+        choice_correct_feedback: 'Goed zo!',
+        typing_type_label: 'Typen',
+        typing_input_placeholder: 'Type je antwoord...',
+        typing_correct_feedback: 'Goed!',
+        typing_partial_feedback: 'Goed! Nog {count}x',
+        typing_wrong_feedback: 'Fout.',
+        answer_saved_feedback: 'Antwoord opgeslagen.',
+        review_type_label: 'Herhaling (foute woorden)',
+        exam_type_label: 'Toets',
+        exam_input_placeholder: 'Type je antwoord...',
+        exam_next_btn: 'Volgende',
+        exam_hint_text: 'Feedback krijg je pas op het einde.',
+        exam_perfect: 'Perfect: geen fouten gemaakt in de toets.',
+        exam_errors_heading: 'Jouw fouten ({count})',
+        exam_answer_row: 'Jij: {user} • Juist: {correct}',
+        exam_empty_answer: '(leeg)',
+        no_answers: 'Geen antwoorden geregistreerd.',
+        stat_correct_summary: 'Goed: {correct} • Fout: {wrong}',
+        // Cards mode
+        cards_swipe_hint: 'Swipe links (fout) of rechts (goed) • Of tik om te flippen',
+        cards_wrong_btn: 'Fout',
+        cards_correct_btn: 'Goed',
+        cards_review_title: 'Wil je de foute kaartjes herhalen?',
+        cards_review_desc: 'Je hebt {count} kaartje{s} fout.',
+        cards_review_yes: 'Ja, herhaal fouten',
+        cards_review_no: 'Nee, afronden',
+        // Connect mode
+        connect_win: 'Koppelrace gehaald! Je hebt alle paren op tijd verbonden.',
+        connect_lose: 'Tijd op! Probeer opnieuw en versla de klok.',
+        connect_pairs: 'Gevonden paren: {matched}/{total}',
+        // Hints
+        no_hint: 'Geen hint beschikbaar.',
+        hint_level1: 'Hint 1: Eerste letter: {char}',
+        hint_level2: 'Hint 2: Lengte: {dots}',
+        hint_level3: 'Hint 3: Klinkers: {masked}',
+        related_word_hint: '<strong>{term}</strong> is het woord voor <strong>{def}</strong>.',
+        // Diff labels
+        diff_you_label: 'Jij:',
+        diff_correct_label: 'Juist:',
+        diff_both_empty: 'Jij typte: <strong>(leeg)</strong>',
+        diff_correct_empty: 'Juiste antwoord: <strong>(leeg)</strong>',
+        diff_you_empty: '(leeg)',
+    },
+    en: {
+        // Page level
+        page_title: 'Loek it Up - Vocabulary Learning',
+        meta_description: 'Loek it Up — free vocabulary learning app. Create your own word lists and practice with multiple modes.',
+        og_title: 'Loek it Up - Vocabulary Learning',
+        og_description: 'Free vocabulary learning app. Create your own word lists and practice with multiple modes.',
+        // Navigation
+        skip_link: 'Skip to content',
+        nav_new_list: 'New List',
+        nav_settings: 'Settings',
+        nav_search: 'Search',
+        auth_login: 'Log in',
+        auth_signup: 'Create account',
+        auth_logout: 'Log out',
+        // Home
+        home_welcome: 'Welcome to',
+        home_subtitle: 'The smartest way to learn vocabulary!',
+        bulk_undo_action: 'Undo',
+        close_btn: 'Close',
+        feedback_cta_title: 'Have an idea or found a bug?',
+        feedback_cta_desc: 'Help me make Loek it Up better! Share your feedback, suggest a new feature or report a bug.',
+        feedback_cta_btn: 'Send feedback',
+        lists_heading: 'My Word Lists',
+        merge_btn: 'Merge',
+        empty_title: 'No word lists yet',
+        empty_desc: 'Create your first word list to start learning!',
+        empty_new_list_aria: 'Create new list',
+        // Word list cards
+        pct_learned: '{pct}% learned',
+        public_badge: 'Public',
+        words_count: '{count} word{s}',
+        // Word groups
+        group_new: "Don't know yet",
+        group_learning: 'Learning',
+        group_mastered: 'Mastered!',
+        select_group_btn: 'Select these',
+        stat_correct_label: 'Correct: {count}',
+        stat_wrong_label: 'Wrong: {count}',
+        // Select all button
+        select_all_btn: 'Select all',
+        deselect_all_btn: 'Deselect all',
+        // Feedback modal
+        feedback_modal_title: 'Feedback',
+        feedback_intro: 'Do you have an idea for a new feature or found a bug? Let me know!',
+        feedback_type_label: 'Type',
+        feedback_subject_label: 'Subject',
+        feedback_subject_placeholder_feature: 'E.g. Add dark mode',
+        feedback_subject_placeholder_bug: 'E.g. App crashes when opening list',
+        feedback_desc_label: 'Description',
+        feedback_desc_placeholder_feature: 'Describe your idea or the bug as clearly as possible...',
+        feedback_desc_placeholder_bug: 'Describe the bug: what were you doing...',
+        feedback_email_label: 'E-mail',
+        feedback_email_optional: '(optional, for follow-up)',
+        feedback_email_placeholder: 'you@mail.com',
+        cancel_btn: 'Cancel',
+        feedback_send_btn: 'Send',
+        // Search view
+        search_heading: 'Search',
+        search_placeholder: 'Search word lists or exercises...',
+        search_aria: 'Search word lists or exercises',
+        search_prompt: '... Type to search for word lists or exercises.',
+        search_no_results: 'No results found.',
+        search_open_btn: 'Open',
+        search_practice_btn: 'Practice',
+        search_import_btn: 'Import',
+        // Create/Edit list
+        create_heading: 'New Word List',
+        edit_heading: 'Edit List',
+        title_label: 'Title',
+        title_placeholder: 'E.g. French vocab Chapter 3',
+        subject_label: 'Subject',
+        subj_nl: 'Dutch',
+        subj_en: 'English',
+        subj_fr: 'French',
+        subj_de: 'German',
+        subj_es: 'Spanish',
+        subj_it: 'Italian',
+        subj_la: 'Latin',
+        subj_gr: 'Greek',
+        subj_nat: 'Physics',
+        subj_chem: 'Chemistry',
+        subj_bio: 'Biology',
+        subj_other: 'Other',
+        lang_section_label: 'Languages',
+        lang_search_placeholder: 'Search...',
+        lang_from_aria: 'Language from',
+        lang_to_aria: 'Language to',
+        lang_choose: 'Choose language',
+        lang_nl: 'Dutch',
+        lang_en: 'English',
+        lang_fr: 'French',
+        lang_de: 'German',
+        lang_es: 'Spanish',
+        lang_it: 'Italian',
+        lang_pt: 'Portuguese',
+        lang_la: 'Latin',
+        lang_el: 'Greek',
+        lang_ar: 'Arabic',
+        lang_tr: 'Turkish',
+        lang_zh: 'Chinese',
+        lang_ja: 'Japanese',
+        lang_ko: 'Korean',
+        lang_ru: 'Russian',
+        lang_sv: 'Swedish',
+        lang_da: 'Danish',
+        lang_no: 'Norwegian',
+        lang_other: 'Other',
+        public_toggle_text: 'Make public (others can find this list)',
+        import_btn: 'Import',
+        bulk_import_btn_label: 'Bulk Import',
+        import_tab_source: 'Tab-separated',
+        import_plain_hint: 'Paste words separated by tabs here (from Quizlet, etc.)',
+        import_studygo_note: 'Title and languages will be detected automatically.',
+        import_jojo_note: 'Title and language will be detected automatically.',
+        import_studygo_placeholder: 'Paste the copied StudyGo page here...',
+        import_jojo_placeholder: 'Paste the copied JoJoSchool page here...',
+        words_heading: 'Words',
+        add_word_btn: 'Add word',
+        save_btn: 'Save',
+        word_placeholder: 'Word',
+        definition_placeholder: 'Translation',
+        remove_word_title: 'Remove',
+        // List detail
+        edit_list_title: 'Edit',
+        export_list_title: 'Export',
+        qr_share_title: 'Share QR',
+        delete_list_title: 'Delete',
+        study_modes_heading: 'Choose a study mode',
+        mode_steps_title: 'Learn',
+        mode_steps_desc: 'Learn step by step with flashcards, multiple choice and typing',
+        mode_typing_title: 'Type',
+        mode_typing_desc: 'Type all translations and learn through repetition',
+        mode_cards_title: 'Flashcards',
+        mode_cards_desc: 'Flip and swipe cards to learn',
+        mode_cram_title: 'Emergency Cram',
+        mode_cram_desc: 'Top 10 hardest words, quick fire practice',
+        mode_exam_title: 'Test',
+        mode_exam_desc: 'No direct feedback, mistakes clearly shown at the end',
+        mode_connect_title: 'Match Race',
+        mode_connect_desc: 'Connect translations against the clock',
+        resume_text: 'You have an open session.',
+        resume_banner_text: 'You have an open session ({mode}).',
+        resume_btn: 'Resume',
+        words_preview_heading: 'Words in this list',
+        list_meta: '{count} word{s} • {from} → {to}',
+        // Study settings modal
+        study_modal_title: 'Study settings',
+        direction_accordion: 'Question direction',
+        dir_mixed: 'Mix',
+        answer_check_accordion: 'Answer checking',
+        emergency_hint_text: "Emergency cram active: you're only practicing the 10 hardest words.",
+        strict_diacritics_label: 'Exact diacritics required',
+        strict_diacritics_hint: 'e.g. "ë" ≠ "e", "é" ≠ "e"',
+        accept_slash_label: 'Accept both with "/"',
+        accept_slash_hint: 'e.g. "light/bright" → both correct',
+        ignore_parens_label: 'Ignore text in parentheses',
+        ignore_parens_hint: 'e.g. "(the) cat" → "cat" is enough',
+        allow_typos_label: 'Allow minor typos',
+        allow_typos_hint: '1 wrong character for longer words',
+        case_sensitive_label: 'Case sensitive',
+        case_sensitive_hint: 'e.g. "The" ≠ "the"',
+        learn_stages_accordion: 'Learn mode stages',
+        learn_stages_hint: 'Choose which stages are active. Order: Flashcards → Copy → Multiple choice → Hints → Typing.',
+        stage_flash: 'Flashcards',
+        stage_copy: 'Copy',
+        stage_choice: 'Multiple choice',
+        stage_hint: 'Hints',
+        stage_typing: 'Typing',
+        study_cancel_btn: 'Cancel',
+        study_start_btn: 'Start',
+        // App settings modal
+        app_settings_title: 'App Settings',
+        appearance_accordion: 'Appearance',
+        dark_mode_label: 'Dark mode',
+        dark_mode_hint: 'Dark theme for the entire app',
+        dynamic_logo_label: 'Adjust logo color',
+        dynamic_logo_hint: 'Logo follows the accent color',
+        accent_color_section: 'Accent color',
+        accent_color_picker_aria: 'Choose accent color',
+        accent_color_hex_aria: 'Accent color hex',
+        accent_color_reset: 'Default',
+        accent_color_hint: 'Choose a color to customize the appearance.',
+        cloud_accordion: 'Cloud & Sync',
+        cloud_toggle_label: 'Enable cloud features',
+        cloud_toggle_hint: 'Login, public lists and online sync',
+        settings_language_label: 'Language / Taal',
+        settings_done_btn: 'Done',
+        // Bulk import modal
+        bulk_modal_title: 'Bulk Import',
+        bulk_intro: 'Paste multiple word lists at once in JSON format below. They will be created automatically and saved to the cloud.',
+        bulk_format_label: 'Expected format',
+        bulk_copy_format_btn: 'Copy example',
+        bulk_copied: 'Copied!',
+        bulk_placeholder: 'Paste your JSON here...',
+        bulk_importing: 'Importing lists...',
+        bulk_cancel: 'Cancel',
+        bulk_import_submit_btn: 'Import',
+        // QR modal
+        qr_modal_title: 'Share QR',
+        qr_desc: 'Scan this code to import the list directly.',
+        qr_alt: 'QR code for sharing list',
+        qr_close_btn: 'Close',
+        qr_copy_link: 'Copy link',
+        // Auth modal
+        auth_modal_login_title: 'Log in',
+        auth_modal_signup_title: 'Create account',
+        auth_email_label: 'E-mail',
+        auth_password_label: 'Password',
+        auth_cancel_btn: 'Cancel',
+        auth_submit_go: 'Continue',
+        auth_submit_register_btn: 'Register',
+        auth_submit_login_btn: 'Log in',
+        // Completion view
+        complete_title: 'Congratulations!',
+        complete_message: "You've learned all the words!",
+        complete_stat_correct: 'Correct',
+        complete_stat_wrong: 'Wrong',
+        complete_back_btn: 'Back to list',
+        complete_restart_btn: 'Try again',
+        complete_accuracy: 'You practiced all words with {pct}% accuracy (grade <span class="grade-score {gradeClass}">{grade}</span>).{hintPart}',
+        hint_penalty: ' Hints used: -{count} point(s).',
+        // Mobile nav
+        mobile_nav_new: 'New',
+        mobile_nav_settings_short: 'Settings',
+        mobile_nav_search_short: 'Search',
+        mobile_nav_new_aria: 'New List',
+        mobile_nav_settings_aria: 'Settings',
+        mobile_nav_search_aria: 'Search',
+        // Validation alerts
+        alert_save_title: 'Please enter a title for your word list',
+        alert_save_langs: 'Please choose both languages for your word list',
+        alert_save_words: 'Add at least one word',
+        alert_save_cloud_fail: 'Failed to save online. Your list was saved locally. Check your RLS policies.',
+        alert_import_no_pairs: 'No word pairs found. Check if you pasted the correct text.',
+        alert_delete_none: 'No word list selected to delete.',
+        confirm_delete: 'Are you sure you want to delete this word list?',
+        alert_not_found: 'Word list not found or already deleted.',
+        alert_merge_min: 'Select at least 2 word lists to merge.',
+        export_copied: 'Word list copied to your clipboard.',
+        export_copy_fail: 'Copying to clipboard failed. Please try in a secure (https) environment.',
+        share_long_url_warning: 'Warning: this share link is very long and may not work in all browsers...',
+        share_link_copied: 'Share link copied!',
+        share_invalid: 'This share link is invalid or expired.',
+        qr_generating: 'Generating link...',
+        alert_no_words: 'No words found with your current selection/filters.',
+        alert_min_learn_stages: 'Choose at least 1 stage for Learn mode.',
+        merge_count_btn: 'Merge {count} list{s}',
+        online_load_fail: 'Failed to load online lists. Check your Supabase RLS policies.',
+        // Bulk import status/errors
+        bulk_enter_json: 'Enter JSON to import.',
+        bulk_invalid_json: 'Invalid JSON: {msg}',
+        bulk_not_array: 'Expected a JSON array with one or more word lists.',
+        bulk_missing_title: 'List {num}: "title" is missing or invalid.',
+        bulk_missing_langs: 'List "{title}": "langFrom" and "langTo" are required.',
+        bulk_missing_words: 'List "{title}": "words" must be a non-empty array.',
+        bulk_missing_word_fields: 'List "{title}", word {num}: "term" and "definition" are required.',
+        bulk_progress_creating: 'List {num}/{total}: Creating "{title}"...',
+        bulk_progress_saving: 'List {num}/{total}: Saving "{title}" to cloud...',
+        bulk_cloud_saved: ' (saved to cloud)',
+        bulk_cloud_error: ' ({count} cloud error{s})',
+        bulk_done: '{count} list{s} imported{extra}!',
+        bulk_undo_banner: '{count} word list{s} imported!',
+        bulk_undo_alert: 'No recent bulk import to undo.',
+        bulk_undo_confirm: 'Are you sure you want to undo the last bulk import? This will delete {count} word list{s}.',
+        // Auth modal buttons
+        auth_modal_login_submit: 'Log in',
+        auth_modal_signup_submit: 'Register',
+        // Create list
+        new_list_title: 'New Word List',
+        edit_list_heading: 'Edit list',
+        // Typing study extra hint
+        typing_extra_hint: 'Type correctly {count} more time(s)',
+        typing_partial_review: 'Correct! {count} more time(s)',
+        // Auth errors
+        auth_error_fill: 'Please enter email and password.',
+        // Feedback errors/status
+        feedback_err_subject: 'Please enter a subject (minimum 3 characters).',
+        feedback_err_desc: 'Please enter a description (minimum 10 characters).',
+        feedback_err_email: 'Please enter a valid email address or leave it empty.',
+        feedback_rate_limit: 'Please wait {sec} more seconds before sending feedback again.',
+        feedback_no_client: 'Cannot connect to the server. Please try again later.',
+        feedback_submitting_btn: 'Sending...',
+        feedback_err_send: 'Sending failed. Please try again later.',
+        feedback_success_msg: "Thank you for your feedback! We'll read it as soon as possible.",
+        feedback_generic_err: 'Something went wrong. Please try again later.',
+        // Export
+        export_header: 'Title:\t{title}\nLanguages:\t{from} -> {to}\n\n',
+        // Study mode strings
+        flash_flip_hint: 'Click the card to reveal the answer',
+        next_btn: 'Next',
+        next_question_btn: 'Next question',
+        check_btn: 'Check',
+        i_meant_this_btn: 'I meant this',
+        copy_type_label: 'Copy',
+        copy_target_label: 'Type this exactly:',
+        copy_input_placeholder: 'Type the answer here...',
+        copy_correct_feedback: 'Correctly copied!',
+        copy_wrong_feedback: 'Not quite right, try again.',
+        hint_type_label: 'Hint mode',
+        hint_input_placeholder: 'Type the full answer...',
+        hint_correct_feedback: 'Great!',
+        hint_wrong_feedback: 'Wrong.',
+        choice_type_label: 'Multiple choice',
+        choice_correct_feedback: 'Well done!',
+        typing_type_label: 'Typing',
+        typing_input_placeholder: 'Type your answer...',
+        typing_correct_feedback: 'Correct!',
+        typing_partial_feedback: 'Correct! {count} more',
+        typing_wrong_feedback: 'Wrong.',
+        answer_saved_feedback: 'Answer saved.',
+        review_type_label: 'Review (wrong words)',
+        exam_type_label: 'Test',
+        exam_input_placeholder: 'Type your answer...',
+        exam_next_btn: 'Next',
+        exam_hint_text: 'Feedback is shown at the end.',
+        exam_perfect: 'Perfect: no mistakes in the test.',
+        exam_errors_heading: 'Your mistakes ({count})',
+        exam_answer_row: 'You: {user} • Correct: {correct}',
+        exam_empty_answer: '(empty)',
+        no_answers: 'No answers recorded.',
+        stat_correct_summary: 'Correct: {correct} • Wrong: {wrong}',
+        // Cards mode
+        cards_swipe_hint: 'Swipe left (wrong) or right (correct) • Or tap to flip',
+        cards_wrong_btn: 'Wrong',
+        cards_correct_btn: 'Correct',
+        cards_review_title: 'Want to review the wrong cards?',
+        cards_review_desc: 'You got {count} card{s} wrong.',
+        cards_review_yes: 'Yes, retry wrong cards',
+        cards_review_no: 'No, finish',
+        // Connect mode
+        connect_win: 'Match Race complete! You connected all pairs in time.',
+        connect_lose: "Time's up! Try again and beat the clock.",
+        connect_pairs: 'Matched pairs: {matched}/{total}',
+        // Hints
+        no_hint: 'No hint available.',
+        hint_level1: 'Hint 1: First letter: {char}',
+        hint_level2: 'Hint 2: Length: {dots}',
+        hint_level3: 'Hint 3: Vowels: {masked}',
+        related_word_hint: '<strong>{term}</strong> is the word for <strong>{def}</strong>.',
+        // Diff labels
+        diff_you_label: 'You:',
+        diff_correct_label: 'Correct:',
+        diff_both_empty: 'You typed: <strong>(empty)</strong>',
+        diff_correct_empty: 'Correct answer: <strong>(empty)</strong>',
+        diff_you_empty: '(empty)',
+    }
+};
+
+/**
+ * Get the current app language ('nl' or 'en').
+ */
+function getLanguage() {
+    return localStorage.getItem('appLanguage') || 'nl';
+}
+
+/**
+ * Translate a key, with optional variable substitution {varName}.
+ */
+function t(key, vars = {}) {
+    const lang = getLanguage();
+    const dict = TRANSLATIONS[lang] || TRANSLATIONS.nl;
+    let str = Object.prototype.hasOwnProperty.call(dict, key) ? dict[key]
+            : (TRANSLATIONS.nl[key] ?? key);
+    for (const [k, v] of Object.entries(vars)) {
+        str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v != null ? v : '');
+    }
+    return str;
+}
+
+/**
+ * Set the UI language, persist it, and re-apply all translations.
+ */
+function setLanguage(lang) {
+    localStorage.setItem('appLanguage', lang);
+    applyTranslations();
+    renderWordLists();
+}
+
+/**
+ * Apply translations to all static data-i18n elements and update
+ * document title, meta tags, and the <html lang> attribute.
+ */
+function applyTranslations() {
+    const lang = getLanguage();
+    document.documentElement.lang = lang === 'en' ? 'en' : 'nl';
+
+    // textContent translations
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.dataset.i18n);
+    });
+
+    // innerHTML translations (for elements containing icons/HTML)
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        el.innerHTML = t(el.dataset.i18nHtml);
+    });
+
+    // Placeholder translations
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+
+    // aria-label translations
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+        el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+    });
+
+    // title attribute translations
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        el.setAttribute('title', t(el.dataset.i18nTitle));
+    });
+
+    // alt attribute translations
+    document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+        el.setAttribute('alt', t(el.dataset.i18nAlt));
+    });
+
+    // Document title
+    document.title = t('page_title');
+
+    // Meta tags
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', t('meta_description'));
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', t('og_title'));
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', t('og_description'));
+    const ogLocale = document.querySelector('meta[property="og:locale"]');
+    if (ogLocale) ogLocale.setAttribute('content', lang === 'en' ? 'en_US' : 'nl_NL');
+    const twTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twTitle) twTitle.setAttribute('content', t('og_title'));
+    const twDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twDesc) twDesc.setAttribute('content', t('og_description'));
+
+    // Language select option display texts (keep Dutch canonical values)
+    updateLanguageOptionTexts();
+
+    // Subject button display texts (keep data-subject canonical codes)
+    updateSubjectButtonTexts();
+
+    // Sync language selector value in settings
+    const langSelect = document.getElementById('app-language-select');
+    if (langSelect) langSelect.value = lang;
+}
+
+/**
+ * Update display text of language <option> elements.
+ * Option VALUES (Dutch canonical strings) are never changed.
+ */
+function updateLanguageOptionTexts() {
+    const langMap = {
+        'Nederlands': 'lang_nl', 'Engels': 'lang_en', 'Frans': 'lang_fr',
+        'Duits': 'lang_de', 'Spaans': 'lang_es', 'Italiaans': 'lang_it',
+        'Portugees': 'lang_pt', 'Latijn': 'lang_la', 'Grieks': 'lang_el',
+        'Arabisch': 'lang_ar', 'Turks': 'lang_tr', 'Chinees': 'lang_zh',
+        'Japans': 'lang_ja', 'Koreaans': 'lang_ko', 'Russisch': 'lang_ru',
+        'Zweeds': 'lang_sv', 'Deens': 'lang_da', 'Noors': 'lang_no',
+        'Overig': 'lang_other'
+    };
+    document.querySelectorAll('#lang-from option, #lang-to option').forEach(opt => {
+        if (opt.value === '') {
+            opt.textContent = t('lang_choose');
+        } else if (langMap[opt.value]) {
+            opt.textContent = t(langMap[opt.value]);
+        }
+    });
+}
+
+/**
+ * Update subject button display texts.
+ * data-subject values (Dutch canonical codes) are never changed.
+ */
+function updateSubjectButtonTexts() {
+    const subjectMap = {
+        'nederlands': 'subj_nl', 'engels': 'subj_en', 'frans': 'subj_fr',
+        'duits': 'subj_de', 'spaans': 'subj_es', 'italiaans': 'subj_it',
+        'latijn': 'subj_la', 'grieks': 'subj_gr', 'natuurkunde': 'subj_nat',
+        'scheikunde': 'subj_chem', 'biologie': 'subj_bio', 'other': 'subj_other'
+    };
+    document.querySelectorAll('.subject-btn').forEach(btn => {
+        const subject = btn.dataset.subject;
+        if (subject && subjectMap[subject]) {
+            const icon = btn.querySelector('i');
+            const iconHtml = icon ? icon.outerHTML + ' ' : '';
+            btn.innerHTML = iconHtml + t(subjectMap[subject]);
+        }
+    });
+}
+
 // ===== Data Storage =====
 let wordLists = JSON.parse(localStorage.getItem('wordLists')) || [];
 let currentListId = null;
@@ -536,9 +1372,10 @@ function showHome() {
 function showCreateList() {
     triggerHaptic('light');
     editingListId = null;
-    document.getElementById('create-title').textContent = 'Nieuwe Woordenlijst';
+    document.getElementById('create-title').textContent = t('new_list_title');
     document.getElementById('list-title').value = '';
-    document.getElementById('lang-from').value = '';
+    const defaultLangFrom = getLanguage() === 'en' ? 'Engels' : '';
+    document.getElementById('lang-from').value = defaultLangFrom;
     document.getElementById('lang-to').value = '';
     document.getElementById('selected-subject').value = '';
     document.getElementById('selected-icon').value = '';
@@ -572,8 +1409,8 @@ function showListDetail(listId) {
     
     document.getElementById('list-detail-icon').className = `fas ${list.icon || 'fa-book'}`;
     document.getElementById('list-detail-title').textContent = list.title;
-    document.getElementById('list-detail-meta').textContent = 
-        `${list.words.length} woordjes • ${list.langFrom} → ${list.langTo}`;
+    document.getElementById('list-detail-meta').textContent =
+        t('list_meta', {count: list.words.length, s: list.words.length !== 1 ? 's' : '', from: list.langFrom, to: list.langTo});
     
     // Update direction labels
     document.getElementById('dir-term-def').textContent = `${list.langFrom} → ${list.langTo}`;
@@ -619,7 +1456,7 @@ function renderWordLists() {
                 <div class="card-progress-bar">
                     <div class="card-progress-fill" style="width: ${progress.progressPct}%"></div>
                 </div>
-                <span class="card-progress-text">${progress.progressPct}% geleerd</span>
+                <span class="card-progress-text">${t('pct_learned', {pct: progress.progressPct})}</span>
             </div>
         ` : '';
 
@@ -632,7 +1469,7 @@ function renderWordLists() {
                 </div>
                 <div>
                     <div class="card-title">${escapeHtml(list.title)}</div>
-                    <div class="card-meta">${list.words.length} woordjes${isCloudEnabled() && list.isPublic ? ' • Openbaar' : ''}</div>
+                <div class="card-meta">${t('words_count', {count: list.words.length, s: list.words.length !== 1 ? 's' : ''})}${isCloudEnabled() && list.isPublic ? ' \u2022 ' + t('public_badge') : ''}</div>
                 </div>
             </div>
             <div class="card-languages">
@@ -652,9 +1489,9 @@ function renderWordsPreview(words) {
     const container = document.getElementById('words-preview-list');
     const grouped = groupWordsByMastery(words);
     const groupOrder = [
-        { key: 'new', title: 'Ken je nog niet' },
-        { key: 'learning', title: 'Aan het leren' },
-        { key: 'mastered', title: 'Gestampt!' }
+        { key: 'new', title: t('group_new') },
+        { key: 'learning', title: t('group_learning') },
+        { key: 'mastered', title: t('group_mastered') }
     ];
 
     container.innerHTML = groupOrder.map(group => {
@@ -665,7 +1502,7 @@ function renderWordsPreview(words) {
             <div class="word-group-header">
                 <h4>${group.title} (${groupWords.length})</h4>
                 <button class="btn btn-secondary btn-select-group" onclick="toggleSelectGroup('${group.key}')">
-                    <i class="fas fa-check"></i> Selecteer deze
+                    <i class="fas fa-check"></i> ${t('select_group_btn')}
                 </button>
             </div>
             <div class="word-group-list">
@@ -680,8 +1517,8 @@ function renderWordsPreview(words) {
                         <span class="term">${escapeHtml(word.term)}</span>
                         <span class="definition">${escapeHtml(word.definition)}</span>
                         <span class="word-stats">
-                            <span class="stat-good">Goed: ${stats.correct}</span>
-                            <span class="stat-bad">Fout: ${stats.wrong}</span>
+                            <span class="stat-good">${t('stat_correct_label', {count: stats.correct})}</span>
+                            <span class="stat-bad">${t('stat_wrong_label', {count: stats.wrong})}</span>
                         </span>
                     </div>
                     `;
@@ -785,8 +1622,8 @@ function updateSelectAllButton() {
 
     const allChecked = checkboxes.every(cb => cb.checked);
     btn.innerHTML = allChecked
-        ? '<i class="fas fa-times"></i> Selectie wissen'
-        : '<i class="fas fa-check-double"></i> Selecteer alles';
+        ? `<i class="fas fa-times"></i> ${t('deselect_all_btn')}`
+        : `<i class="fas fa-check-double"></i> ${t('select_all_btn')}`;
 }
 
 // ===== Word Entry Management =====
@@ -801,9 +1638,9 @@ function addWordEntry(term = '', definition = '', wordId = '') {
     }
     entry.innerHTML = `
         <span class="entry-number">${entryNum}</span>
-        <input type="text" class="word-term" placeholder="Woord" value="${escapeHtml(term)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-        <input type="text" class="word-definition" placeholder="Vertaling" value="${escapeHtml(definition)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-        <button class="btn-remove" onclick="removeWordEntry(this)" title="Verwijderen">
+        <input type="text" class="word-term" placeholder="${t('word_placeholder')}" value="${escapeHtml(term)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <input type="text" class="word-definition" placeholder="${t('definition_placeholder')}" value="${escapeHtml(definition)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <button class="btn-remove" onclick="removeWordEntry(this)" title="${t('remove_word_title')}">
             <i class="fas fa-times"></i>
         </button>
     `;
@@ -1044,7 +1881,7 @@ function importWords() {
         const result = parseStudyGoText(text);
 
         if (result.pairs.length === 0) {
-            alert('Geen woordparen gevonden. Controleer of je de juiste tekst hebt geplakt.');
+            alert(t('alert_import_no_pairs'));
             return;
         }
 
@@ -1083,7 +1920,7 @@ function importWords() {
         const result = parseJojoSchoolText(text);
 
         if (result.pairs.length === 0) {
-            alert('Geen woordparen gevonden. Controleer of je de juiste tekst hebt geplakt.');
+            alert(t('alert_import_no_pairs'));
             return;
         }
 
@@ -1178,7 +2015,7 @@ function openBulkImportModal() {
     document.getElementById('bulk-import-progress').classList.add('hidden');
     document.getElementById('bulk-import-submit-btn').disabled = false;
     document.getElementById('bulk-import-progress-fill').style.width = '0%';
-    document.getElementById('bulk-import-status').textContent = 'Lijsten importeren...';
+    document.getElementById('bulk-import-status').textContent = t('bulk_importing');
 }
 
 function closeBulkImportModal() {
@@ -1206,7 +2043,7 @@ function copyBulkImportFormat() {
 async function executeBulkImport() {
     const text = document.getElementById('bulk-import-text').value.trim();
     if (!text) {
-        alert('Voer JSON in om te importeren.');
+        alert(t('bulk_enter_json'));
         return;
     }
 
@@ -1214,12 +2051,12 @@ async function executeBulkImport() {
     try {
         lists = JSON.parse(text);
     } catch (e) {
-        alert('Ongeldige JSON: ' + e.message);
+        alert(t('bulk_invalid_json', {msg: e.message}));
         return;
     }
 
     if (!Array.isArray(lists) || lists.length === 0) {
-        alert('Verwacht een JSON-array met één of meer woordenlijsten.');
+        alert(t('bulk_not_array'));
         return;
     }
 
@@ -1227,21 +2064,21 @@ async function executeBulkImport() {
     for (let i = 0; i < lists.length; i++) {
         const l = lists[i];
         if (!l.title || typeof l.title !== 'string') {
-            alert(`Lijst ${i + 1}: "title" ontbreekt of is ongeldig.`);
+            alert(t('bulk_missing_title', {num: i + 1}));
             return;
         }
         if (!l.langFrom || !l.langTo) {
-            alert(`Lijst "${l.title}": "langFrom" en "langTo" zijn verplicht.`);
+            alert(t('bulk_missing_langs', {title: l.title}));
             return;
         }
         if (!Array.isArray(l.words) || l.words.length === 0) {
-            alert(`Lijst "${l.title}": "words" moet een niet-lege array zijn.`);
+            alert(t('bulk_missing_words', {title: l.title}));
             return;
         }
         for (let j = 0; j < l.words.length; j++) {
             const w = l.words[j];
             if (!w.term || !w.definition) {
-                alert(`Lijst "${l.title}", woord ${j + 1}: "term" en "definition" zijn verplicht.`);
+                alert(t('bulk_missing_word_fields', {title: l.title, num: j + 1}));
                 return;
             }
         }
@@ -1261,7 +2098,7 @@ async function executeBulkImport() {
 
     for (let i = 0; i < total; i++) {
         const l = lists[i];
-        statusText.textContent = `Lijst ${i + 1}/${total}: "${l.title}" aanmaken...`;
+        statusText.textContent = t('bulk_progress_creating', {num: i + 1, total, title: l.title});
         progressFill.style.width = `${Math.round((i / total) * 100)}%`;
 
         const newList = {
@@ -1286,7 +2123,7 @@ async function executeBulkImport() {
 
         if (authUser && supabaseClient) {
             try {
-                statusText.textContent = `Lijst ${i + 1}/${total}: "${l.title}" opslaan in cloud...`;
+                statusText.textContent = t('bulk_progress_saving', {num: i + 1, total, title: l.title});
                 await saveListToRemote(newList.id);
             } catch (err) {
                 console.error(`Cloud opslaan mislukt voor "${l.title}":`, err);
@@ -1296,8 +2133,10 @@ async function executeBulkImport() {
     }
 
     progressFill.style.width = '100%';
-    const cloudMsg = (authUser && supabaseClient && cloudFailed === 0) ? ' (cloud opgeslagen)' : (cloudFailed > 0 ? ` (${cloudFailed} cloud fout${cloudFailed !== 1 ? 'en' : ''})` : '');
-    statusText.textContent = `${total} lijst${total !== 1 ? 'en' : ''} geïmporteerd${cloudMsg}!`;
+    const cloudMsg = (authUser && supabaseClient && cloudFailed === 0)
+        ? t('bulk_cloud_saved')
+        : (cloudFailed > 0 ? t('bulk_cloud_error', {count: cloudFailed, s: cloudFailed !== 1 ? 's' : ''}) : '');
+    statusText.textContent = t('bulk_done', {count: total, s: total !== 1 ? 's' : '', extra: cloudMsg});
 
     // Always save locally as well
     saveData();
@@ -1317,7 +2156,7 @@ function showBulkImportUndoBanner(count) {
     const banner = document.getElementById('bulk-import-undo-banner');
     const text = document.getElementById('bulk-import-undo-text');
     if (!banner || !text) return;
-    text.textContent = `${count} woordenlijst${count !== 1 ? 'en' : ''} geïmporteerd!`;
+    text.textContent = t('bulk_undo_banner', {count, s: count !== 1 ? 's' : ''});
     banner.classList.remove('hidden');
 }
 
@@ -1329,11 +2168,11 @@ function dismissBulkImportBanner() {
 async function undoLastBulkImport() {
     const ids = JSON.parse(localStorage.getItem(BULK_IMPORT_LAST_IDS_KEY) || '[]');
     if (ids.length === 0) {
-        alert('Er is geen recente bulk import om ongedaan te maken.');
+        alert(t('bulk_undo_alert'));
         return;
     }
 
-    if (!confirm(`Weet je zeker dat je de laatste bulk import ongedaan wilt maken? Dit verwijdert ${ids.length} woordenlijst${ids.length !== 1 ? 'en' : ''}.`)) return;
+    if (!confirm(t('bulk_undo_confirm', {count: ids.length, s: ids.length !== 1 ? 's' : ''}))) return;
 
     for (const id of ids) {
         wordLists = wordLists.filter(l => l.id !== id);
@@ -1381,12 +2220,12 @@ async function saveList() {
     }, {});
     
     if (!title) {
-        alert('Voer een titel in voor je woordenlijst');
+        alert(t('alert_save_title'));
         return;
     }
 
     if (!langFrom || !langTo) {
-        alert('Kies beide talen voor je woordenlijst');
+        alert(t('alert_save_langs'));
         return;
     }
     
@@ -1407,7 +2246,7 @@ async function saveList() {
     });
     
     if (words.length === 0) {
-        alert('Voeg minimaal één woord toe');
+        alert(t('alert_save_words'));
         return;
     }
     
@@ -1447,7 +2286,7 @@ async function saveList() {
         } catch (err) {
             console.error('Online opslaan mislukt, lokaal opgeslagen.', err);
             saveData();
-            alert('Online opslaan mislukt. Je lijst is wel lokaal opgeslagen. Controleer je RLS policies.');
+            alert(t('alert_save_cloud_fail'));
         }
     } else {
         saveData();
@@ -1462,7 +2301,7 @@ function editCurrentList() {
     if (!list) return;
     
     editingListId = list.id;
-    document.getElementById('create-title').textContent = 'Lijst bewerken';
+    document.getElementById('create-title').textContent = t('edit_list_heading');
     document.getElementById('list-title').value = list.title;
     document.getElementById('lang-from').value = list.langFrom || '';
     document.getElementById('lang-to').value = list.langTo || '';
@@ -1498,11 +2337,11 @@ async function deleteCurrentList() {
     const id = currentListId || (container && container.dataset.listId);
 
     if (!id) {
-        alert('Geen woordenlijst geselecteerd om te verwijderen.');
+        alert(t('alert_delete_none'));
         return;
     }
 
-    if (!confirm('Weet je zeker dat je deze woordenlijst wilt verwijderen?')) return;
+    if (!confirm(t('confirm_delete'))) return;
 
     // show immediate UI feedback by disabling delete button
     const deleteBtn = document.querySelector('.btn-danger');
@@ -1514,7 +2353,7 @@ async function deleteCurrentList() {
     if (wordLists.length === beforeCount) {
         // nothing removed — restore button and warn
         if (deleteBtn) deleteBtn.disabled = false;
-        alert('Woordlijst niet gevonden of al verwijderd.');
+        alert(t('alert_not_found'));
         return;
     }
 
@@ -1574,7 +2413,7 @@ function updateMergeButton() {
 
     if (mergeMode && selectedListsForMerge.length >= 2) {
         mergeActionBtn.classList.remove('hidden');
-        mergeActionBtn.textContent = `${selectedListsForMerge.length} lijsten samenvoegen`;
+        mergeActionBtn.textContent = t('merge_count_btn', {count: selectedListsForMerge.length, s: selectedListsForMerge.length !== 1 ? 's' : ''});
     } else {
         mergeActionBtn.classList.add('hidden');
     }
@@ -1582,7 +2421,7 @@ function updateMergeButton() {
 
 function mergeLists() {
     if (selectedListsForMerge.length < 2) {
-        alert('Selecteer minstens 2 woordenlijsten om samen te voegen.');
+        alert(t('alert_merge_min'));
         return;
     }
 
@@ -1656,16 +2495,16 @@ async function exportCurrentList() {
     const list = wordLists.find(l => l.id === currentListId);
     if (!list) return;
 
-    const header = `Titel:\t${list.title}\nTalen:\t${list.langFrom} -> ${list.langTo}\n\n`;
+    const header = t('export_header', {title: list.title, from: list.langFrom, to: list.langTo});
     const content = list.words.map(w => `${w.term}\t${w.definition}`).join('\n');
     const text = header + content;
 
     try {
         await navigator.clipboard.writeText(text);
-        alert('Woordlijst gekopieerd naar je klembord.');
+        alert(t('export_copied'));
     } catch (err) {
         console.error('Kopiëren mislukt', err);
-        alert('Kopiëren naar klembord is mislukt. Probeer het in een veilige (https) omgeving.');
+        alert(t('export_copy_fail'));
     }
 }
 
@@ -1707,7 +2546,7 @@ async function buildShareUrlForList(list) {
     });
     const fullUrl = `${baseUrl}?${params.toString()}`;
     if (fullUrl.length > 2000) {
-        alert('Waarschuwing: deze deellink is erg lang en werkt mogelijk niet in alle browsers. Gebruik bij voorkeur een kleiner woordenlijst.');
+        alert(t('share_long_url_warning'));
     }
     return fullUrl;
 }
@@ -1743,7 +2582,7 @@ async function copyQrShareLink() {
     const input = document.getElementById('qr-share-link');
     if (!input || !input.value) return;
     await navigator.clipboard.writeText(input.value);
-    alert('Deellink gekopieerd!');
+    alert(t('share_link_copied'));
 }
 
 // ===== Supabase Auth & Sync =====
@@ -1848,11 +2687,11 @@ function openAuthModal(mode) {
     closeAuthMenu();
     document.getElementById('auth-modal').classList.remove('hidden');
     document.getElementById('auth-title').innerHTML = mode === 'signup'
-        ? '<i class="fas fa-user-plus"></i> Account maken'
-        : '<i class="fas fa-user"></i> Inloggen';
+        ? `<i class="fas fa-user-plus"></i> ${t('auth_modal_signup_title')}`
+        : `<i class="fas fa-user"></i> ${t('auth_modal_login_title')}`;
     document.getElementById('auth-submit-btn').innerHTML = mode === 'signup'
-        ? '<i class="fas fa-check"></i> Registreren'
-        : '<i class="fas fa-check"></i> Inloggen';
+        ? `<i class="fas fa-check"></i> ${t('auth_modal_signup_submit')}`
+        : `<i class="fas fa-check"></i> ${t('auth_modal_login_submit')}`;
     document.getElementById('auth-error').classList.add('hidden');
 }
 
@@ -2197,7 +3036,7 @@ async function submitAuth() {
     const errorEl = document.getElementById('auth-error');
 
     if (!email || !password) {
-        errorEl.textContent = 'Vul e-mail en wachtwoord in.';
+        errorEl.textContent = t('auth_error_fill');
         errorEl.classList.remove('hidden');
         return;
     }
@@ -2235,7 +3074,7 @@ async function loadRemoteLists() {
 
     if (error) {
         console.error('Load lists failed', error);
-        alert('Online lijsten laden is mislukt. Controleer je Supabase RLS policies.');
+        alert(t('online_load_fail'));
         return;
     }
 
@@ -2564,7 +3403,7 @@ async function performSearch() {
 
     const query = (input.value || '').trim();
     if (!query) {
-        results.innerHTML = '<p class="search-view-prompt"><i class="fas fa-search"></i> Typ om te zoeken naar woordenlijsten of oefeningen.</p>';
+        results.innerHTML = `<p class="search-view-prompt"><i class="fas fa-search"></i> ${t('search_prompt')}</p>`;
         return;
     }
 
@@ -2593,10 +3432,10 @@ async function performSearch() {
             <div class="public-list-card">
                 <div class="public-list-info">
                     <div class="public-list-title"><i class="fas ${list.icon || 'fa-book'}" style="color:var(--primary-yellow-dark);margin-right:0.4rem;"></i>${escapeHtml(list.title)}</div>
-                    <div class="public-list-meta">${escapeHtml(list.langFrom || '')} → ${escapeHtml(list.langTo || '')} • ${list.words?.length || 0} woordjes</div>
+                    <div class="public-list-meta">${escapeHtml(list.langFrom || '')} → ${escapeHtml(list.langTo || '')} • ${t('words_count', {count: list.words?.length || 0, s: (list.words?.length || 0) !== 1 ? 's' : ''})}</div>
                 </div>
                 <button class="btn btn-primary" onclick="showListDetail('${list.id}')">
-                    <i class="fas fa-play"></i> Oefenen
+                    <i class="fas fa-play"></i> ${t('search_practice_btn')}
                 </button>
             </div>
         `).join('');
@@ -2618,10 +3457,10 @@ async function performSearch() {
                     <div class="public-list-card">
                         <div class="public-list-info">
                             <div class="public-list-title"><i class="fas fa-cloud" style="color:var(--primary-yellow-dark);margin-right:0.4rem;"></i>${escapeHtml(list.title)}</div>
-                            <div class="public-list-meta">${escapeHtml(list.lang_from)} → ${escapeHtml(list.lang_to)} • ${list.words?.length || 0} woordjes</div>
+                            <div class="public-list-meta">${escapeHtml(list.lang_from)} → ${escapeHtml(list.lang_to)} • ${t('words_count', {count: list.words?.length || 0, s: (list.words?.length || 0) !== 1 ? 's' : ''})}</div>
                         </div>
                         <button class="btn btn-primary" onclick="importPublicList('${list.id}')">
-                            <i class="fas fa-download"></i> Importeren
+                            <i class="fas fa-download"></i> ${t('search_import_btn')}
                         </button>
                     </div>
                 `).join('');
@@ -2649,7 +3488,7 @@ function showSearchView() {
     const results = document.getElementById('search-view-results');
     const input = document.getElementById('search-view-input');
     if (results && input && !input.value) {
-        results.innerHTML = '<p class="search-view-prompt"><i class="fas fa-search"></i> Typ om te zoeken naar woordenlijsten of oefeningen.</p>';
+        results.innerHTML = `<p class="search-view-prompt"><i class="fas fa-search"></i> ${t('search_prompt')}</p>`;
     }
 }
 
@@ -2774,7 +3613,7 @@ function confirmStartStudy() {
         : ['typing'];
 
     if (currentStudyMode === 'steps' && learnStages.length === 0) {
-        alert('Kies minimaal 1 onderdeel voor Leren-modus.');
+        alert(t('alert_min_learn_stages'));
         return;
     }
 
@@ -3033,17 +3872,17 @@ function renderExamSummary() {
             <div class="summary-row wrong">
                 <span class="summary-term">${left}</span>
                 <span class="summary-def">${right}</span>
-                <span class="summary-stats">Jij: ${escapeHtml(item.userAnswer || '(leeg)')} • Juist: ${escapeHtml(item.correctAnswer || '-')}</span>
+                <span class="summary-stats">${t('exam_answer_row', {user: escapeHtml(item.userAnswer || ''), correct: escapeHtml(item.correctAnswer || '-')})}</span>
             </div>
         `;
     }).join('');
 
     if (!rows) {
-        return '<p class="summary-empty">Perfect: geen fouten gemaakt in de toets.</p>';
+        return `<p class="summary-empty">${t('exam_perfect')}</p>`;
     }
 
     return `
-        <h4>Jouw fouten (${wrongAnswers.length})</h4>
+        <h4>${t('exam_errors_heading', {count: wrongAnswers.length})}</h4>
         ${rows}
     `;
 }
@@ -3133,7 +3972,7 @@ function initStepsMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert('Geen woorden gevonden met je huidige selectie/filters.');
+        alert(t('alert_no_words'));
         showListDetail(currentListId);
         return;
     }
@@ -3339,7 +4178,7 @@ function showStepFlash(word, qa) {
     const content = document.getElementById('steps-content');
     content.innerHTML = `
         <div class="question-card">
-            <div class="flip-hint">Klik op de kaart om het antwoord te zien</div>
+            <div class="flip-hint">${t('flash_flip_hint')}</div>
             <div class="flip-card" id="step-flash-card" onclick="flipStepFlash()">
                 <div class="flip-card-inner" id="step-flash-inner">
                     <div class="flip-card-front">
@@ -3351,7 +4190,7 @@ function showStepFlash(word, qa) {
                 </div>
             </div>
             <button class="btn btn-primary" id="step-flash-next" onclick="continueStepFlash('${word.id}')" style="display: none;">
-                <i class="fas fa-arrow-right"></i> Volgende
+                <i class="fas fa-arrow-right"></i> ${t('next_btn')}
             </button>
         </div>
     `;
@@ -3379,19 +4218,19 @@ function showStepCopy(word, qa) {
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
-                <i class="fas fa-pencil-alt"></i> Overtypen
+                <i class="fas fa-pencil-alt"></i> ${t('copy_type_label')}
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="copy-target-box">
-                <p class="copy-target-label">Typ dit exact over:</p>
+                <p class="copy-target-label">${t('copy_target_label')}</p>
                 <div class="copy-target-text">${escapeHtml(qa.answer)}</div>
             </div>
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-copy-input"
-                       placeholder="Typ het antwoord hier..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="${t('copy_input_placeholder')}" autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" id="step-copy-submit" onclick="checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-check"></i> Controleer
+                    <i class="fas fa-check"></i> ${t('check_btn')}
                 </button>
             </div>
             <div id="step-copy-feedback"></div>
@@ -3420,8 +4259,8 @@ function checkStepCopy(wordId, correct) {
         playCorrectSound();
         advanceLearnPhase(wordId);
         feedback.innerHTML = `
-            <div class="feedback-message correct"><i class="fas fa-check-circle"></i> Goed overgetypt!</div>
-            <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> Volgende vraag</button>
+            <div class="feedback-message correct"><i class="fas fa-check-circle"></i> ${t('copy_correct_feedback')}</div>
+            <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> ${t('next_question_btn')}</button>
         `;
     } else {
         triggerHaptic('heavy');
@@ -3430,14 +4269,14 @@ function checkStepCopy(wordId, correct) {
         studySession.stepsWrongWords.push(wordId);
         const diff = buildTypingDiff(userAnswer, correct);
         feedback.innerHTML = `
-            <div class="feedback-message wrong"><i class="fas fa-times-circle"></i> Nog niet goed, probeer opnieuw.</div>
+            <div class="feedback-message wrong"><i class="fas fa-times-circle"></i> ${t('copy_wrong_feedback')}</div>
             ${diff}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepCopy('${wordId}')">
-                    <i class="fas fa-check"></i> Ik bedoelde dit
+                    <i class="fas fa-check"></i> ${t('i_meant_this_btn')}
                 </button>
                 <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             </div>
         `;
@@ -3456,16 +4295,16 @@ function showStepHint(word, qa) {
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
-                <i class="fas fa-lightbulb"></i> Hint-modus
+                <i class="fas fa-lightbulb"></i> ${t('hint_type_label')}
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <p class="setting-hint">Hint: ${escapeHtml(hintPattern)}</p>
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-hint-input"
-                       placeholder="Typ het volledige antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="${t('hint_input_placeholder')}" autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepHint('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" id="step-hint-submit" onclick="checkStepHint('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-check"></i> Controleer
+                    <i class="fas fa-check"></i> ${t('check_btn')}
                 </button>
             </div>
             <div id="step-hint-feedback"></div>
@@ -3494,8 +4333,8 @@ function checkStepHint(wordId, correct) {
         playCorrectSound();
         advanceLearnPhase(wordId);
         feedback.innerHTML = `
-            <div class="feedback-message correct"><i class="fas fa-check-circle"></i> Top!</div>
-            <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> Volgende vraag</button>
+            <div class="feedback-message correct"><i class="fas fa-check-circle"></i> ${t('hint_correct_feedback')}</div>
+            <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()"><i class="fas fa-arrow-right"></i> ${t('next_question_btn')}</button>
         `;
     } else {
         triggerHaptic('heavy');
@@ -3504,14 +4343,14 @@ function checkStepHint(wordId, correct) {
         studySession.stepsWrongWords.push(wordId);
         const diff = buildTypingDiff(userAnswer, correct);
         feedback.innerHTML = `
-            <div class="feedback-message wrong"><i class="fas fa-times-circle"></i> Fout.</div>
+            <div class="feedback-message wrong"><i class="fas fa-times-circle"></i> ${t('hint_wrong_feedback')}</div>
             ${diff}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepHint('${wordId}')">
-                    <i class="fas fa-check"></i> Ik bedoelde dit
+                    <i class="fas fa-check"></i> ${t('i_meant_this_btn')}
                 </button>
                 <button class="btn btn-primary btn-next" onclick="showNextStepQuestion()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             </div>
         `;
@@ -3534,7 +4373,7 @@ function showStepChoice(word, qa) {
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
-                <i class="fas fa-list-ul"></i> Meerkeuze
+                <i class="fas fa-list-ul"></i> ${t('choice_type_label')}
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="choice-options">
@@ -3578,12 +4417,12 @@ function checkStepChoice(wordId, btn, selected, correct) {
             feedback.innerHTML = examMode
                 ? `
                 <button class="btn btn-primary btn-next" onclick="continueStepChoice()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             `
                 : `
                 <div class="feedback-msg correct">
-                    <i class="fas fa-check-circle"></i> Goed zo!
+                    <i class="fas fa-check-circle"></i> ${t('choice_correct_feedback')}
                 </div>
             `;
         }
@@ -3597,7 +4436,7 @@ function checkStepChoice(wordId, btn, selected, correct) {
         if (feedback) {
             feedback.innerHTML = `
                 <button class="btn btn-primary btn-next" onclick="continueStepChoice()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             `;
         }
@@ -3622,15 +4461,15 @@ function showStepTyping(word, qa) {
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
-                <i class="fas fa-keyboard"></i> Typen
+                <i class="fas fa-keyboard"></i> ${t('typing_type_label')}
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-typing-input"
-                       placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="${t('typing_input_placeholder')}" autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" id="step-typing-submit" onclick="checkStepTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-check"></i> Controleer
+                    <i class="fas fa-check"></i> ${t('check_btn')}
                 </button>
             </div>
             ${hintUi}
@@ -3675,17 +4514,17 @@ function checkStepTyping(wordId, correct) {
             updateStepsProgress();
             feedback.innerHTML = examMode ? `
                 <div class="feedback-message">
-                    <i class="fas fa-check"></i> Antwoord opgeslagen.
+                    <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
                 </div>
                 <button class="btn btn-primary btn-next" onclick="continueStepTyping()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             ` : `
                 <div class="feedback-message correct">
-                    <i class="fas fa-check-circle"></i> Goed!
+                    <i class="fas fa-check-circle"></i> ${t('typing_correct_feedback')}
                 </div>
                 <button class="btn btn-primary btn-next" onclick="continueStepTyping()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             `;
             input.disabled = true;
@@ -3699,17 +4538,17 @@ function checkStepTyping(wordId, correct) {
         progress.typingCooldown = Math.max(progress.typingCooldown, 3);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
-                <i class="fas fa-check"></i> Antwoord opgeslagen.
+                <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueStepTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         ` : `
             <div class="feedback-message correct">
-                <i class="fas fa-check-circle"></i> Goed! Nog ${progress.typingRemaining}x
+                <i class="fas fa-check-circle"></i> ${t('typing_partial_feedback', {count: progress.typingRemaining})}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueStepTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         `;
         input.value = '';
@@ -3733,23 +4572,23 @@ function checkStepTyping(wordId, correct) {
         if (feedback) {
             feedback.innerHTML = examMode ? `
                 <div class="feedback-message">
-                    <i class="fas fa-check"></i> Antwoord opgeslagen.
+                    <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
                 </div>
                 <button class="btn btn-primary btn-next" onclick="continueStepTyping()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             ` : `
                 <div class="feedback-message wrong">
-                    <i class="fas fa-times-circle"></i> Fout.
+                    <i class="fas fa-times-circle"></i> ${t('typing_wrong_feedback')}
                 </div>
                 ${diff}
                 ${relatedHint}
                 <div class="feedback-actions">
                     <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepTyping('${wordId}')">
-                        <i class="fas fa-check"></i> Ik bedoelde dit
+                        <i class="fas fa-check"></i> ${t('i_meant_this_btn')}
                     </button>
                     <button class="btn btn-primary btn-next" onclick="continueStepTyping()">
-                        <i class="fas fa-arrow-right"></i> Volgende vraag
+                        <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                     </button>
                 </div>
             `;
@@ -3816,15 +4655,15 @@ function showNextStepsReviewQuestion() {
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
-                <i class="fas fa-repeat"></i> Herhaling (foute woorden)
+                <i class="fas fa-repeat"></i> ${t('review_type_label')}
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-review-input"
-                       placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="${t('typing_input_placeholder')}" autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepReviewTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" id="step-review-submit" onclick="checkStepReviewTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-check"></i> Controleer
+                    <i class="fas fa-check"></i> ${t('check_btn')}
                 </button>
             </div>
             ${hintUi}
@@ -3862,17 +4701,17 @@ function checkStepReviewTyping(wordId, correct) {
         updateStepsProgress();
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
-                <i class="fas fa-check"></i> Antwoord opgeslagen.
+                <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueStepReviewTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         ` : `
             <div class="feedback-message correct">
                 <i class="fas fa-check-circle"></i> Goed!
             </div>
             <button class="btn btn-primary btn-next" onclick="continueStepReviewTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         `;
     } else {
@@ -3885,10 +4724,10 @@ function checkStepReviewTyping(wordId, correct) {
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
-                <i class="fas fa-check"></i> Antwoord opgeslagen.
+                <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueStepReviewTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         ` : `
             <div class="feedback-message wrong">
@@ -3898,10 +4737,10 @@ function checkStepReviewTyping(wordId, correct) {
             ${relatedHint}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedStepReview('${wordId}')">
-                    <i class="fas fa-check"></i> Ik bedoelde dit
+                    <i class="fas fa-check"></i> ${t('i_meant_this_btn')}
                 </button>
                 <button class="btn btn-primary btn-next" onclick="continueStepReviewTyping()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             </div>
         `;
@@ -3927,7 +4766,7 @@ function initTypingMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert('Geen woorden gevonden met je huidige selectie/filters.');
+        alert(t('alert_no_words'));
         showListDetail(currentListId);
         return;
     }
@@ -3993,7 +4832,7 @@ function showNextTypingQuestion() {
     const qa = getQuestion(nextWord);
     const progress = studySession.typingProgress[nextWord.id];
     const extraHint = progress.needsExtraCorrect > 0 
-        ? `<p class="extra-hint">Nog ${progress.needsExtraCorrect}x goed typen</p>` 
+        ? `<p class="extra-hint">${t('typing_extra_hint', {count: progress.needsExtraCorrect})}</p>` 
         : '';
     const hintUi = renderHintButton(nextWord.id, qa.answer, 'typing-hint-box');
     currentCheckContext = { wordId: nextWord.id, correct: qa.answer };
@@ -4001,16 +4840,16 @@ function showNextTypingQuestion() {
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
-                <i class="fas fa-keyboard"></i> Typen
+                <i class="fas fa-keyboard"></i> ${t('typing_type_label')}
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             ${extraHint}
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="typing-input" 
-                       placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="${t('typing_input_placeholder')}" autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" id="typing-submit" onclick="checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-check"></i> Controleer
+                    <i class="fas fa-check"></i> ${t('check_btn')}
                 </button>
             </div>
             ${hintUi}
@@ -4054,17 +4893,17 @@ function checkTypingAnswer(wordId, correct) {
             progress.completed = true;
             feedback.innerHTML = examMode ? `
                 <div class="feedback-message">
-                    <i class="fas fa-check"></i> Antwoord opgeslagen.
+                    <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
                 </div>
                 <button class="btn btn-primary btn-next" onclick="continueTyping()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             ` : `
                 <div class="feedback-message correct">
-                    <i class="fas fa-check-circle"></i> Goed!
+                    <i class="fas fa-check-circle"></i> ${t('typing_correct_feedback')}
                 </div>
                 <button class="btn btn-primary btn-next" onclick="continueTyping()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             `;
             updateTypingProgress();
@@ -4079,17 +4918,17 @@ function checkTypingAnswer(wordId, correct) {
         progress.cooldown = Math.max(progress.cooldown, 3);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
-                <i class="fas fa-check"></i> Antwoord opgeslagen.
+                <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         ` : `
             <div class="feedback-message correct">
-                <i class="fas fa-check-circle"></i> Goed! Nog ${progress.needsExtraCorrect}x
+                <i class="fas fa-check-circle"></i> ${t('typing_partial_review', {count: progress.needsExtraCorrect})}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         `;
         input.value = '';
@@ -4114,10 +4953,10 @@ function checkTypingAnswer(wordId, correct) {
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
-                <i class="fas fa-check"></i> Antwoord opgeslagen.
+                <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueTyping()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         ` : `
             <div class="feedback-message wrong">
@@ -4127,10 +4966,10 @@ function checkTypingAnswer(wordId, correct) {
             ${relatedHint}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedTyping('${wordId}')">
-                    <i class="fas fa-check"></i> Ik bedoelde dit
+                    <i class="fas fa-check"></i> ${t('i_meant_this_btn')}
                 </button>
                 <button class="btn btn-primary btn-next" onclick="continueTyping()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             </div>
         `;
@@ -4182,15 +5021,15 @@ function showNextTypingReviewQuestion() {
     content.innerHTML = `
         <div class="question-card">
             <div class="question-type-label">
-                <i class="fas fa-repeat"></i> Herhaling (foute woorden)
+                <i class="fas fa-repeat"></i> ${t('review_type_label')}
             </div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="typing-review-input" 
-                       placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="${t('typing_input_placeholder')}" autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkTypingReview('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" id="typing-review-submit" onclick="checkTypingReview('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-check"></i> Controleer
+                    <i class="fas fa-check"></i> ${t('check_btn')}
                 </button>
             </div>
             ${hintUi}
@@ -4227,17 +5066,17 @@ function checkTypingReview(wordId, correct) {
         updateTypingProgress();
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
-                <i class="fas fa-check"></i> Antwoord opgeslagen.
+                <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueTypingReview()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         ` : `
             <div class="feedback-message correct">
                 <i class="fas fa-check-circle"></i> Goed!
             </div>
             <button class="btn btn-primary btn-next" onclick="continueTypingReview()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         `;
     } else {
@@ -4250,10 +5089,10 @@ function checkTypingReview(wordId, correct) {
         const relatedHint = buildRelatedWordHint(userAnswer, correct, wordId);
         feedback.innerHTML = examMode ? `
             <div class="feedback-message">
-                <i class="fas fa-check"></i> Antwoord opgeslagen.
+                <i class="fas fa-check"></i> ${t('answer_saved_feedback')}
             </div>
             <button class="btn btn-primary btn-next" onclick="continueTypingReview()">
-                <i class="fas fa-arrow-right"></i> Volgende vraag
+                <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
             </button>
         ` : `
             <div class="feedback-message wrong">
@@ -4263,10 +5102,10 @@ function checkTypingReview(wordId, correct) {
             ${relatedHint}
             <div class="feedback-actions">
                 <button class="btn btn-secondary btn-intended" onclick="acceptIntendedTypingReview('${wordId}')">
-                    <i class="fas fa-check"></i> Ik bedoelde dit
+                    <i class="fas fa-check"></i> ${t('i_meant_this_btn')}
                 </button>
                 <button class="btn btn-primary btn-next" onclick="continueTypingReview()">
-                    <i class="fas fa-arrow-right"></i> Volgende vraag
+                    <i class="fas fa-arrow-right"></i> ${t('next_question_btn')}
                 </button>
             </div>
         `;
@@ -4319,7 +5158,7 @@ function initExamMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert('Geen woorden gevonden met je huidige selectie/filters.');
+        alert(t('alert_no_words'));
         showListDetail(currentListId);
         return;
     }
@@ -4356,17 +5195,17 @@ function showNextExamQuestion() {
 
     content.innerHTML = `
         <div class="question-card">
-            <div class="question-type-label"><i class="fas fa-clipboard-check"></i> Toets</div>
+            <div class="question-type-label"><i class="fas fa-clipboard-check"></i> ${t('exam_type_label')}</div>
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="exam-input"
-                       placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                       placeholder="${t('typing_input_placeholder')}" autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); submitExamAnswer('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
                 <button class="btn btn-primary typing-submit" onclick="submitExamAnswer('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
-                    <i class="fas fa-arrow-right"></i> Volgende
+                    <i class="fas fa-arrow-right"></i> ${t('exam_next_btn')}
                 </button>
             </div>
-            <p class="setting-hint">Feedback krijg je pas op het einde.</p>
+            <p class="setting-hint">${t('exam_hint_text')}</p>
         </div>
     `;
 
@@ -4411,7 +5250,7 @@ function initConnectMode() {
 
     const selectedWords = getStudyWordsFromSelection(list.words);
     if (!selectedWords.length) {
-        alert('Geen woorden gevonden met je huidige selectie/filters.');
+        alert(t('alert_no_words'));
         showListDetail(currentListId);
         return;
     }
@@ -4584,11 +5423,11 @@ function finishConnectMode(won) {
     document.getElementById('stat-wrong').textContent = studySession.wrongCount;
 
     const msg = won
-        ? 'Koppelrace gehaald! Je hebt alle paren op tijd verbonden.'
-        : 'Tijd op! Probeer opnieuw en versla de klok.';
+        ? t('connect_win')
+        : t('connect_lose');
     document.getElementById('complete-message').innerHTML = msg;
     document.getElementById('complete-summary').innerHTML =
-        `<p class="summary-empty">Gevonden paren: ${connectState.matchedPairIds.length}/${connectState.totalPairs}</p>`;
+        `<p class="summary-empty">${t('connect_pairs', {matched: connectState.matchedPairIds.length, total: connectState.totalPairs})}</p>`;
 
     if (won) {
         playCompleteSound();
@@ -4649,7 +5488,7 @@ function initCardsMode() {
 
     const words = getStudyWordsFromSelection(list.words);
     if (!words.length) {
-        alert('Geen woorden gevonden met je huidige selectie/filters.');
+        alert(t('alert_no_words'));
         showListDetail(currentListId);
         return;
     }
@@ -4716,13 +5555,13 @@ function showCurrentCard() {
                 </div>
             </div>
         </div>
-        <p class="card-hint">Swipe links (fout) of rechts (goed) • Of tik om te flippen</p>
+        <p class="card-hint">${t('cards_swipe_hint')}</p>
         <div class="cards-actions" style="display: none;">
             <button class="card-action-btn card-action-wrong" onclick="markCard(false)">
-                <i class="fas fa-times"></i> Fout
+                <i class="fas fa-times"></i> ${t('cards_wrong_btn')}
             </button>
             <button class="card-action-btn card-action-right" onclick="markCard(true)">
-                <i class="fas fa-check"></i> Goed
+                <i class="fas fa-check"></i> ${t('cards_correct_btn')}
             </button>
         </div>
     `;
@@ -4910,16 +5749,16 @@ function showCardsReviewPrompt() {
     const content = document.getElementById('cards-content');
     content.innerHTML = `
         <div class="question-card">
-            <h3>Wil je de foute kaartjes herhalen?</h3>
+            <h3>${t('cards_review_title')}</h3>
             <p style="margin: 1rem 0; color: var(--text-medium);">
-                Je hebt ${cardsState.wrongCards.length} ${cardsState.wrongCards.length === 1 ? 'kaartje' : 'kaartjes'} fout.
+                ${t('cards_review_desc', {count: cardsState.wrongCards.length, s: cardsState.wrongCards.length !== 1 ? 's' : ''})}
             </p>
             <div class="cards-actions" style="flex-direction: column;">
                 <button class="btn btn-primary" onclick="retryWrongCards()">
-                    <i class="fas fa-redo"></i> Ja, herhaal fouten
+                    <i class="fas fa-redo"></i> ${t('cards_review_yes')}
                 </button>
                 <button class="btn btn-secondary" onclick="finalizeCardSession()">
-                    <i class="fas fa-check"></i> Nee, afronden
+                    <i class="fas fa-check"></i> ${t('cards_review_no')}
                 </button>
             </div>
         </div>
@@ -4965,10 +5804,10 @@ function finalizeCardSession() {
     }
 
     const hintPart = studySession.hintPenalty > 0
-        ? ` Hints gebruikt: -${studySession.hintPenalty.toFixed(1)} punt(en).`
+        ? t('hint_penalty', {count: studySession.hintPenalty.toFixed(1)})
         : '';
     document.getElementById('complete-message').innerHTML =
-        `Je hebt alle woordjes geoefend met ${accuracy}% nauwkeurigheid (cijfer <span class="grade-score ${gradeClass}">${grade}</span>).${hintPart}`;
+        t('complete_accuracy', {pct: accuracy, gradeClass, grade, hintPart});
 
     triggerHaptic('complete');
     playCompleteSound();
@@ -5014,10 +5853,10 @@ function showComplete() {
     }
 
     const hintPart = studySession.hintPenalty > 0
-        ? ` Hints gebruikt: -${studySession.hintPenalty.toFixed(1)} punt(en).`
+        ? t('hint_penalty', {count: studySession.hintPenalty.toFixed(1)})
         : '';
     document.getElementById('complete-message').innerHTML =
-        `Je hebt alle woordjes geoefend met ${accuracy}% nauwkeurigheid (cijfer <span class="grade-score ${gradeClass}">${grade}</span>).${hintPart}`;
+        t('complete_accuracy', {pct: accuracy, gradeClass, grade, hintPart});
 
     playCompleteSound();
     createConfetti();
@@ -5162,6 +6001,7 @@ function restoreLastView() {
 
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
+    applyTranslations();
     ensureAllWordMetadata();
     saveData();
     renderWordLists();
@@ -5227,7 +6067,7 @@ function applyImportFromUrl() {
             .then(({ data, error }) => {
                 if (error || !data) {
                     console.error('Share ophalen mislukt:', error);
-                    alert('Deze deellink is ongeldig of verlopen.');
+                    alert(t('share_invalid'));
                     return;
                 }
                 const s = data.data;
@@ -5521,8 +6361,8 @@ function buildTypingDiff(userAnswer, correctAnswer) {
     if (!user.length && !correct.length) {
         return `
             <div class="correct-answer-display">
-                <div>Jij typte: <strong>(leeg)</strong></div>
-                <div>Juiste antwoord: <strong>(leeg)</strong></div>
+                <div>${t('diff_both_empty')}</div>
+                <div>${t('diff_correct_empty')}</div>
             </div>
         `;
     }
@@ -5531,11 +6371,11 @@ function buildTypingDiff(userAnswer, correctAnswer) {
         return `
             <div class="typing-diff">
                 <div class="diff-row">
-                    <span class="diff-label">Jij:</span>
-                    <span class="diff-text"><span class="diff-char missing">(leeg)</span></span>
+                    <span class="diff-label">${t('diff_you_label')}</span>
+                    <span class="diff-text"><span class="diff-char missing">${t('diff_you_empty')}</span></span>
                 </div>
                 <div class="diff-row">
-                    <span class="diff-label">Juist:</span>
+                    <span class="diff-label">${t('diff_correct_label')}</span>
                     <span class="diff-text"><span class="diff-char expected">${escapeHtml(correct)}</span></span>
                 </div>
             </div>
@@ -5548,11 +6388,11 @@ function buildTypingDiff(userAnswer, correctAnswer) {
     return `
         <div class="typing-diff">
             <div class="diff-row">
-                <span class="diff-label">Jij:</span>
+                <span class="diff-label">${t('diff_you_label')}</span>
                 <span class="diff-text">${diff.userHtml}</span>
             </div>
             <div class="diff-row">
-                <span class="diff-label">Juist:</span>
+                <span class="diff-label">${t('diff_correct_label')}</span>
                 <span class="diff-text">${diff.correctHtml}</span>
             </div>
         </div>
@@ -5914,7 +6754,7 @@ function finalizeSessionStats() {
 
     if (isExamModeActive()) {
         const examRows = renderExamSummary();
-        summary.innerHTML = examRows || '<p class="summary-empty">Geen antwoorden geregistreerd.</p>';
+        summary.innerHTML = examRows || `<p class="summary-empty">${t('no_answers')}</p>`;
         return;
     }
 
@@ -5930,12 +6770,12 @@ function finalizeSessionStats() {
             <div class="summary-row">
                 <span class="summary-term">${escapeHtml(word.term)}</span>
                 <span class="summary-def">${escapeHtml(word.definition)}</span>
-                <span class="summary-stats">Goed: ${stats.correct} • Fout: ${stats.wrong}</span>
+                <span class="summary-stats">${t('stat_correct_summary', {correct: stats.correct, wrong: stats.wrong})}</span>
             </div>
         `;
     }).join('');
 
-    summary.innerHTML = rows || '<p class="summary-empty">Geen antwoorden geregistreerd.</p>';
+    summary.innerHTML = rows || `<p class="summary-empty">${t('no_answers')}</p>`;
 }
 
 function saveActiveSession() {
@@ -5971,7 +6811,7 @@ function updateResumeBanner() {
     }
 
     banner.classList.remove('hidden');
-    text.textContent = `Je hebt een sessie openstaan (${data.mode}).`;
+    text.textContent = t('resume_banner_text', {mode: data.mode});
 }
 
 function resumeStudy() {
@@ -6090,17 +6930,17 @@ async function submitFeedback() {
 
     // Validatie
     if (!subject || subject.length < 3) {
-        errorEl.textContent = 'Vul een onderwerp in (minimaal 3 tekens).';
+        errorEl.textContent = t('feedback_err_subject');
         errorEl.classList.remove('hidden');
         return;
     }
     if (!description || description.length < 10) {
-        errorEl.textContent = 'Vul een beschrijving in (minimaal 10 tekens).';
+        errorEl.textContent = t('feedback_err_desc');
         errorEl.classList.remove('hidden');
         return;
     }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errorEl.textContent = 'Vul een geldig e-mailadres in of laat het veld leeg.';
+        errorEl.textContent = t('feedback_err_email');
         errorEl.classList.remove('hidden');
         return;
     }
@@ -6109,7 +6949,7 @@ async function submitFeedback() {
     const lastSubmit = parseInt(localStorage.getItem(FEEDBACK_COOLDOWN_KEY) || '0', 10);
     if (Date.now() - lastSubmit < FEEDBACK_COOLDOWN_MS) {
         const secondsLeft = Math.ceil((FEEDBACK_COOLDOWN_MS - (Date.now() - lastSubmit)) / 1000);
-        errorEl.textContent = `Wacht nog ${secondsLeft} seconden voordat je weer feedback kunt versturen.`;
+        errorEl.textContent = t('feedback_rate_limit', {sec: secondsLeft});
         errorEl.classList.remove('hidden');
         return;
     }
@@ -6128,14 +6968,14 @@ async function submitFeedback() {
     }
 
     if (!supabaseClient) {
-        errorEl.textContent = 'Kan geen verbinding maken met de server. Probeer het later opnieuw.';
+        errorEl.textContent = t('feedback_no_client');
         errorEl.classList.remove('hidden');
         return;
     }
 
     // Disable submit button
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Versturen...';
+    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('feedback_submitting_btn')}`;
 
     try {
         const payload = {
@@ -6153,16 +6993,16 @@ async function submitFeedback() {
 
         if (error) {
             console.error('Feedback submit error:', error);
-            errorEl.textContent = 'Versturen mislukt. Probeer het later opnieuw.';
+            errorEl.textContent = t('feedback_err_send');
             errorEl.classList.remove('hidden');
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Versturen';
+            submitBtn.innerHTML = `<i class="fas fa-paper-plane"></i> ${t('feedback_send_btn')}`;
             return;
         }
 
         // Succes!
         localStorage.setItem(FEEDBACK_COOLDOWN_KEY, Date.now().toString());
-        successEl.textContent = 'Bedankt voor je feedback! We lezen het zo snel mogelijk.';
+        successEl.textContent = t('feedback_success_msg');
         successEl.classList.remove('hidden');
         triggerHaptic('success');
 
@@ -6173,10 +7013,10 @@ async function submitFeedback() {
 
     } catch (err) {
         console.error('Feedback submit exception:', err);
-        errorEl.textContent = 'Er ging iets mis. Probeer het later opnieuw.';
+        errorEl.textContent = t('feedback_generic_err');
         errorEl.classList.remove('hidden');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Versturen';
+        submitBtn.innerHTML = `<i class="fas fa-paper-plane"></i> ${t('feedback_send_btn')}`;
     }
 }
