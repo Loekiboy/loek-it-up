@@ -2,11 +2,14 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Loek it Up">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#fdc204">
+    <meta name="format-detection" content="telephone=no">
 
     <!-- SEO & Social -->
     <meta name="description" content="Loek it Up — gratis woordjes leren app. Maak je eigen woordenlijsten en oefen met meerdere modi.">
@@ -25,13 +28,49 @@
 
     <title>Loek it Up - Woordjes Leren</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/fav.png" type="image/png">
     <link rel="icon" href="images/logo.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" sizes="180x180" href="images/fav.png">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="fonts/fontawesome/css/all.min.css">
 </head>
 <body>
     <a href="#main-content" class="skip-link">Naar inhoud</a>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container" role="alert" aria-live="polite"></div>
+
+    <!-- Custom Confirm Dialog -->
+    <div id="confirm-dialog" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div class="confirm-box">
+            <h3 id="confirm-title" class="confirm-title"></h3>
+            <p id="confirm-message" class="confirm-message"></p>
+            <div class="confirm-actions">
+                <button id="confirm-cancel" class="btn btn-secondary"><i class="fas fa-times"></i> Annuleren</button>
+                <button id="confirm-ok" class="btn btn-danger"><i class="fas fa-check"></i> Bevestigen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offline Banner -->
+    <div id="offline-banner" class="offline-banner hidden" role="status" aria-live="assertive">
+        <i class="fas fa-exclamation-triangle"></i> Je bent offline. Sommige functies zijn beperkt.
+    </div>
+
+    <!-- Install Prompt -->
+    <div id="install-prompt" class="install-prompt hidden">
+        <div class="install-prompt-content">
+            <i class="fas fa-download"></i>
+            <span>Installeer Loek it Up als app!</span>
+            <button id="install-btn" class="btn btn-primary btn-sm" onclick="installApp()">
+                Installeer
+            </button>
+            <button class="btn-close-sm" onclick="dismissInstallPrompt()" aria-label="Sluiten">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -65,6 +104,9 @@
                 </button>
                 <button class="nav-btn" onclick="openAppSettings()" data-view="settings">
                     <i class="fas fa-cog"></i> Instellingen
+                </button>
+                <button class="nav-btn" onclick="showStatsView()" data-view="stats">
+                    <i class="fas fa-chart-bar"></i> Stats
                 </button>
                 <button class="nav-btn" onclick="showSearchView()" data-view="search">
                     <i class="fas fa-search"></i> Zoeken
@@ -116,6 +158,34 @@
                     </div>
                     <h1>Welkom bij <span class="highlight">Loek it Up</span></h1>
                     <p>De slimste manier om woordjes te leren!</p>
+                </div>
+
+                <!-- Streaks & Quick Stats -->
+                <div id="gamification-bar" class="gamification-bar hidden">
+                    <div class="gamification-card streak-card" title="Aantal dagen op rij geleerd">
+                        <i class="fas fa-fire"></i>
+                        <div class="gamification-info">
+                            <span id="streak-count" class="gamification-value">0</span>
+                            <span class="gamification-label">Streak</span>
+                        </div>
+                    </div>
+                    <div class="gamification-card xp-card" title="Totaal verdiende XP">
+                        <i class="fas fa-star"></i>
+                        <div class="gamification-info">
+                            <span id="xp-count" class="gamification-value">0</span>
+                            <span class="gamification-label">XP</span>
+                        </div>
+                    </div>
+                    <div class="gamification-card goal-card" title="Dagelijks doel">
+                        <i class="fas fa-bullseye"></i>
+                        <div class="gamification-info">
+                            <span id="daily-goal-progress" class="gamification-value">0/20</span>
+                            <span class="gamification-label">Vandaag</span>
+                        </div>
+                        <div class="daily-goal-bar">
+                            <div id="daily-goal-fill" class="daily-goal-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Feedback Knop -->
@@ -901,6 +971,51 @@
                 </div>
             </div>
 
+            <!-- Statistics View -->
+            <div id="stats-view" class="view">
+                <div class="stats-container">
+                    <div class="stats-header-bar">
+                        <button class="btn-back" onclick="showHome()">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h2><i class="fas fa-chart-bar"></i> Statistieken</h2>
+                    </div>
+
+                    <div class="stats-overview">
+                        <div class="stats-card">
+                            <i class="fas fa-fire stats-icon streak"></i>
+                            <span id="stats-streak" class="stats-big-number">0</span>
+                            <span class="stats-label">Dag streak</span>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-star stats-icon xp"></i>
+                            <span id="stats-total-xp" class="stats-big-number">0</span>
+                            <span class="stats-label">Totaal XP</span>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-check-circle stats-icon correct"></i>
+                            <span id="stats-total-correct" class="stats-big-number">0</span>
+                            <span class="stats-label">Goed</span>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-clock stats-icon time"></i>
+                            <span id="stats-total-sessions" class="stats-big-number">0</span>
+                            <span class="stats-label">Sessies</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <h3><i class="fas fa-calendar-alt"></i> Activiteit (laatste 7 dagen)</h3>
+                        <div id="stats-activity-chart" class="activity-chart"></div>
+                    </div>
+
+                    <div class="stats-section">
+                        <h3><i class="fas fa-trophy"></i> Prestaties</h3>
+                        <div id="stats-achievements" class="achievements-grid"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Confetti Canvas -->
             <canvas id="confetti-canvas" class="hidden"></canvas>
 
@@ -945,6 +1060,10 @@
                 <i class="fas fa-plus"></i>
                 <span>Nieuw</span>
             </button>
+            <button class="mobile-nav-btn" onclick="showStatsView()" data-view="stats" aria-label="Statistieken">
+                <i class="fas fa-chart-bar"></i>
+                <span>Stats</span>
+            </button>
             <button class="mobile-nav-btn" onclick="openAppSettings()" data-view="settings" aria-label="Instellingen">
                 <i class="fas fa-cog"></i>
                 <span>Inst.</span>
@@ -960,7 +1079,24 @@
     <audio id="correct-sound" preload="auto"></audio>
     <audio id="complete-sound" preload="auto"></audio>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+    <script>
+        // Laad Supabase async zodat het de rest van de app niet blokkeert
+        (function() {
+            var s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+            s.crossOrigin = 'anonymous';
+            s.async = true;
+            s.onload = function() {
+                // Supabase is nu beschikbaar, herinitialiseer cloud features
+                if (typeof applyCloudState === 'function') applyCloudState();
+                if (typeof applyImportFromUrl === 'function') applyImportFromUrl();
+            };
+            s.onerror = function() {
+                console.warn('Supabase CDN kon niet geladen worden. Cloud functies zijn niet beschikbaar.');
+            };
+            document.head.appendChild(s);
+        })();
+    </script>
     <script src="confetti.js"></script>
     <script src="app.js"></script>
     <script>

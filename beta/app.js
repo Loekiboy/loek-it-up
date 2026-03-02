@@ -4810,8 +4810,29 @@ function applyImportFromUrl() {
 
     // Nieuwe methode: korte share-link via Supabase
     const shareId = params.get('share');
-    if (shareId && supabaseClient) {
-        supabaseClient
+    if (shareId) {
+        // Zorg ervoor dat Supabase beschikbaar is voor share links,
+        // zelfs als cloud niet is ingeschakeld door de gebruiker
+        let client = supabaseClient;
+        if (!client && window.supabase) {
+            try {
+                const SUPABASE_URL = 'https://sngiduythwiuthrtzmch.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuZ2lkdXl0aHdpdXRocnR6bWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNDY5MzUsImV4cCI6MjA4NTYyMjkzNX0.xNecbmT6VRPPhBVnW5WQv-QdJp4o2MDZq4tV-jsJXLI';
+                if (window.__loek_supabase_client) {
+                    client = window.__loek_supabase_client;
+                } else {
+                    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    window.__loek_supabase_client = client;
+                }
+            } catch (e) {
+                console.warn('Supabase init voor share link mislukt:', e);
+            }
+        }
+        if (!client) {
+            alert('Kan deellink niet laden. Probeer de pagina opnieuw te laden.');
+            return;
+        }
+        client
             .from('shares')
             .select('data')
             .eq('id', shareId)

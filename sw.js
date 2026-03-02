@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loek-it-up-v3';
+const CACHE_NAME = 'loek-it-up-v6';
 
 // Lokale assets — moeten slagen voor install
 const LOCAL_ASSETS = [
@@ -7,23 +7,24 @@ const LOCAL_ASSETS = [
   './styles.css',
   './app.js',
   './confetti.js',
+  './manifest.json',
   './images/logo.svg',
   './images/fav.png',
-  './dictonary/eng-nld.json',
-  './dictonary/nld-eng.json',
-  './dictonary/deu-nld.json',
-  './dictonary/nld-deu.json',
-  './dictonary/fra-nld.json',
-  './dictonary/nld-fra.json',
+  './fonts/fontawesome/css/all.min.css',
+  './fonts/fontawesome/webfonts/fa-solid-900.woff2',
+  './fonts/fontawesome/webfonts/fa-regular-400.woff2',
+  './fonts/fontawesome/webfonts/fa-brands-400.woff2',
 ];
 
 // Externe assets — optioneel, falen blokkeert install NIET
-const EXTERNAL_ASSETS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-];
+const EXTERNAL_ASSETS = [];
+
+// Font Awesome webfonts pattern (voor eventuele CDN fallback caching)
+const FA_WEBFONT_PATTERN = /font-awesome/;
 
 // Install event: cache lokale assets (must succeed) + externe assets (best-effort)
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Activate new SW immediately
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       console.log('Opened cache');
@@ -43,7 +44,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event: clean up old caches
+// Activate event: clean up old caches and claim clients
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -54,7 +55,7 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Take control of all clients immediately
   );
 });
 
@@ -62,20 +63,19 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const isExternal = url.origin !== self.location.origin;
+  const isFontAwesome = FA_WEBFONT_PATTERN.test(url.href);
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       if (cachedResponse) {
         // Stale-while-revalidate voor externe assets (Font Awesome, etc.)
         if (isExternal) {
-          const fetchPromise = fetch(event.request).then(networkResponse => {
+          fetch(event.request).then(networkResponse => {
             if (networkResponse && networkResponse.ok) {
               const clone = networkResponse.clone();
               caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
             }
-            return networkResponse;
-          }).catch(() => cachedResponse);
-          // Stuur direct cached versie, update op achtergrond
+          }).catch(() => { /* achtergrond update mislukt, geen probleem */ });
         }
         return cachedResponse;
       }
@@ -86,12 +86,21 @@ self.addEventListener('fetch', event => {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
         }
-        // Cache ook cross-origin (opaque/cors) responses voor Font Awesome fonts etc.
-        if (response && response.status === 200 && isExternal) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+        // Cache ook cross-origin responses voor Font Awesome (CSS + woff2 fonts) en andere CDN resources
+        if (response && (response.status === 200 || response.type === 'opaque') && isExternal) {
+          // Cache Font Awesome fonts (woff2, etc.) en CSS altijd
+          if (isFontAwesome || response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+          }
         }
         return response;
+      }).catch(() => {
+        // Als fetch mislukt en geen cache beschikbaar, geef een lege response voor externe resources
+        if (isExternal) {
+          return new Response('', { status: 408, statusText: 'Offline' });
+        }
+        return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
       });
     })
   );
