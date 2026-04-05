@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loek-it-up-beta-v5';
+const CACHE_NAME = 'loek-it-up-beta-v8';
 
 // Lokale assets — moeten slagen voor install
 const LOCAL_ASSETS = [
@@ -68,6 +68,11 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const isExternal = url.origin !== self.location.origin;
   const isFontAwesome = FA_WEBFONT_PATTERN.test(url.href);
+
+  // Skip non-GET requests and Supabase API calls
+  if (event.request.method !== 'GET' || url.hostname.includes('supabase.co')) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {

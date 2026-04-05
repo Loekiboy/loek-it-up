@@ -4475,3 +4475,39 @@ textarea:focus-visible,
         scroll-behavior: auto !important;
     }
 }
+
+/* ===== Trema Helper ===== */
+.trema-helper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+.trema-btn {
+    background: var(--white);
+    border: 2px solid var(--bg-light, #FFF9E6);
+    border-radius: var(--radius-md, 12px);
+    padding: 8px 14px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-dark, #2D2A26);
+    transition: var(--transition, all 0.3s ease);
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0,0,0,0.08));
+}
+
+.trema-btn:hover {
+    background: var(--bg-light, #FFF9E6);
+    border-color: var(--primary-yellow, #FFD93D);
+    color: var(--text-dark);;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.1));
+}
+
+.trema-btn:active {
+    transform: translateY(0) scale(0.95);
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0,0,0,0.08));
+}
+

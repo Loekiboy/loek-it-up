@@ -1543,16 +1543,8 @@ function applyTheme() {
 }
 
 function updateFavicon(primary, dark) {
-    const isDynamic = isDynamicLogoEnabled();
-    // Default colors as sent by user
-    let faceColor = "#fdc204";
-    let noseColor = "#e89d05";
-
-    // Always use original colors for default yellow, otherwise follow dynamic setting
-    if (isDynamic && primary !== '#FFD93D') {
-        faceColor = primary;
-        noseColor = dark;
-    }
+    let faceColor = primary === '#FFD93D' ? '#fdc204' : primary;
+    let noseColor = primary === '#FFD93D' ? '#e89d05' : dark;
 
     const svgTemplate = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="176" height="208" viewBox="0 0 176 208">
         <g transform="translate(-159.0253,-68.68503)">
@@ -1574,10 +1566,10 @@ function updateFavicon(primary, dark) {
     </svg>`;
 
     const encodedSvg = window.btoa(svgTemplate);
-    const link = document.querySelector("link[rel*='icon']");
-    if (link) {
+        document.querySelectorAll("link[rel*='icon']").forEach(link => {
+        link.type = "image/svg+xml";
         link.href = `data:image/svg+xml;base64,${encodedSvg}`;
-    }
+    });
 }
 
 function normalizeHexColor(value) {
@@ -3016,8 +3008,9 @@ function showStepCopy(word, qa) {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-copy-input"
                        placeholder="Typ het antwoord hier..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
-                <button class="btn btn-primary typing-submit" id="step-copy-submit" onclick="checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}'); }">
+                ${getTremaHelperHtml('step-copy-input', qa.answerLang)}
+                <button class="btn btn-primary typing-submit" id="step-copy-submit" onclick="checkStepCopy('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                     <i class="fas fa-check"></i> Controleer
                 </button>
             </div>
@@ -3091,8 +3084,9 @@ function showStepHint(word, qa) {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-hint-input"
                        placeholder="Typ het volledige antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepHint('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
-                <button class="btn btn-primary typing-submit" id="step-hint-submit" onclick="checkStepHint('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepHint('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}'); }">
+                ${getTremaHelperHtml('step-hint-input', qa.answerLang)}
+                <button class="btn btn-primary typing-submit" id="step-hint-submit" onclick="checkStepHint('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                     <i class="fas fa-check"></i> Controleer
                 </button>
             </div>
@@ -3170,7 +3164,7 @@ function showStepChoice(word, qa) {
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="choice-options">
                 ${options.map((opt) => `
-                    <button class="choice-btn" onclick="checkStepChoice('${word.id}', this, '${escapeHtml(opt).replace(/'/g, "\\'")}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                    <button class="choice-btn" onclick="checkStepChoice('${word.id}', this, '${escapeHtml(opt).replace(/&#39;/g, "\\&#39;")}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                         ${escapeHtml(opt)}
                     </button>
                 `).join('')}
@@ -3260,8 +3254,9 @@ function showStepTyping(word, qa) {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-typing-input"
                        placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
-                <button class="btn btn-primary typing-submit" id="step-typing-submit" onclick="checkStepTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepTyping('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}'); }">
+                ${getTremaHelperHtml('step-typing-input', qa.answerLang)}
+                <button class="btn btn-primary typing-submit" id="step-typing-submit" onclick="checkStepTyping('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                     <i class="fas fa-check"></i> Controleer
                 </button>
             </div>
@@ -3457,8 +3452,9 @@ function showNextStepsReviewQuestion() {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="step-review-input"
                        placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepReviewTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
-                <button class="btn btn-primary typing-submit" id="step-review-submit" onclick="checkStepReviewTyping('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkStepReviewTyping('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}'); }">
+                ${getTremaHelperHtml('step-review-input', qa.answerLang)}
+                <button class="btn btn-primary typing-submit" id="step-review-submit" onclick="checkStepReviewTyping('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                     <i class="fas fa-check"></i> Controleer
                 </button>
             </div>
@@ -3647,8 +3643,9 @@ function showNextTypingQuestion() {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="typing-input" 
                        placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
-                <button class="btn btn-primary typing-submit" id="typing-submit" onclick="checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}'); }">
+                ${getTremaHelperHtml('typing-input', qa.answerLang)}
+                <button class="btn btn-primary typing-submit" id="typing-submit" onclick="checkTypingAnswer('${nextWord.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                     <i class="fas fa-check"></i> Controleer
                 </button>
             </div>
@@ -3830,8 +3827,9 @@ function showNextTypingReviewQuestion() {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="typing-review-input" 
                        placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkTypingReview('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
-                <button class="btn btn-primary typing-submit" id="typing-review-submit" onclick="checkTypingReview('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); checkTypingReview('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}'); }">
+                ${getTremaHelperHtml('typing-review-input', qa.answerLang)}
+                <button class="btn btn-primary typing-submit" id="typing-review-submit" onclick="checkTypingReview('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                     <i class="fas fa-check"></i> Controleer
                 </button>
             </div>
@@ -4005,8 +4003,9 @@ function showNextExamQuestion() {
             <div class="typing-input-container">
                 <input type="text" class="typing-input" id="exam-input"
                        placeholder="Type je antwoord..." autofocus autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); submitExamAnswer('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}'); }">
-                <button class="btn btn-primary typing-submit" onclick="submitExamAnswer('${word.id}', '${escapeHtml(qa.answer).replace(/'/g, "\\'")}')">
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); event.stopPropagation(); submitExamAnswer('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}'); }">
+                ${getTremaHelperHtml('exam-input', qa.answerLang)}
+                <button class="btn btn-primary typing-submit" onclick="submitExamAnswer('${word.id}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
                     <i class="fas fa-arrow-right"></i> Volgende
                 </button>
             </div>
@@ -5638,4 +5637,52 @@ function resumeStudy() {
             showNextExamQuestion();
             break;
     }
+}
+
+
+// ===== Trema Helper =====
+function isTremaHelperEnabled() {
+    const cb = document.getElementById('show-trema-helper');
+    return cb ? cb.checked : true;
+}
+
+const tremaLanguageMap = {
+    'fr': ['�','�','�','�','�','�','�','�','�','�','�','�','�'],
+    'frans': ['�','�','�','�','�','�','�','�','�','�','�','�','�'],
+    'de': ['�','�','�','�'],
+    'duits': ['�','�','�','�'],
+    'es': ['�','�','�','�','�','�','�','�','�'],
+    'spaans': ['�','�','�','�','�','�','�','�','�'],
+    'it': ['�','�','�','�','�','�','�','�'],
+    'italiaans': ['�','�','�','�','�','�','�','�'],
+    'pt': ['�','�','�','�','�','�','�','�','�','�','�'],
+    'portugees': ['�','�','�','�','�','�','�','�','�','�','�'],
+    'nl': ['�','�','�','�','�'],
+    'nederlands': ['�','�','�','�','�']
+};
+
+function getTremaHelperHtml(inputId, lang) {
+    if (!isTremaHelperEnabled()) return '';
+    let chars = [];
+    if (lang && tremaLanguageMap[lang.toLowerCase()]) {
+        chars = tremaLanguageMap[lang.toLowerCase()];
+    } else {
+        return '';
+    }
+    let btns = chars.map(c => '<button class="trema-btn" type="button" tabindex="-1" onmousedown="event.preventDefault(); insertTremaCharacter(\'' + inputId + '\', \'' + c + '\')">' + c + '</button>').join('');
+    return '<div class="trema-helper">' + btns + '</div>';
+}
+
+function insertTremaCharacter(inputId, char) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const val = input.value;
+    input.value = val.substring(0, start) + char + val.substring(end);
+    input.selectionStart = input.selectionEnd = start + 1;
+    
+    // Trigger input event to update any counters or states
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
 }
