@@ -2097,6 +2097,44 @@ body.dark .bulk-import-undo-banner {
     display: flex;
 }
 
+.settings-subject-checkbox {
+    display: flex;
+    align-items: center;
+    background: var(--bg-hover);
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.settings-subject-checkbox:hover {
+    background: var(--border-color);
+}
+.settings-subject-checkbox input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+.subject-checkbox-icon {
+    font-size: 1.1rem;
+    margin: 0 4px 0 0;
+    color: var(--primary-color);
+}
+.subject-checkbox-label {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.home-subject-btn {
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.home-subject-btn i {
+    margin-right: 4px;
+}
+
 .settings-item-row {
     width: 100%;
 }

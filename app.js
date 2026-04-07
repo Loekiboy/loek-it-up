@@ -186,6 +186,10 @@ const TRANSLATIONS = {
         cloud_toggle_label: 'Cloud functies inschakelen',
         cloud_toggle_hint: 'Inloggen, openbare lijsten en online sync',
         settings_language_label: 'Taal / Language',
+        settings_home_subjects: 'Vakken op thuisscherm',
+        settings_home_subjects_hint: 'Kies welke vakken (talen) je als snelle filterknoppen wilt vastzetten.',
+        show_trema_helper_label: 'Speciale tekens hulp',
+        show_trema_helper_hint: 'Toon speciale letters bij typen (ë, é, ä)',
         settings_done_btn: 'Klaar',
         // Bulk import modal
         bulk_modal_title: 'Bulk Import',
@@ -532,6 +536,10 @@ const TRANSLATIONS = {
         cloud_toggle_label: 'Enable cloud features',
         cloud_toggle_hint: 'Login, public lists and online sync',
         settings_language_label: 'Language / Taal',
+        settings_home_subjects: 'Subjects on home screen',
+        settings_home_subjects_hint: 'Choose which subjects (languages) you want to pin as quick filters.',
+        show_trema_helper_label: 'Special characters helper',
+        show_trema_helper_hint: 'Show special characters when typing (ë, é, ä)',
         settings_done_btn: 'Done',
         // Bulk import modal
         bulk_modal_title: 'Bulk Import',
@@ -850,6 +858,23 @@ let mergeMode = false;
 let selectedListsForMerge = [];
 let _progressSyncTimer = null; // debounce timer for progress sync
 let _hashNavigating = false;  // flag to prevent recursive hash updates
+
+// Home screen filters
+let visibleHomeSubjects = [];
+try {
+    visibleHomeSubjects = JSON.parse(localStorage.getItem('visibleHomeSubjects')) || ['duits', 'frans', 'engels'];
+} catch (e) {
+    visibleHomeSubjects = ['duits', 'frans', 'engels'];
+}
+let homeSubjectFilter = null;
+
+// Subject map with icons
+const subjectFlagsMap = {
+    'nederlands': '<i class="fas fa-flag"></i>', 'engels': '<i class="fas fa-flag-usa"></i>', 'frans': '<i class="fas fa-flag"></i>',
+    'duits': '<i class="fas fa-flag"></i>', 'spaans': '<i class="fas fa-flag"></i>', 'italiaans': '<i class="fas fa-flag"></i>',
+    'latijn': '<i class="fas fa-book-open"></i>', 'grieks': '<i class="fas fa-university"></i>', 'natuurkunde': '<i class="fas fa-atom"></i>',
+    'scheikunde': '<i class="fas fa-flask"></i>', 'biologie': '<i class="fas fa-dna"></i>', 'other': '<i class="fas fa-book"></i>'
+};
 
 // Haptic Feedback Helper
 function triggerHaptic(type = 'light') {
@@ -1463,6 +1488,8 @@ function renderWordLists() {
     const container = document.getElementById('word-lists-container');
     const emptyState = document.getElementById('empty-state');
 
+    renderHomeSubjectFilters();
+
     if (wordLists.length === 0) {
         container.classList.add('hidden');
         emptyState.classList.remove('hidden');
@@ -1473,13 +1500,30 @@ function renderWordLists() {
     emptyState.classList.add('hidden');
 
     // Sort word lists by last studied (newest first)
-    const sortedLists = [...wordLists].sort((a, b) => {
-        const timeA = a.lastStudied || 0;
-        const timeB = b.lastStudied || 0;
+    let displayLists = [...wordLists].sort((a, b) => {
+        const timeA = a.lastStudied || (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const timeB = b.lastStudied || (b.createdAt ? new Date(b.createdAt).getTime() : 0);
         return timeB - timeA;
     });
 
-    container.innerHTML = sortedLists.map(list => {
+    if (homeSubjectFilter) {
+        // If a subject is selected, show ALL lists from that subject
+        displayLists = displayLists.filter(list => list.subject === homeSubjectFilter);
+    } else {
+        // If no filter, show top 10 most recent lists overall
+        displayLists = displayLists.slice(0, 10);
+    }
+
+    if (displayLists.length === 0 && homeSubjectFilter) {
+        container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1; padding: 2rem;">
+            <i class="fas fa-folder-open"></i>
+            <h3>Geen lijsten gevonden voor dit vak</h3>
+        </div>`;
+        updateMergeButton();
+        return;
+    }
+
+    container.innerHTML = displayLists.map(list => {
         const isSelected = selectedListsForMerge.includes(list.id);
         const checkboxHtml = mergeMode ? `
             <div class="merge-checkbox" onclick="event.stopPropagation(); toggleListSelection('${list.id}')">
@@ -1520,6 +1564,44 @@ function renderWordLists() {
     }).join('');
 
     updateMergeButton();
+}
+
+function renderHomeSubjectFilters() {
+    const filtersBar = document.getElementById('home-subject-filters');
+    if (!filtersBar) return;
+
+    if (visibleHomeSubjects.length === 0) {
+        filtersBar.innerHTML = '';
+        return;
+    }
+
+    const mapSubjectKey = {
+        'duits': 'subj_de', 'frans': 'subj_fr', 'engels': 'subj_en',
+        'nederlands': 'subj_nl', 'spaans': 'subj_es', 'italiaans': 'subj_it',
+        'latijn': 'subj_la', 'grieks': 'subj_gr', 'natuurkunde': 'subj_nat',
+        'scheikunde': 'subj_chem', 'biologie': 'subj_bio', 'other': 'subj_other'
+    };
+
+    filtersBar.innerHTML = visibleHomeSubjects.map(subKey => {
+        const i18nCode = mapSubjectKey[subKey];
+        const flag = subjectFlagsMap[subKey] || '<i class="fas fa-book"></i>';
+        const isActive = homeSubjectFilter === subKey;
+        
+        return `<button class="btn ${isActive ? 'btn-primary' : 'btn-secondary'}" 
+                        style="border-radius: 50px; padding: 0.4rem 1rem; margin-right: 0.5rem; margin-bottom: 0.5rem;"
+                        onclick="toggleHomeSubjectFilter('${subKey}')">
+                    <span style="margin-right: 4px;">${flag}</span> ${i18nCode ? t(i18nCode) : subKey}
+                </button>`;
+    }).join('');
+}
+
+function toggleHomeSubjectFilter(subject) {
+    if (homeSubjectFilter === subject) {
+        homeSubjectFilter = null; // deselect
+    } else {
+        homeSubjectFilter = subject; // select
+    }
+    renderWordLists();
 }
 
 function renderWordsPreview(words) {
@@ -2750,7 +2832,51 @@ function openAppSettings() {
     if (colorPicker) colorPicker.value = accent;
     if (colorInput) colorInput.value = accent;
     renderPresetColors();
+
+    const subjectContainer = document.getElementById('settings-subjects-container');
+    if (subjectContainer) {
+        const availableSubjects = [
+            { key: 'duits', i18n: 'subj_de' },
+            { key: 'frans', i18n: 'subj_fr' },
+            { key: 'engels', i18n: 'subj_en' },
+            { key: 'nederlands', i18n: 'subj_nl' },
+            { key: 'spaans', i18n: 'subj_es' },
+            { key: 'italiaans', i18n: 'subj_it' },
+            { key: 'latijn', i18n: 'subj_la' },
+            { key: 'grieks', i18n: 'subj_gr' },
+            { key: 'natuurkunde', i18n: 'subj_nat' },
+            { key: 'scheikunde', i18n: 'subj_chem' },
+            { key: 'biologie', i18n: 'subj_bio' },
+            { key: 'other', i18n: 'subj_other' }
+        ];
+
+        subjectContainer.innerHTML = availableSubjects.map(sub => {
+            const isChecked = visibleHomeSubjects.includes(sub.key);
+            const flag = subjectFlagsMap[sub.key] || '<i class="fas fa-book"></i>';
+            return `
+                <label class="settings-subject-checkbox">
+                    <input type="checkbox" value="${sub.key}" ${isChecked ? 'checked' : ''} onchange="toggleVisibleSubject(this)">
+                    <span class="subject-checkbox-icon">${flag}</span>
+                    <span class="subject-checkbox-label">${t(sub.i18n)}</span>
+                </label>
+            `;
+        }).join('');
+    }
+
     if (modal) modal.classList.remove('hidden');
+}
+
+function toggleVisibleSubject(checkbox) {
+    if (checkbox.checked) {
+        if (!visibleHomeSubjects.includes(checkbox.value)) {
+            visibleHomeSubjects.push(checkbox.value);
+        }
+    } else {
+        visibleHomeSubjects = visibleHomeSubjects.filter(v => v !== checkbox.value);
+    }
+    localStorage.setItem('visibleHomeSubjects', JSON.stringify(visibleHomeSubjects));
+    renderHomeSubjectFilters(); // Immediately update the UI behind the modal
+    renderWordLists(); // Refresh active lists in home view
 }
 
 function closeAppSettings() {
@@ -4430,7 +4556,7 @@ function showStepChoice(word, qa) {
             <div class="question-word">${escapeHtml(qa.question)}</div>
             <div class="choice-options">
                 ${options.map((opt) => `
-                    <button class="choice-btn" onclick="checkStepChoice('${word.id}', this, '${escapeHtml(opt).replace(/&#39;/g, "\\&#39;")}', '${escapeHtml(qa.answer).replace(/&#39;/g, "\\&#39;")}')">
+                    <button class="choice-btn" data-word-id="${word.id}" data-opt="${escapeHtml(opt)}" data-answer="${escapeHtml(qa.answer)}" onclick="checkStepChoice(this.getAttribute('data-word-id'), this, this.getAttribute('data-opt'), this.getAttribute('data-answer'))">
                         ${escapeHtml(opt)}
                     </button>
                 `).join('')}
