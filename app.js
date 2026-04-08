@@ -1,4 +1,95 @@
 // ===== TRANSLATIONS SYSTEM =====
+let userHasManuallySetLanguage = false;
+
+// --- AUTO-DETECTIE TALEN ---
+
+// Functie om de taaldetectie uit te voeren
+function detectLanguagesAndApply() {
+    if (userHasManuallySetLanguage) return;
+
+    const articles = {
+        'Nederlands': ['de', 'het', 'een'],
+        'Engels': ['the', 'a', 'an'],
+        'Frans': ['le', 'la', 'un', 'une', 'des', 'les'],
+        'Duits': ['der', 'das', 'ein', 'eine', 'einen', 'einem', 'einer', 'eines', 'dem', 'den', 'des'] // Zonder 'die'
+    };
+    
+    // Mapping om de taalnaam (Nederlands) te koppelen aan het data-subject id (nederlands)
+    const langToSubjectMap = {
+        'Engels': 'engels',
+        'Frans': 'frans',
+        'Duits': 'duits'
+    };
+
+    let countsLeft = { 'Nederlands': 0, 'Engels': 0, 'Frans': 0, 'Duits': 0 };
+    let countsRight = { 'Nederlands': 0, 'Engels': 0, 'Frans': 0, 'Duits': 0 };
+
+    // Tel alle losstaande ingevulde lidwoorden
+    document.querySelectorAll('.word-entry').forEach(entry => {
+        let termMatch = (entry.querySelector('.word-term')?.value.toLowerCase() || "").match(/\b[a-z]+\b/g) || [];
+        let defMatch = (entry.querySelector('.word-definition')?.value.toLowerCase() || "").match(/\b[a-z]+\b/g) || [];
+
+        for (const [lang, words] of Object.entries(articles)) {
+            words.forEach(word => {
+                if (termMatch.includes(word)) countsLeft[lang]++;
+                if (defMatch.includes(word)) countsRight[lang]++;
+            });
+        }
+    });
+
+    let detectedLeft = null;
+    let detectedRight = null;
+
+    // Check of we per kolom meer dan 2 lidwoorden hebben gevonden
+    for (const lang of Object.keys(articles)) {
+        if (countsLeft[lang] > 2) detectedLeft = lang;
+        if (countsRight[lang] > 2) detectedRight = lang;
+    }
+
+    // Als we twee verschillende talen hebben gevonden en het is niet al veranderd
+    if (detectedLeft && detectedRight && detectedLeft !== detectedRight) {
+        
+        // Bepaal de 'vreemde' taal. Er moet minimaal één kant Nederlands zijn.
+        let foreignLang = null;
+        if (detectedLeft === 'Nederlands' && detectedRight !== 'Nederlands') {
+            foreignLang = detectedRight;
+        } else if (detectedRight === 'Nederlands' && detectedLeft !== 'Nederlands') {
+            foreignLang = detectedLeft;
+        }
+
+        if (foreignLang && langToSubjectMap[foreignLang]) {
+            // Pas de form dropdowns aan
+            document.getElementById('lang-from').value = detectedLeft;
+            document.getElementById('lang-to').value = detectedRight;
+
+            // Zoek en klik de juiste vak knop, zodat de rest van de styling en variabelen mee gaat
+            const subjectBtn = document.querySelector(`.subject-btn[data-subject="${langToSubjectMap[foreignLang]}"]`);
+            if (subjectBtn) {
+                subjectBtn.click();
+            }
+
+            // Aangezien onze eigen acties en klikjes eventlisteners triggeren, 
+            // moeten we deze hier resetten want het was niet de gebruiker die hier op klikte.
+            userHasManuallySetLanguage = false; 
+        }
+    }
+}
+
+// Debounce helper: zorgt ervoor dat de detectie niet bij elke kleine letter laggy wordt
+let detectLangTimeout;
+window.triggerAutoDetect = function() {
+    clearTimeout(detectLangTimeout);
+    detectLangTimeout = setTimeout(detectLanguagesAndApply, 500);
+};
+
+// Eventlisteners op inputs en knoppen zetten na het inladen zodat handmatige clicks worden onthouden
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.subject-btn, #lang-from, #lang-to').forEach(el => {
+        el.addEventListener('click', () => userHasManuallySetLanguage = true);
+        el.addEventListener('change', () => userHasManuallySetLanguage = true);
+    });
+});
+
 const TRANSLATIONS = {
     nl: {
         // Page level
@@ -1438,6 +1529,7 @@ function showHome() {
 
 function showCreateList() {
     triggerHaptic('light');
+    userHasManuallySetLanguage = false;
     editingListId = null;
     document.getElementById('create-title').textContent = t('new_list_title');
     document.getElementById('list-title').value = '';
@@ -1762,8 +1854,8 @@ function addWordEntry(term = '', definition = '', wordId = '') {
     }
     entry.innerHTML = `
         <span class="entry-number">${entryNum}</span>
-        <input type="text" class="word-term" placeholder="${t('word_placeholder')}" value="${escapeHtml(term)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-        <input type="text" class="word-definition" placeholder="${t('definition_placeholder')}" value="${escapeHtml(definition)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <input type="text" class="word-term" oninput="triggerAutoDetect()" placeholder="${t('word_placeholder')}" value="${escapeHtml(term)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <input type="text" class="word-definition" oninput="triggerAutoDetect()" placeholder="${t('definition_placeholder')}" value="${escapeHtml(definition)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
         <button class="btn-remove" onclick="removeWordEntry(this)" title="${t('remove_word_title')}">
             <i class="fas fa-times"></i>
         </button>
@@ -2103,6 +2195,9 @@ function importWords() {
 
     document.getElementById('import-text').value = '';
     document.getElementById('import-area').classList.add('hidden');
+    
+    // Auto-detect after import
+    detectLanguagesAndApply();
 }
 
 // ===== Bulk Import =====
