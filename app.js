@@ -159,6 +159,8 @@ const TRANSLATIONS = {
         ignore_parens_hint: 'bijv. "(de) kat" → "kat" volstaat',
         allow_typos_label: 'Kleine typefoutjes toestaan',
         allow_typos_hint: '1 fout teken bij lange woorden',
+        ignore_punctuation_label: 'Leestekens negeren',
+        ignore_punctuation_hint: 'Negeert punten, komma\'s e.d. (. ? , !)',
         case_sensitive_label: 'Hoofdletters exact rekenen',
         case_sensitive_hint: 'bijv. "De" ≠ "de"',
         learn_stages_accordion: 'Leren-modus stappen',
@@ -509,6 +511,8 @@ const TRANSLATIONS = {
         ignore_parens_hint: 'e.g. "(the) cat" → "cat" is enough',
         allow_typos_label: 'Allow minor typos',
         allow_typos_hint: '1 wrong character for longer words',
+        ignore_punctuation_label: 'Ignore punctuation',
+        ignore_punctuation_hint: 'Ignores punctuation like (. ? , !)',
         case_sensitive_label: 'Case sensitive',
         case_sensitive_hint: 'e.g. "The" ≠ "the"',
         learn_stages_accordion: 'Learn mode stages',
@@ -963,6 +967,7 @@ let studySession = {
     direction: 'term-def',
     acceptSlash: true,
     ignoreParentheses: true,
+    ignorePunctuation: true,
     correctCount: 0,
     wrongCount: 0,
     sessionResults: {},
@@ -3773,6 +3778,7 @@ function confirmStartStudy() {
     const direction = document.querySelector('.direction-btn.active').dataset.direction;
     const acceptSlash = document.getElementById('accept-slash-answers').checked;
     const ignoreParentheses = document.getElementById('ignore-parentheses').checked;
+    const ignorePunctuation = document.getElementById('ignore-punctuation') ? document.getElementById('ignore-punctuation').checked : true;
     const selectedWordIds = studySession.emergencyMode && studySession.emergencyWordIds?.length
         ? [...studySession.emergencyWordIds]
         : getSelectedWordIdsForStudy();
@@ -3794,6 +3800,7 @@ function confirmStartStudy() {
         direction,
         acceptSlash,
         ignoreParentheses,
+        ignorePunctuation,
         hintsEnabled,
         allowMinorTypos,
         caseSensitiveAnswers,
@@ -3847,7 +3854,7 @@ function confirmStartStudy() {
 }
 
 // ===== Answer Checking =====
-function normalizeAnswer(answer, acceptSlash, ignoreParentheses) {
+function normalizeAnswer(answer, acceptSlash, ignoreParentheses, ignorePunctuation) {
     let normalized = (answer || '').trim();
 
     if (!studySession.caseSensitiveAnswers) {
@@ -3864,14 +3871,19 @@ function normalizeAnswer(answer, acceptSlash, ignoreParentheses) {
         normalized = normalized.replace(/\([^)]*\)/g, '').trim();
     }
     
+    if (ignorePunctuation) {
+        // Remove standard punctuation: . , ? ! ¿ ¡ ; :
+        normalized = normalized.replace(/[.,?!¿¡;:]/g, '').replace(/\s+/g, ' ').trim();
+    }
+    
     return normalized;
 }
 
 function checkAnswer(userAnswer, correctAnswer) {
-    const { acceptSlash, ignoreParentheses } = studySession;
+    const { acceptSlash, ignoreParentheses, ignorePunctuation } = studySession;
     
-    const normalizedUser = normalizeAnswer(userAnswer, acceptSlash, ignoreParentheses);
-    let normalizedCorrect = normalizeAnswer(correctAnswer, acceptSlash, ignoreParentheses);
+    const normalizedUser = normalizeAnswer(userAnswer, acceptSlash, ignoreParentheses, ignorePunctuation);
+    let normalizedCorrect = normalizeAnswer(correctAnswer, acceptSlash, ignoreParentheses, ignorePunctuation);
     
     // Direct match
     if (normalizedUser === normalizedCorrect) return true;
@@ -3886,7 +3898,7 @@ function checkAnswer(userAnswer, correctAnswer) {
     // Check slash alternatives
     if (acceptSlash && correctAnswer.includes('/')) {
         const alternatives = correctAnswer.split('/').map(a => 
-            normalizeAnswer(a.trim(), false, ignoreParentheses)
+            normalizeAnswer(a.trim(), false, ignoreParentheses, ignorePunctuation)
         );
         if (alternatives.includes(normalizedUser)) return true;
     }
@@ -3912,10 +3924,10 @@ function findRelatedWordHint(userAnswer, correctAnswer, currentWordId) {
     const subject = getSubjectForCurrentList();
     if (!subject) return null;
 
-    const normalizedUser = normalizeAnswer(userAnswer, false, studySession.ignoreParentheses);
+    const normalizedUser = normalizeAnswer(userAnswer, false, studySession.ignoreParentheses, studySession.ignorePunctuation);
     if (!normalizedUser) return null;
 
-    const normalizedCorrect = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses);
+    const normalizedCorrect = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses, studySession.ignorePunctuation);
 
     for (const list of wordLists) {
         if ((list.subject || '').toLowerCase().trim() !== subject) continue;
@@ -3923,8 +3935,8 @@ function findRelatedWordHint(userAnswer, correctAnswer, currentWordId) {
             if (!isWordPracticed(word)) continue;
             if (currentWordId && word.id === currentWordId) continue;
 
-            const termNorm = normalizeAnswer(word.term || '', false, studySession.ignoreParentheses);
-            const defNorm = normalizeAnswer(word.definition || '', false, studySession.ignoreParentheses);
+            const termNorm = normalizeAnswer(word.term || '', false, studySession.ignoreParentheses, studySession.ignorePunctuation);
+            const defNorm = normalizeAnswer(word.definition || '', false, studySession.ignoreParentheses, studySession.ignorePunctuation);
 
             if (termNorm && termNorm === normalizedUser && termNorm !== normalizedCorrect) {
                 return { matched: word.term, counterpart: word.definition };
@@ -3955,7 +3967,7 @@ function containsOptionalTokens(answer) {
 }
 
 function stripOptionalTokens(answer, ignoreParentheses) {
-    let normalized = normalizeAnswer(answer, false, ignoreParentheses);
+    let normalized = normalizeAnswer(answer, false, ignoreParentheses, studySession.ignorePunctuation);
     normalized = normalized.replace(/\b(sb|sth)\b/gi, '');
     normalized = normalized.replace(/\s*\/\s*/g, ' ');
     normalized = normalized.replace(/\s+/g, ' ').trim();
@@ -6562,8 +6574,8 @@ function filterLanguageSelect(searchTerm, selectElement) {
 }
 
 function buildTypingDiff(userAnswer, correctAnswer) {
-    const user = normalizeAnswer(userAnswer, false, studySession.ignoreParentheses);
-    const correct = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses);
+    const user = normalizeAnswer(userAnswer, false, studySession.ignoreParentheses, studySession.ignorePunctuation);
+    const correct = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses, studySession.ignorePunctuation);
 
     if (!user.length && !correct.length) {
         return `
