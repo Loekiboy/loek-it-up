@@ -3,6 +3,15 @@
 # Security headers, compressie en caching
 # =====================================================
 
+# --- Redirect oude URL's ---
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /loek-it-up/
+    
+    # Stuur oude subpagina's door naar de hoofdpagina mbv 301 Permanent Redirect
+    RewriteRule ^(english_verbs|aoristus|la|english_words|du|derde-naamval)(/.*)?$ /loek-it-up/ [R=301,L]
+</IfModule>
+
 # --- Security Headers ---
 <IfModule mod_headers.c>
     # HTTPS afdwingen (HSTS) — 1 jaar
