@@ -331,6 +331,12 @@ function normalizeQuoteMarks(text) {
         .replace(/[ˆ]/g, '^');
 }
 
+function normalizeLigatures(text) {
+    return (text || '')
+        .replace(/œ/g, 'oe')
+        .replace(/Œ/g, 'OE');
+}
+
 function stripDiacriticsAndLooseMarks(text) {
     const normalized = normalizeQuoteMarks(text || '')
         .normalize('NFD')
@@ -2144,6 +2150,18 @@ function searchSubsites(query) {
     });
 }
 
+function isSubsitePath() {
+    const pathSegments = window.location.pathname.split('/').filter(Boolean).map(seg => seg.toLowerCase());
+    if (!pathSegments.length) return false;
+    return subsiteRegistry.some(site => {
+        const slugSegments = (site.url || '').split('/').filter(Boolean).map(seg => seg.toLowerCase());
+        if (!slugSegments.length || slugSegments.length > pathSegments.length) return false;
+        return slugSegments.every((seg, idx) =>
+            pathSegments[pathSegments.length - slugSegments.length + idx] === seg
+        );
+    });
+}
+
 function searchLocalLists(query) {
     const q = query.toLowerCase();
     const words = q.split(/\s+/).filter(w => w.length > 0);
@@ -2444,6 +2462,7 @@ function confirmStartStudy() {
 // ===== Answer Checking =====
 function normalizeAnswer(answer, acceptSlash, ignoreParentheses) {
     let normalized = (answer || '').trim();
+    normalized = normalizeLigatures(normalized);
 
     if (!studySession.caseSensitiveAnswers) {
         normalized = normalized.toLowerCase();
@@ -2670,9 +2689,9 @@ function renderExamSummary() {
 }
 
 function normalizeForSimilarity(text) {
-    return (text || '')
+    return normalizeLigatures((text || '')
         .toString()
-        .toLowerCase()
+        .toLowerCase())
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .replace(/\s+/g, ' ')
@@ -4698,6 +4717,9 @@ function restartStudy() {
 }
 
 function restoreLastView() {
+    if (isSubsitePath()) {
+        return;
+    }
     const lastView = localStorage.getItem(LAST_VIEW_KEY);
     const lastListId = localStorage.getItem(LAST_LIST_ID_KEY);
     const lastStudyMode = localStorage.getItem(LAST_STUDY_MODE_KEY);
@@ -5144,6 +5166,23 @@ function filterLanguageSelect(searchTerm, selectElement) {
     });
 }
 
+function renderDiffWord(word, className) {
+    return Array.from(word).map(char =>
+        `<span class="diff-char ${className}">${escapeHtml(char)}</span>`
+    ).join('');
+}
+
+function renderDiffPlaceholder(length, className) {
+    const count = Math.max(1, length || 0);
+    return Array.from({ length: count }).map(() =>
+        `<span class="diff-char ${className}">_</span>`
+    ).join('');
+}
+
+function renderDiffSpace() {
+    return `<span class="diff-char correct">&nbsp;</span>`;
+}
+
 function buildTypingDiff(userAnswer, correctAnswer) {
     const user = normalizeAnswer(userAnswer, false, studySession.ignoreParentheses);
     const correct = normalizeAnswer(correctAnswer, false, studySession.ignoreParentheses);
@@ -5172,7 +5211,51 @@ function buildTypingDiff(userAnswer, correctAnswer) {
         `;
     }
 
-    // Use character-level diff on the entire string for better alignment of spaces and punctuation
+    const userWords = user.split(/\s+/).filter(Boolean);
+    const correctWords = correct.split(/\s+/).filter(Boolean);
+
+    if (userWords.length > 1 || correctWords.length > 1) {
+        const ops = alignWords(userWords, correctWords);
+        const userParts = [];
+        const correctParts = [];
+
+        ops.forEach((op, index) => {
+            if (index > 0) {
+                const space = renderDiffSpace();
+                userParts.push(space);
+                correctParts.push(space);
+            }
+            if (op.type === 'equal') {
+                userParts.push(renderDiffWord(op.userWord, 'correct'));
+                correctParts.push(renderDiffWord(op.correctWord, 'correct'));
+            } else if (op.type === 'replace') {
+                const diff = charLevelDiff(op.userWord, op.correctWord);
+                userParts.push(diff.userHtml);
+                correctParts.push(diff.correctHtml);
+            } else if (op.type === 'delete') {
+                userParts.push(renderDiffWord(op.userWord, 'wrong'));
+                correctParts.push(renderDiffPlaceholder(op.userWord.length, 'expected'));
+            } else if (op.type === 'insert') {
+                userParts.push(renderDiffPlaceholder(op.correctWord.length, 'missing'));
+                correctParts.push(renderDiffWord(op.correctWord, 'expected'));
+            }
+        });
+
+        return `
+            <div class="typing-diff">
+                <div class="diff-row">
+                    <span class="diff-label">Jij:</span>
+                    <span class="diff-text">${userParts.join('')}</span>
+                </div>
+                <div class="diff-row">
+                    <span class="diff-label">Juist:</span>
+                    <span class="diff-text">${correctParts.join('')}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Use character-level diff on the entire string for short answers
     const diff = charLevelDiff(user, correct);
 
     return `
