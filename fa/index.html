@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Franse Oefeningen</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <style>
+        :root {
+            --flag-blue: #002395;
+            --flag-white: #ffffff;
+            --flag-red: #ef2b2d;
+            --flag-stripe: linear-gradient(
+                90deg,
+                var(--flag-blue) 0 33.333%,
+                var(--flag-white) 33.333% 66.666%,
+                var(--flag-red) 66.666% 100%
+            );
+            --loek-yellow: #fdc204;
+            --ink: #111418;
+            --muted: #5a636c;
+            --surface: #ffffff;
+            --surface-soft: #f6f7f9;
+            --border: #e2e6ea;
+            --shadow-soft: 0 8px 18px rgba(16, 18, 20, 0.08);
+            --shadow-strong: 0 24px 48px rgba(16, 18, 20, 0.12);
+            --radius-lg: 18px;
+            --radius-md: 14px;
+            --radius-pill: 999px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at top, rgba(0, 35, 149, 0.12), transparent 52%),
+                linear-gradient(180deg, #f6f7f9 0%, #e8f0ff 100%);
+            min-height: 100vh;
+            padding: 2.75rem 1rem;
+        }
+
+        .page {
+            width: min(1024px, 100%);
+            margin: 0 auto;
+        }
+
+        .masthead {
+            position: relative;
+            text-align: left;
+            margin-bottom: 2.2rem;
+            padding: 1.7rem 1.6rem 1.6rem;
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-strong);
+            overflow: hidden;
+        }
+
+        .masthead::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 8px;
+            background: var(--flag-stripe);
+        }
+
+        .brand-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.8rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-logo {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            object-fit: contain;
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 6px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .brand-title {
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.72rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .brand-subtitle {
+            margin: 0.2rem 0 0;
+            font-size: 1rem;
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.5rem 0.95rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.85rem;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 700;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .home-link:hover {
+            transform: translateY(-1px);
+            border-color: var(--flag-blue);
+            box-shadow: 0 12px 18px rgba(16, 18, 20, 0.12);
+        }
+
+        .home-link img {
+            width: 18px;
+            height: 18px;
+        }
+
+        .masthead h1 {
+            margin: 0.25rem 0 0.5rem;
+            font-size: clamp(2rem, 4vw, 3rem);
+            line-height: 1.05;
+            color: var(--ink);
+        }
+
+        .lead {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.02rem;
+            max-width: 60ch;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .card {
+            position: relative;
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            padding: 1.35rem 1.3rem 1.25rem;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: var(--flag-stripe);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 30px rgba(16, 18, 20, 0.16);
+            border-color: rgba(0, 35, 149, 0.35);
+        }
+
+        .card:focus-visible,
+        .home-link:focus-visible {
+            outline: 3px solid rgba(0, 35, 149, 0.3);
+            outline-offset: 2px;
+        }
+
+        .card-title {
+            margin: 0 0 0.5rem;
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .card-description {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.5;
+            font-size: 0.96rem;
+        }
+
+        .card-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.95rem;
+            padding: 0.32rem 0.75rem;
+            background: rgba(0, 35, 149, 0.12);
+            border-radius: var(--radius-pill);
+            font-size: 0.82rem;
+            letter-spacing: 0.01em;
+            color: var(--flag-blue);
+            font-weight: 700;
+            border: 1px solid rgba(0, 35, 149, 0.3);
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1.35rem 0.9rem;
+            }
+
+            .masthead {
+                padding: 1.2rem 1.05rem 1.1rem;
+                margin-bottom: 1.4rem;
+            }
+
+            .brand-logo {
+                width: 48px;
+                height: 48px;
+            }
+
+            .lead {
+                font-size: 0.95rem;
+            }
+
+            .card {
+                padding: 1.05rem 1rem 1rem;
+            }
+
+            .card-title {
+                font-size: 1.08rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card,
+            .home-link {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="masthead">
+            <div class="brand-row">
+                <div class="brand">
+                    <div style="width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border-radius: 16px; background: #fff; border: 1px solid var(--border); font-size: 32px;">🇫🇷</div>
+                    <div>
+                        <p class="brand-title">Loek-It-Up taalhub</p>
+                        <p class="brand-subtitle">Frans</p>
+                    </div>
+                </div>
+                <a href="../index.html" class="home-link">
+                    <span>⬅️</span>
+                    <span>Terug naar Loek-It-Up</span>
+                </a>
+            </div>
+            <h1>Franse Oefeningen</h1>
+            <p class="lead">Kies een onderwerp en oefen in korte, gerichte rondes. Alles op deze pagina brengt je direct naar een actieve oefening.</p>
+        </header>
+
+        <section class="card-grid" aria-label="Beschikbare oefeningen">
+            <a href="imperfait/index.html" class="card">
+                <h2 class="card-title">L'Imparfait</h2>
+                <p class="card-description">
+                    Oefen de Franse imparfait (verleden tijd voor gewoontes en beschrijvingen). 
+                    Leer hoe je regelmatige en onregelmatige werkwoorden vervoegt.
+                </p>
+                <span class="card-cta">Start oefening</span>
+            </a>
+
+            <a href="ww-ir/index.html" class="card">
+                <h2 class="card-title">Werkwoorden op -IR</h2>
+                <p class="card-description">
+                    Oefen de conjugatie van Franse werkwoorden op -IR. 
+                    Beheers regelmatige en onregelmatige vormen van deze belangrijke werkwoordgroep.
+                </p>
+                <span class="card-cta">Start oefening</span>
+            </a>
+        </section>
+    </main>
+</body>
+</html>

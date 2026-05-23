@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Franse Werkwoorden op -IR Oefenen</title>
+    <!-- Laad Tailwind CSS voor snelle, mooie styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuratie van de Inter font, zoals gevraagd */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Donkere achtergrond voor een 'Arcane'-achtige, moderne look */
+            color: #e6edf3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        /* Custom styles voor animatie en feedback */
+        .card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease-in-out;
+        }
+        .correct-bg {
+            background-color: #166534; /* Donkergroen */
+            animation: pulse-correct 0.5s 1;
+        }
+        .incorrect-bg {
+            background-color: #991b1b; /* Donkerrood */
+            animation: shake 0.4s 3;
+        }
+        @keyframes pulse-correct {
+            0% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5); /* Blauwe focus ring */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="w-11/12 max-w-lg mx-auto p-6 md:p-8 rounded-xl card bg-gray-800">
+        <h1 class="text-3xl font-bold mb-4 text-blue-400 text-center">
+            🇫🇷 -IR Werkwoorden Trainer
+        </h1>
+        <p class="text-gray-400 mb-6 text-center">
+            Vertaal de actie in de gevraagde tijd. Gevraagde tijd: <span id="current-tense" class="font-bold text-yellow-500">Présent</span> of Passé Composé. Je hebt 35 oefeningen!
+        </p>
+
+        <!-- VRAAGGEBIED -->
+        <div id="question-area" class="bg-gray-700 p-6 rounded-lg mb-6">
+            <div id="question-header" class="mb-4">
+                <p class="text-xl font-semibold text-white">
+                    Vul de juiste vervoeging in:
+                </p>
+                <!-- Dit element toont nu de volledige Franse zin met een gat -->
+                <p class="text-3xl font-bold text-yellow-400 mt-2">
+                    <span id="q-action-nl"></span>
+                </p>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-baseline space-y-2 md:space-y-0 md:space-x-2">
+                <!-- Het invoerveld is het enige wat overblijft in deze rij -->
+                <input type="text" id="answer-input" placeholder="Vervoeging..." class="flex-grow p-3 rounded-lg bg-gray-600 text-white border-2 border-gray-600 focus:outline-none input-focus text-2xl">
+            </div>
+            
+            <!-- NIEUWE INSTRUCTIE TEKST ONDER HET INVOERVELD -->
+            <div id="instruction-box" class="mt-4 p-3 bg-gray-600 rounded-lg text-center text-xl font-semibold text-blue-300 shadow-inner">
+                <span id="instruction-text"></span>
+            </div>
+            
+        </div>
+
+        <!-- ACTIE EN FEEDBACK -->
+        <div id="feedback-area" class="min-h-[100px]">
+            <button id="check-btn" onclick="checkAnswer()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
+                Controleer
+            </button>
+            <button id="next-btn" onclick="nextQuestion()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition duration-200 mt-3 hidden focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50">
+                Volgende Vraag
+            </button>
+
+            <!-- Feedback Box -->
+            <div id="feedback-box" class="mt-4 p-4 rounded-lg hidden">
+                <p id="feedback-text" class="font-medium"></p>
+                <div id="explanation-text" class="mt-2 text-sm"></div>
+            </div>
+        </div>
+
+        <!-- Score / Voortgang -->
+        <div class="mt-6 pt-4 border-t border-gray-600 flex justify-between text-gray-400">
+            <span id="score-display">Score: 0 / 0</span>
+            <span id="progress-display">Vraag 1 van 35</span>
+        </div>
+    </div>
+
+    <script>
+        // Lijst van de werkwoorden en hun vertalingen
+        const verbs = [
+            { infinitive: 'finir', translation: 'eindigen, afmaken' },
+            { infinitive: 'choisir', translation: 'kiezen' },
+            { infinitive: 'réfléchir', translation: 'nadenken, overwegen' },
+            { infinitive: 'réussir', translation: 'slagen, bereiken' },
+            { infinitive: 'remplir', translation: 'invullen, vullen' },
+            { infinitive: 'grandir', translation: 'groter worden, opgroeien' },
+            { infinitive: 'rougir', translation: 'blozen, rood worden' }
+        ];
+
+        // UITGEBREIDE LIJST MET 35 OEFENVragen
+        const questionData = [
+            // finir - eindigen/afmaken
+            { pronoun: 'Nous', verb: 'finir', sentence: 'le travail.', nl: 'wij eindigen' },
+            { pronoun: 'Je', verb: 'finir', sentence: 'mes devoirs.', nl: 'ik maak ... af' },
+            { pronoun: 'Vous', verb: 'finir', sentence: 'votre repas.', nl: 'u eindigt' },
+            { pronoun: 'Ils', verb: 'finir', sentence: 'l\'année scolaire.', nl: 'zij eindigen' },
+            { pronoun: 'Tu', verb: 'finir', sentence: 'le livre.', nl: 'jij leest... uit' },
+
+            // choisir - kiezen
+            { pronoun: 'Tu', verb: 'choisir', sentence: 'une nouvelle vie.', nl: 'jij kiest' },
+            { pronoun: 'Nous', verb: 'choisir', sentence: 'un bon restaurant.', nl: 'wij kiezen' },
+            { pronoun: 'Il', verb: 'choisir', sentence: 'une chemise bleue.', nl: 'hij kiest' },
+            { pronoun: 'Je', verb: 'choisir', sentence: 'toujours la bonne option.', nl: 'ik kies' },
+            { pronoun: 'Elles', verb: 'choisir', sentence: 'leurs études.', nl: 'zij kiezen' },
+
+            // réfléchir - nadenken/overwegen
+            { pronoun: 'Elle', verb: 'réfléchir', sentence: 'à la question.', nl: 'zij denkt na' },
+            { pronoun: 'Tu', verb: 'réfléchir', sentence: 'avant de répondre.', nl: 'jij denkt na' },
+            { pronoun: 'Nous', verb: 'réfléchir', sentence: 'ensemble.', nl: 'wij denken na' },
+            { pronoun: 'Vous', verb: 'réfléchir', sentence: 'à ce problème.', nl: 'u overweegt' },
+            { pronoun: 'Ils', verb: 'réfléchir', sentence: 'longuement.', nl: 'zij denken na' },
+
+            // réussir - slagen/bereiken
+            { pronoun: 'Je', verb: 'réussir', sentence: 'ce défi.', nl: 'ik slaag voor' },
+            { pronoun: 'Elle', verb: 'réussir', sentence: 'son examen.', nl: 'zij slaagt voor' },
+            { pronoun: 'Nous', verb: 'réussir', sentence: 'le projet.', nl: 'wij slagen in' },
+            { pronoun: 'Vous', verb: 'réussir', sentence: 'vos objectifs.', nl: 'u bereikt' },
+            { pronoun: 'Tu', verb: 'réussir', sentence: 'à parler français.', nl: 'jij slaagt erin' },
+
+            // remplir - invullen/vullen
+            { pronoun: 'Vous', verb: 'remplir', sentence: 'ce formulaire.', nl: 'u vult in' },
+            { pronoun: 'Je', verb: 'remplir', sentence: 'le verre d\'eau.', nl: 'ik vul' },
+            { pronoun: 'Ils', verb: 'remplir', sentence: 'le questionnaire.', nl: 'zij vullen in' },
+            { pronoun: 'Elle', verb: 'remplir', sentence: 'la bouteille.', nl: 'zij vult' },
+            { pronoun: 'Nous', verb: 'remplir', sentence: 'la salle.', nl: 'wij vullen' },
+
+            // grandir - groter worden/opgroeien
+            { pronoun: 'Ils', verb: 'grandir', sentence: 'chaque jour.', nl: 'zij groeien' },
+            { pronoun: 'Je', verb: 'grandir', sentence: 'très vite.', nl: 'ik groei' },
+            { pronoun: 'Tu', verb: 'grandir', sentence: 'encore ?', nl: 'groei jij' },
+            { pronoun: 'Nous', verb: 'grandir', sentence: 'dans cette ville.', nl: 'wij groeien op' },
+            { pronoun: 'Il', verb: 'grandir', sentence: 'comme son père.', nl: 'hij groeit' },
+
+            // rougir - blozen/rood worden
+            { pronoun: 'On', verb: 'rougir', sentence: 'facilement.', nl: 'men bloost' },
+            { pronoun: 'Vous', verb: 'rougir', sentence: 'quand on vous complimente.', nl: 'u bloost' },
+            { pronoun: 'Nous', verb: 'rougir', sentence: 'au soleil.', nl: 'wij worden rood' },
+            { pronoun: 'Il', verb: 'rougir', sentence: 'au coucher du soleil.', nl: 'de lucht wordt rood' },
+            { pronoun: 'Tu', verb: 'rougir', sentence: 'si vite !', nl: 'jij bloost' }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let currentTense = 'Présent'; // Houdt de huidige gevraagde tijd bij
+
+        // --- DOM ELEMENTEN ---
+        const qActionNlEl = document.getElementById('q-action-nl');
+        const answerInput = document.getElementById('answer-input');
+        const checkBtn = document.getElementById('check-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackText = document.getElementById('feedback-text');
+        const explanationText = document.getElementById('explanation-text');
+        const appContainer = document.getElementById('app');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressDisplay = document.getElementById('progress-display');
+        const currentTenseEl = document.getElementById('current-tense');
+        const instructionTextEl = document.getElementById('instruction-text');
+
+        // Avoir vervoeging in Présent voor de Passé Composé
+        const avoirConjugations = {
+            'Je': 'ai',
+            'Tu': 'as',
+            'Il': 'a',
+            'Elle': 'a',
+            'On': 'a',
+            'Nous': 'avons',
+            'Vous': 'avez',
+            'Ils': 'ont',
+            'Elles': 'ont',
+        };
+        
+        // Simpele vertalingen zijn niet meer nodig voor de vraagstelling, maar blijven staan voor consistentie.
+        function getNLContext(frContext) {
+            if (frContext.includes('travail')) return 'het werk';
+            if (frContext.includes('devoirs')) return 'mijn huiswerk';
+            if (frContext.includes('repas')) return 'uw maaltijd';
+            if (frContext.includes('année scolaire')) return 'het schooljaar';
+            if (frContext.includes('livre')) return 'het boek';
+            if (frContext.includes('nouvelle vie')) return 'een nieuw leven';
+            if (frContext.includes('restaurant')) return 'een goed restaurant';
+            if (frContext.includes('chemise bleue')) return 'een blauw shirt';
+            if (frContext.includes('option')) return 'altijd de goede optie';
+            if (frContext.includes('études')) return 'hun studies';
+            if (frContext.includes('question')) return 'over de vraag';
+            if (frContext.includes('répondre')) return 'voordat je antwoordt';
+            if (frContext.includes('ensemble')) return 'samen';
+            if (frContext.includes('problème')) return 'over dit probleem';
+            if (frContext.includes('longuement')) return 'langdurig';
+            if (frContext.includes('défi')) return 'deze uitdaging';
+            if (frContext.includes('examen')) return 'voor haar examen';
+            if (frContext.includes('projet')) return 'het project';
+            if (frContext.includes('objectifs')) return 'uw doelen';
+            if (frContext.includes('parler français')) return 'erin om Frans te spreken';
+            if (frContext.includes('formulaire')) return 'dit formulier';
+            if (frContext.includes('verre d\'eau')) return 'het glas water';
+            if (frContext.includes('questionnaire')) return 'de vragenlijst';
+            if (frContext.includes('bouteille')) return 'de fles';
+            if (frContext.includes('salle')) return 'de zaal';
+            if (frContext.includes('chaque jour')) return 'elke dag';
+            if (frContext.includes('vite')) return 'erg snel';
+            if (frContext.includes('encore')) return 'nog steeds?';
+            if (frContext.includes('ville')) return 'in deze stad';
+            if (frContext.includes('père')) return 'zoals zijn vader';
+            if (frContext.includes('facilement')) return 'makkelijk';
+            if (frContext.includes('complimente')) return 'wanneer men u een compliment geeft';
+            if (frContext.includes('soleil')) return 'door de zon';
+            if (frContext.includes('coucher du soleil')) return 'bij zonsondergang';
+            if (frContext.includes('si vite')) return 'zo snel!';
+            return '...';
+        }
+
+        // --- HULPFUNCTIES VOOR VERVOEGING ---
+
+        /**
+         * Vervoegt een regelmatig -ir werkwoord in de Présent.
+         * Geeft ALLEEN het werkwoord terug (e.g. 'finis', 'finissons')
+         */
+        function getConjugationPresent(verb, pronoun) {
+            const stem = verb.slice(0, -2); // Verwijder '-ir'
+
+            const endings = {
+                'Je': 'is',
+                'Tu': 'is',
+                'Il': 'it',
+                'Elle': 'it',
+                'On': 'it',
+                'Nous': 'issons',
+                'Vous': 'issez',
+                'Ils': 'issent',
+                'Elles': 'issent',
+            };
+
+            const ending = endings[pronoun];
+            if (!ending) return '';
+
+            return stem + ending;
+        }
+
+        /**
+         * Krijgt het voltooid deelwoord (Participe Passé) voor een regelmatig -ir werkwoord.
+         */
+        function getParticipePasse(verb) {
+            return verb.slice(0, -2) + 'i';
+        }
+
+        /**
+         * NIEUW: Retourneert de verbale frase die de gebruiker moet invoeren.
+         * (Présent: alleen het werkwoord; Passé Composé: hulpwerkwoord + voltooid deelwoord)
+         */
+        function getVerbalPhrase(verb, pronoun, tense) {
+            const participePasse = getParticipePasse(verb);
+            const auxiliary = avoirConjugations[pronoun];
+
+            if (tense === 'Présent') {
+                return getConjugationPresent(verb, pronoun);
+            } else if (tense === 'Passé Composé') {
+                // User typt alleen 'ai fini', NIET 'J'ai fini'
+                return `${auxiliary} ${participePasse}`;
+            }
+            return '';
+        }
+
+        /**
+         * Retourneert de VOLLEDIGE vervoeging inclusief voornaamwoord/contractie.
+         * Dit wordt gebruikt voor de vergelijking en in de uitleg.
+         */
+        function getFullConjugation(verb, pronoun, tense) {
+            const verbalPhrase = getVerbalPhrase(verb, pronoun, tense);
+
+            if (tense === 'Présent') {
+                return `${pronoun} ${verbalPhrase}`;
+            } else if (tense === 'Passé Composé') {
+                // Contractie: Je + ai -> J'ai
+                if (pronoun === 'Je' && verbalPhrase.startsWith('ai')) {
+                    // verbalPhrase is hier 'ai fini', dus we plakken J' ervoor
+                    return `J'${verbalPhrase}`;
+                }
+                // Overige: Nous + avons + fini
+                return `${pronoun} ${verbalPhrase}`;
+            }
+            return '';
+        }
+
+        /**
+         * Genereert de dynamische uitleg (aangepast voor nieuwe vraagstelling).
+         */
+        function generateExplanation(verb, pronoun, isCorrect) {
+            const tense = currentTense;
+            const verbInfo = verbs.find(v => v.infinitive === verb);
+            const nlVerb = verbInfo ? verbInfo.translation.split(',')[0] : 'onbekend';
+            
+            const fullCorrectForm = getFullConjugation(verb, pronoun, tense); // Bv. "Nous finissons"
+            const requiredInput = getVerbalPhrase(verb, pronoun, tense); // Bv. "finissons" of "avons fini"
+            
+            const bareConjugationForAnalysis = requiredInput.split(' ').slice(0).join(' ');
+
+            let html = `Dit is de vervoeging van **${verb}** (${nlVerb}) in de <span class="font-bold text-yellow-300">${tense}</span>.<br><br>`;
+
+            if (tense === 'Présent') {
+                const stem = verb.slice(0, -2);
+                const ending = bareConjugationForAnalysis.slice(stem.length);
+                const isPlural = ['Nous', 'Vous', 'Ils', 'Elles'].includes(pronoun);
+
+                html += `
+                    De **stam** is <span class="font-mono text-yellow-300">${stem}</span>.
+                    De uitgang voor **${pronoun}** is <span class="font-mono text-green-300">**${ending}**</span>.
+                    ${isPlural ? '(Let op de -iss- toevoeging voor meervoud/Nous/Vous.)' : '(Let op: dit is de enkelvoudige uitgang, zonder -iss-.)'}
+                `;
+            } else if (tense === 'Passé Composé') {
+                const participePasse = getParticipePasse(verb);
+                const auxiliary = avoirConjugations[pronoun];
+
+                html += `
+                    De Passé Composé wordt gevormd met het hulpwerkwoord **avoir** (hebben) + het **participe passé**.
+                    <ul class="list-disc list-inside mt-2 ml-4">
+                        <li>Hulpwerkwoord (Avoir in Présent): **${auxiliary}**</li>
+                        <li>Voltooid Deelwoord: **${participePasse}** (stam + i)</li>
+                    </ul>
+                    Je moest de verbale frase invoeren: <span class="font-mono text-green-300">${requiredInput}</span>.
+                `;
+            }
+
+            if (isCorrect) {
+                html = `<span class="font-bold text-lg text-green-300">Perfect! Je voerde **${requiredInput}** in. De volledige zin is: **${fullCorrectForm}**.</span><br><br>` + html;
+            } else {
+                html = `<span class="font-bold text-lg text-red-300">Helaas, de juiste invoer is **${requiredInput}**. De volledige zin is: **${fullCorrectForm}**.</span><br><br>` + html;
+            }
+
+            return html;
+        }
+
+
+        // --- GAME LOGIC ---
+
+        /**
+         * Laadt de volgende vraag in de interface.
+         */
+        function loadQuestion() {
+            if (currentQuestionIndex >= questionData.length) {
+                showFinalScore();
+                return;
+            }
+
+            const q = questionData[currentQuestionIndex];
+            const verbInfo = verbs.find(v => v.infinitive === q.verb);
+            
+            // 1. KIES RANDOMLY DE TIJD
+            const tenses = ['Présent', 'Passé Composé'];
+            currentTense = tenses[Math.floor(Math.random() * tenses.length)];
+
+            // 2. CONSTRUEER DE VRAAG: FRANS ZIN met een gat voor het WW
+            const frenchPronoun = q.pronoun;
+            const frenchComplement = q.sentence.trim(); // bijv. 'le travail.'
+
+            // Toon de Franse zinsstructuur met een leegte voor de vervoeging.
+            const fullFrenchSentenceWithGap = `${frenchPronoun} ______ ${frenchComplement}`;
+            
+            // Haal de NL infinitief op voor de placeholder hint
+            const nlVerb = verbInfo.translation.split(',')[0]; // 'eindigen'
+
+            // Reset UI
+            answerInput.value = '';
+            answerInput.disabled = false;
+            checkBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+            feedbackBox.classList.add('hidden');
+            appContainer.classList.remove('correct-bg', 'incorrect-bg');
+            instructionTextEl.textContent = ''; // Reset instructietekst
+
+            // Vul de vraag in
+            currentTenseEl.textContent = currentTense; // Toon de gekozen tijd
+            qActionNlEl.textContent = fullFrenchSentenceWithGap; // Toon de Franse zin met het gat
+
+            // Update de instructietekst
+            // Let op: 'Passé Composé' vereist twee woorden (bv. avons choisi)
+            const instructionText = `Vervoeg ${q.pronoun} (${nlVerb}) in ${currentTense}. Voer alleen het werkwoord/de werkwoordsfrase in.`;
+            instructionTextEl.textContent = instructionText;
+
+            // Zorg ervoor dat de placeholder algemeen is
+            answerInput.placeholder = `Vervoeging...`; 
+
+            // Update voortgang
+            progressDisplay.textContent = `Vraag ${currentQuestionIndex + 1} van ${questionData.length}`;
+            scoreDisplay.textContent = `Score: ${score} / ${currentQuestionIndex}`;
+
+            // Zet focus op invoerveld voor Enter-toets gemak
+            answerInput.focus();
+        }
+
+        /**
+         * Controleert het ingevoerde antwoord.
+         */
+        function checkAnswer() {
+            if (answerInput.disabled) return; // Al beantwoord
+
+            const q = questionData[currentQuestionIndex];
+            
+            // De verwachte invoer van de gebruiker (zonder voornaamwoord)
+            const rawCorrectInput = getVerbalPhrase(q.verb, q.pronoun, currentTense); 
+
+            // Normalizeer input: kleine letters, negeer accenten, verwijder alle spaties
+            // (om 'ai fini' en 'aifini' te matchen)
+            const userAnswerNormalized = answerInput.value.trim().toLowerCase().replace(/é/g, 'e').replace(/\s/g, '');
+            const correctInputNormalized = rawCorrectInput.toLowerCase().replace(/é/g, 'e').replace(/\s/g, '');
+
+            // Toon de knoppen en zet het invoerveld uit
+            answerInput.disabled = true;
+            checkBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+            feedbackBox.classList.remove('hidden');
+
+            const isCorrect = userAnswerNormalized === correctInputNormalized;
+
+            if (isCorrect) {
+                // Correct Antwoord
+                score++;
+                feedbackBox.classList.remove('bg-gray-700', 'incorrect-bg');
+                feedbackBox.classList.add('correct-bg');
+                feedbackText.textContent = '✅ Geweldig! Dat is helemaal correct.';
+                explanationText.innerHTML = generateExplanation(q.verb, q.pronoun, true);
+
+            } else {
+                // Fout Antwoord
+                feedbackBox.classList.remove('bg-gray-700', 'correct-bg');
+                feedbackBox.classList.add('incorrect-bg');
+                feedbackText.textContent = '❌ Dat is helaas niet de juiste vervoeging.';
+                explanationText.innerHTML = generateExplanation(q.verb, q.pronoun, false);
+            }
+
+            // Update score
+            scoreDisplay.textContent = `Score: ${score} / ${currentQuestionIndex + 1}`;
+            
+            // Focus op de volgende knop voor Enter-toets gemak
+            nextBtn.focus();
+        }
+
+        /**
+         * Gaat naar de volgende vraag.
+         */
+        function nextQuestion() {
+            if (!answerInput.disabled) return; // Alleen als antwoord gecontroleerd is
+
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        /**
+         * Toont de eindscore.
+         */
+        function showFinalScore() {
+            appContainer.innerHTML = `
+                <h1 class="text-3xl font-bold mb-4 text-green-400 text-center animate-pulse">
+                    Oefening Voltooid!
+                </h1>
+                <p class="text-xl text-center mb-6">
+                    Je hebt alle ${questionData.length} vragen beantwoord.
+                </p>
+                <div class="bg-gray-700 p-8 rounded-lg text-center">
+                    <p class="text-4xl font-extrabold text-white mb-2">
+                        Eindscore:
+                    </p>
+                    <p class="text-6xl font-extrabold text-yellow-400">
+                        ${score} / ${questionData.length}
+                    </p>
+                </div>
+                <p class="text-center mt-6 text-gray-400">
+                    Goed gedaan! Kies hieronder wat je volgende stap is.
+                </p>
+
+                <div class="flex flex-col gap-3 pt-6 border-t border-gray-600">
+                    <a 
+                        href="https://loek.oerlemans.tv/loek-it-up/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="w-full px-6 py-4 bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-2 border-gray-900 border-b-4 active:border-b-2 active:translate-y-[2px] font-extrabold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-3 animate-bounce"
+                    >
+                        <span>📚</span>
+                        <span>Oefen je woordjes sneller met Loek-it-up! 🚀</span>
+                    </a>
+
+                    <a 
+                        href="../index.html"
+                        class="w-full px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center shadow-md gap-2"
+                    >
+                        <span>←</span> Terug naar Frans Portaal
+                    </a>
+
+                    <button 
+                        onclick="location.reload()"
+                        class="w-full px-6 py-3.5 bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold rounded-xl text-xs transition-all flex items-center justify-center"
+                    >
+                        <span>⟲</span> Nieuwe Toets (Andere Vragen!)
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- ENTER KEY CONTROLE (Gebruiksgemak) ---
+
+        document.addEventListener('keydown', function(event) {
+            // Controleer of de 'Enter' toets is ingedrukt
+            if (event.key === 'Enter') {
+                if (!checkBtn.classList.contains('hidden')) {
+                    // Check button is zichtbaar
+                    checkAnswer();
+                    event.preventDefault(); // Voorkom standaard formulier actie
+                } else if (!nextBtn.classList.contains('hidden')) {
+                    // Next button is zichtbaar
+                    nextQuestion();
+                    event.preventDefault();
+                }
+            }
+        });
+
+        // Start de oefening
+        window.onload = loadQuestion;
+    </script>
+
+</body>
+</html>
