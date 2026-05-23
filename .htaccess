@@ -8,8 +8,8 @@
     RewriteEngine On
     RewriteBase /loek-it-up/
     
-    # Stuur oude subpagina's door naar de hoofdpagina mbv 301 Permanent Redirect
-    RewriteRule ^(english_verbs|aoristus|la|english_words|du|derde-naamval)(/.*)?$ /loek-it-up/ [R=301,L]
+    # Redirects disabled - all subpages can be used
+    # RewriteRule ^(english_verbs|english_words|derde-naamval)(/.*)?$ /loek-it-up/ [R=301,L]
 </IfModule>
 
 # --- Security Headers ---
