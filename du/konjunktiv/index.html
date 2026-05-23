@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duits Leren: De Konjunktiv Masterclass</title>
+    <!-- Tailwind CSS voor responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel voor JSX compilatie -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti voor het eindscherm -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* 3D Card Flip effect voor de flitskaarten */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        
+        .preserve-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Swipe en slide animaties voor de flitskaarten */
+        .card-enter-right {
+            animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .card-enter-left {
+            animation: slideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(60px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-60px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen pb-12">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Theorie-data direct gekoppeld aan de PowerPoint
+        const theoryData = {
+            usages: [
+                { title: "Een niet-werkelijkheid", example: "Wenn ich Geld hätte, dann würde ich ein Haus kaufen." },
+                { title: "Beleefdheid", example: "Könnten Sie mir vielleicht helfen?" },
+                { title: "Indirecte rede", example: "Nena sagte, dass sie kein Geld hätte." },
+                { title: "Mogelijkheid", example: "Er könnte es vielleicht auch tun?" }
+            ],
+            wurdenConjugation: {
+                "ich": "würde",
+                "du": "würdest",
+                "er/sie/es": "würde",
+                "wir": "würden",
+                "ihr": "würdet",
+                "sie": "würden",
+                "Sie": "würden"
+            },
+            eigenForms: {
+                headers: ["Persoon", "haben", "sein", "werden", "dürfen", "können", "mögen", "müssen", "sollen / wollen", "wissen"],
+                rows: [
+                    ["ich", "hätte", "wäre", "würde", "dürfte", "könnte", "möchte", "müsste", "sollte / wollte", "wüsste"],
+                    ["du", "hättest", "wärest", "würdest", "dürftest", "könntest", "möchtest", "müsstest", "solltest / wolltest", "wüsstest"],
+                    ["er/sie/es", "hätte", "wäre", "würde", "dürfte", "könnte", "möchte", "müsste", "sollte / wollte", "wüsste"],
+                    ["wir", "hätten", "wären", "würden", "dürften", "könnten", "möchten", "müssten", "sollten / wollten", "wüssten"],
+                    ["ihr", "hättet", "wäret", "würdet", "dürftet", "könntet", "möchtest", "müsstet", "solltet / wolltet", "wüsstet"],
+                    ["sie", "hätten", "wären", "würden", "dürften", "könnten", "möchten", "müssten", "sollten / wollten", "wüssten"],
+                    ["Sie", "hätten", "wären", "würden", "dürften", "könnten", "möchten", "müssten", "sollten / wollten", "wüssten"]
+                ]
+            }
+        };
+
+        // Grote database met exact 80 gevarieerde zinnen direct gebaseerd op de pptx-regels
+        const questionsPool = [
+            // Categorie 1: hebben (hätte...) - 10 zinnen
+            { id: 1, before: "Wenn ich viel Geld ", after: " (haben), kaufte ich ein Schloss.", correct: "hätte", hint: "Hulpwerkwoord 'haben' krijgt de eigen vorm met Umlaut (ich-vorm)." },
+            { id: 2, before: "Wenn du meer Zeit ", after: " (haben), würdest du meer schlafen.", correct: "hättest", hint: "Vorm van 'haben' voor de 2e persoon enkelvoud (du)." },
+            { id: 3, before: "Er tut so, als ob er keine Sorgen ", after: " (haben).", correct: "hätte", hint: "Derde persoon enkelvoud eigen vorm van 'haben'." },
+            { id: 4, before: "Wenn wir ein Auto ", after: " (haben), würden wir ans Meer fahren.", correct: "hätten", hint: "Eerste persoon meervoud (wir) van 'haben'." },
+            { id: 5, before: "Wenn ihr Mut ", after: " (haben), würdet ihr es tun.", correct: "hättet", hint: "Tweede persoon meervoud (ihr) van 'haben'." },
+            { id: 6, before: "Ich wünschte, sie ", after: " (haben) uns bescheid gesagt.", correct: "hätten", hint: "Meervoudsvorm (sie) van het werkwoord 'haben'." },
+            { id: 7, before: "Wenn Sie Interesse ", after: " (haben), rufen Sie mich an.", correct: "hätten", hint: "Beleefde vorm (Sie) van het werkwoord 'haben'." },
+            { id: 8, before: "Wenn ich doch bloß ein Haustier ", after: " (haben)!", correct: "hätte", hint: "Wenszin met 'haben' in de eerste persoon enkelvoud." },
+            { id: 9, before: "Es wäre toll, wenn wir heute schulfrei ", after: " (haben).", correct: "hätten", hint: "Konjunktiv II van 'haben' voor de 'wir'-vorm." },
+            { id: 10, before: "Wenn du ein bisschen Geduld ", after: " (haben), wäre alles einfacher.", correct: "hättest", hint: "Konjunktiv II van 'haben' met 'du'." },
+
+            // Categorie 2: sein (wäre...) - 10 zinnen
+            { id: 11, before: "Es ", after: " (sein) schloss, jetzt im Urlaub te sein.", correct: "wäre", hint: "Derde persoon enkelvoud van 'sein'." },
+            { id: 12, before: "Wenn ich ein Vogel ", after: " (sein), flöge ich zu dir.", correct: "wäre", hint: "Eerste persoon enkelvoud van 'sein'." },
+            { id: 13, before: "Wo ", after: " (sein) du jetzt am liebsten?", correct: "wärest", hint: "2e persoon enkelvoud (du) van 'sein'." },
+            { id: 14, before: "Wir ", after: " (sein) gerne früher gekommen.", correct: "wären", hint: "Eerste persoon meervoud (wir) van 'sein'." },
+            { id: 15, before: "Wenn ihr doch nur vorsichtiger ", after: " (sein)!", correct: "wäret", hint: "Tweede persoon meervoud (ihr) van 'sein'." },
+            { id: 16, before: "Sie ", after: " (sein) glücklich, wenn sie die Prüfung bestünden.", correct: "wären", hint: "Meervoudsvorm (sie) van 'sein'." },
+            { id: 17, before: "Es ", after: " (sein) mir eine Ehre, Ihnen zu helfen.", correct: "wäre", hint: "Derde persoon enkelvoud van 'sein'." },
+            { id: 18, before: "Wenn Sie so freundlich ", after: " (sein), mir den Weg zu zeigen?", correct: "wären", hint: "Beleefde vorm (Sie) van 'sein'." },
+            { id: 19, before: "Ich wünschte, das Wetter ", after: " (sein) heute besser.", correct: "wäre", hint: "Konjunktiv II van 'sein' voor het weer (es)." },
+            { id: 20, before: "Wenn du gestern da gewesen ", after: " (sein), hätten wir gefeiert.", correct: "wärest", hint: "Konjunktiv II van 'sein' met 'du'." },
+
+            // Categorie 3: werden (würde...) - 10 zinnen
+            { id: 21, before: "Ich ", after: " (werden) gerne ein neues Handy kaufen.", correct: "würde", hint: "Eerste persoon enkelvoud van 'werden'." },
+            { id: 22, before: "Was ", after: " (werden) du an meiner Stelle tun?", correct: "würdest", hint: "2e persoon enkelvoud (du) van 'werden'." },
+            { id: 23, before: "Er ", after: " (werden) sich bestimmt darüber freuen.", correct: "würde", hint: "Derde persoon enkelvoud van 'werden'." },
+            { id: 24, before: "Wir ", after: " (werden) gerne die Welt bereisen.", correct: "würden", hint: "Eerste persoon meervoud (wir) van 'werden'." },
+            { id: 25, before: " ", after: " (werden) ihr mir bei dem Projekt helfen?", correct: "Würdet", hint: "Let op de hoofdletter! Tweede persoon meervoud (ihr) van 'werden'." },
+            { id: 26, before: "Die Schüler ", after: " (werden) lieber draußen spielen.", correct: "würden", hint: "Meervoudsvorm (die Schüler = sie) van 'werden'." },
+            { id: 27, before: "Wenn es regnet, ", after: " (werden) ich im Haus bleiben.", correct: "würde", hint: "Konjunktiv II van 'werden' voor 'ich'." },
+            { id: 28, before: "Niemand ", after: " (werden) das freiwillig machen.", correct: "würde", hint: "3e persoon enkelvoud van 'werden' (niemand)." },
+            { id: 29, before: "Das ", after: " (werden) super funktionieren!", correct: "würde", hint: "Konjunktiv II van 'werden' voor 'das'." },
+            { id: 30, before: " ", after: " (werden) Sie mir bitte zuhören?", correct: "Würden", hint: "Let op de hoofdletter! Beleefde vorm (Sie) van 'werden'." },
+
+            // Categorie 4: können (könnte...) - 10 zinnen
+            { id: 31, before: "Er ", after: " (können) es vielleicht auch tun?", correct: "könnte", hint: "Direct uit de PPT: 'können' 3e persoon enkelvoud eigen vorm." },
+            { id: 32, before: " ", after: " (können) Sie mir vielleicht helfen?", correct: "Könnten", hint: "Beleefde vraag met hoofdletter! 'können' voor 'Sie'." },
+            { id: 33, before: "Wenn ich fliegen ", after: " (können), täte ich es.", correct: "könnte", hint: "1e persoon enkelvoud van 'können'." },
+            { id: 34, before: "Du ", after: " (können) es morgen noch einmal versuchen.", correct: "könntest", hint: "2e persoon enkelvoud (du) van 'können'." },
+            { id: 35, before: "Wir ", after: " (können) zusammen lernen.", correct: "könnten", hint: "Eerste persoon meervoud (wir) van 'können'." },
+            { id: 36, before: "Ihr ", after: " (können) früher nach Hause gehen.", correct: "könntet", hint: "Tweede persoon meervoud (ihr) van 'können'." },
+            { id: 37, before: "Sie ", after: " (können) das Problem leicht lösen.", correct: "könnten", hint: "Meervoudsvorm van 'können'." },
+            { id: 38, before: "Ich wünschte, ich ", after: " (können) Deutsch sprechen.", correct: "könnte", hint: "Konjunktiv II van 'können' met 'ich'." },
+            { id: 39, before: "Wenn du mir hilfst, ", after: " (können) wir schneller fertig sein.", correct: "könnten", hint: "Eerste persoon meervoud van 'können'." },
+            { id: 40, before: "Er sagte, er ", after: " (können) heute nicht kommen.", correct: "könnte", hint: "3e persoon enkelvoud van 'können'." },
+
+            // Categorie 5: müssen (müsste...) - 10 zinnen
+            { id: 41, before: "Ich ", after: " (müssen) eigentlich meine Hausaufgaben machen.", correct: "müsste", hint: "Eigen vorm van 'müssen' voor 'ich'." },
+            { id: 42, before: "Du ", after: " (müssen) mehr Sport treiben.", correct: "müsstest", hint: "2e persoon enkelvoud van 'müssen'." },
+            { id: 43, before: "Er ", after: " (müssen) jetzt eigenlijk im Bett sein.", correct: "müsste", hint: "3e persoon enkelvoud van 'müssen'." },
+            { id: 44, before: "Wir ", after: " (müssen) uns jetzt wirklich beeilen.", correct: "müssten", hint: "Eerste persoon meervoud (wir) van 'müssen'." },
+            { id: 45, before: "Ihr ", after: " (müssen) das eigentlich wissen.", correct: "müsstet", hint: "Tweede persoon meervoud (ihr) van 'müssen'." },
+            { id: 46, before: "Die Lehrer ", after: " (müssen) auch am Wochenende arbeiten.", correct: "müssten", hint: "Meervoudsvorm (die Lehrer) van 'müssen'." },
+            { id: 47, before: "Wenn wir gewinnen wollen, ", after: " (müssen) wir besser spielen.", correct: "müssten", hint: "Konjunktiv II van 'müssen' voor 'wir'." },
+            { id: 48, before: "Es ", after: " (müssen) doch eine Lösung geben!", correct: "müsste", hint: "3e persoon enkelvoud (es) van 'müssen'." },
+            { id: 49, before: "Ich dachte, du ", after: " (müssen) heute arbeiten.", correct: "müsstest", hint: "Konjunktiv II van 'müssen' voor 'du'." },
+            { id: 50, before: "Sie ", after: " (müssen) mehr Geduld mit Ihren Kindern haben.", correct: "müssten", hint: "Beleefde vorm (Sie) van 'müssen'." },
+
+            // Categorie 6: dürfen (dürfte...) - 10 zinnen
+            { id: 51, before: " ", after: " (dürfen) ich Sie kurz stören?", correct: "Dürfte", hint: "Let op de hoofdletter! Eigen vorm van 'dürfen' voor 'ich'." },
+            { id: 52, before: "Du ", after: " (dürfen) hier eigentlich nicht parken.", correct: "dürftest", hint: "2e persoon enkelvoud van 'dürfen'." },
+            { id: 53, before: "Es ", after: " (dürfen) nicht wahr sein!", correct: "dürfte", hint: "3e persoon enkelvoud van 'dürfen'." },
+            { id: 54, before: "Wir ", after: " (dürfen) laut Gesetz hier spielen.", correct: "dürften", hint: "Eerste persoon meervoud van 'dürfen'." },
+            { id: 55, before: "Ihr ", after: " (dürfen) heute länger aufbleiben.", correct: "dürftet", hint: "Tweede persoon meervoud van 'dürfen'." },
+            { id: 56, before: "Die Kinder ", after: " (dürfen) im Garten spielen.", correct: "dürften", hint: "Meervoudsvorm (die Kinder) van 'dürfen'." },
+            { id: 57, before: "Wenn ich bitten ", after: " (dürfen), nehmen Sie Platz.", correct: "dürfte", hint: "Beleefde formule met 'dürfen' (ich)." },
+            { id: 58, before: "Das ", after: " (dürfen) ziemlich schwierig werden.", correct: "dürfte", hint: "In de betekenis van waarschijnlijkheid: 'das dürfte...'" },
+            { id: 59, before: "Wenn du fleißig bist, ", after: " (dürfen) du mitspielen.", correct: "dürftest", hint: "Konjunktiv II van 'dürfen' met 'du'." },
+            { id: 60, before: "Sie ", after: " (dürfen) das Schloss besichtigen.", correct: "dürften", hint: "Beleefde vorm (Sie) van 'dürfen'." },
+
+            // Categorie 7: mögen (möchte...) - 10 zinnen
+            { id: 61, before: "Ich ", after: " (mögen) gerne eine Pizza bestellen.", correct: "möchte", hint: "Dit is hoe we 'zou graag willen' maken met 'mögen'." },
+            { id: 62, before: "Was ", after: " (mögen) du trinken?", correct: "möchtest", hint: "2e persoon enkelvoud van 'mögen'." },
+            { id: 63, before: "Er ", after: " (mögen) am liebsten schlafen.", correct: "möchte", hint: "3e persoon enkelvoud van 'mögen'." },
+            { id: 64, before: "Wir ", after: " (mögen) uns beschweren.", correct: "möchten", hint: "Eerste persoon meervoud van 'mögen'." },
+            { id: 65, before: " ", after: " (mögen) ihr ein Eis essen?", correct: "Möchtet", hint: "Let op de hoofdletter! Tweede persoon meervoud (ihr) van 'mögen'." },
+            { id: 66, before: "Sie ", after: " (mögen) gerne ein House kaufen.", correct: "möchten", hint: "Meervoudsvorm (sie) van 'mögen'." },
+            { id: 67, before: "Ich wünschte, er ", after: " (mögen) mich ein bisschen mehr.", correct: "möchte", hint: "Konjunktiv II van 'mögen' voor 'er'." },
+            { id: 68, before: "Welches Buch ", after: " (mögen) Sie lesen?", correct: "möchten", hint: "Beleefde vorm (Sie) van 'mögen'." },
+            { id: 69, before: "Wenn du willst, ", after: " (mögen) ich dir helfen.", correct: "möchte", hint: "Konjunktiv II van 'mögen' met 'ich'." },
+            { id: 70, before: "Es scheint, als ", after: " (mögen) sie das Spiel nicht.", correct: "möchte", hint: "3e persoon enkelvoud van 'mögen'." },
+
+            // Categorie 8: wissen, sollen & wollen (wüsste, sollte, wollte) - 10 zinnen
+            { id: 71, before: "Ich wünschte, ich ", after: " (wissen) die Antwort.", correct: "wüsste", hint: "Eigen vorm van 'wissen' voor 'ich'." },
+            { id: 72, before: "Wenn du es ", after: " (wissen), hättest du es gesagt.", correct: "wüsstest", hint: "2e persoon enkelvoud van 'wissen'." },
+            { id: 73, before: "Niemand ", after: " (wissen) das ohne Hilfe.", correct: "wüsste", hint: "3e persoon enkelvoud (niemand) van 'wissen'." },
+            { id: 74, before: "Wir ", after: " (wissen) gerne, wo er ist.", correct: "wüssten", hint: "Eerste persoon meervoud van 'wissen'." },
+            { id: 75, before: "Ich ", after: " (wollen) eigentlich mitkommen.", correct: "wollte", hint: "Konjunktiv II van 'wollen' (is hetzelfde als de Verleden Tijd!)." },
+            { id: 76, before: "Du ", after: " (sollen) jetzt schlafen gehen.", correct: "solltest", hint: "Konjunktiv II van 'sollen' (is hetzelfde als de Verleden Tijd!)." },
+            { id: 77, before: "Er ", after: " (wollen) das Auto kaufen.", correct: "wollte", hint: "Konjunktiv II van 'wollen' voor 'er'." },
+            { id: 78, before: "Wir ", after: " (sollen) leiser sein.", correct: "sollten", hint: "Konjunktiv II van 'sollen' voor 'wir'." },
+            { id: 79, before: "Ihr ", after: " (sollen) fleißiger lernen.", correct: "solltet", hint: "Konjunktiv II van 'sollen' voor 'ihr'." },
+            { id: 80, before: "Wenn Sie es ", after: " (wissen), geben Sie mir Bescheid.", correct: "wüssten", hint: "Beleefde vorm (Sie) van 'wissen'." }
+        ];
+
+        const flashcardsData = [
+            { id: 1, prompt: "haben (ich)", answer: "hätte", info: "Eigen vorm van 'haben'. Mag absoluut NOOIT met 'würde' gecombineerd worden!" },
+            { id: 2, prompt: "sein (du)", answer: "wärest", info: "Eigen vorm van 'sein'. Mag absoluut NOOIT met 'würde' gecombineerd worden!" },
+            { id: 3, prompt: "werden (er/sie/es)", answer: "würde", info: "Wordt gebruikt om de regelmatige Konjunktiv te bouwen." },
+            { id: 4, prompt: "können (wir)", answer: "könnten", info: "Modalverb eigen vorm. 'Könnten Sie mir vielleicht helfen?'" },
+            { id: 5, prompt: "müssen (ihr)", answer: "müsstet", info: "Modalverb eigen vorm. Moeten we uit het hoofd leren!" },
+            { id: 6, prompt: "dürfen (Sie)", answer: "dürften", info: "Modalverb eigen vorm voor beleefde toestemming." },
+            { id: 7, prompt: "wissen (ich)", answer: "wüsste", info: "Eigen vorm van 'wissen'." },
+            { id: 8, prompt: "mögen (er/sie/es)", answer: "möchte", info: "Dit is hoe we 'zou graag willen' maken!" },
+            { id: 9, prompt: "sollen / wollen (du)", answer: "solltest / wolltest", info: "Geen Umlaut hier, maar behoudt de verleden tijdsvorm." }
+        ];
+
+        const MatchGameData = [
+            { id: 1, german: "ich hätte", dutch: "ik had / zou hebben" },
+            { id: 2, german: "du wärest", dutch: "jij was / zou zijn" },
+            { id: 3, german: "er würde", dutch: "hij zou worden" },
+            { id: 4, german: "wir könnten", dutch: "wij zouden kunnen" },
+            { id: 5, german: "ihr müsstet", dutch: "jullie zouden moeten" },
+            { id: 6, german: "ich wüsste", dutch: "ik wist / zou weten" }
+        ];
+
+        // Custom Pop-up Component voor het blokkeren van navigatie
+        const WarningModal = ({ isOpen, onConfirm, onCancel }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+                        <div className="flex items-center gap-3 text-amber-600 mb-4">
+                            <span className="p-2 bg-amber-50 rounded-lg">
+                                <i data-lucide="alert-triangle" className="w-6 h-6"></i>
+                            </span>
+                            <h4 className="text-lg font-bold">Opdracht afbreken?</h4>
+                        </div>
+                        <p className="text-slate-600 mb-6 text-sm leading-relaxed">
+                            Weet je zeker dat je deze opdracht wilt sluiten? Je voortgang van deze oefensessie gaat hiermee verloren.
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button 
+                                onClick={onCancel}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-sm transition-colors"
+                            >
+                                Nee, doorgaan
+                            </button>
+                            <button 
+                                onClick={onConfirm}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition-colors"
+                            >
+                                Ja, sluiten
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const TheoryTab = () => {
+            return (
+                <div className="space-y-8 animate-fade-in">
+                    {/* Intro */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-10 -mt-10 -z-0 opacity-40"></div>
+                        <div className="relative z-10">
+                            <h3 className="text-xl font-extrabold text-slate-800 mb-3 flex items-center">
+                                <span className="p-2.5 bg-blue-100 text-blue-600 rounded-xl mr-3">
+                                    <i data-lucide="book-open" className="w-5 h-5"></i>
+                                </span>
+                                Wat is de Konjunktiv?
+                            </h3>
+                            <p className="text-slate-600 leading-relaxed text-sm md:text-base">
+                                Door de <strong>“Konjunktiv”</strong> te gebruiken gebruik je werkwoorden om de volgende dingen uit te drukken:
+                            </p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                {theoryData.usages.map((u, i) => (
+                                    <div key={i} className="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                        <span className="text-xs font-bold text-blue-600 uppercase tracking-wider block mb-1">
+                                            {u.title}
+                                        </span>
+                                        <p className="text-slate-800 font-semibold italic text-sm">
+                                            "{u.example}"
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Hoe maak je het? */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 className="text-xl font-extrabold text-slate-800 mb-3 flex items-center">
+                            <span className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl mr-3">
+                                <i data-lucide="sliders" className="w-5 h-5"></i>
+                            </span>
+                            Hoe maak je de Konjunktiv?
+                        </h3>
+                        <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                            <strong>Stap 1:</strong> Neem een vorm van <strong>“würden”</strong>:
+                        </p>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                            {Object.entries(theoryData.wurdenConjugation).map(([key, val]) => (
+                                <div key={key} className="bg-indigo-50/50 border border-indigo-100/60 p-2.5 rounded-lg text-center">
+                                    <span className="text-xs text-indigo-500 font-bold block">{key}</span>
+                                    <span className="font-mono text-indigo-900 font-bold text-sm">{val}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                            <strong>Stap 2:</strong> Combineer vervolgens deze vorm van <em>“würden”</em> met een ander werkwoord (hele werkwoord achteraan de zin):
+                        </p>
+                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2 text-sm font-semibold">
+                            <p className="text-slate-700">• Er <span className="text-indigo-600">würde</span> doch auch <span className="underline">kommen</span>?</p>
+                            <p className="text-slate-700">• Nina und Herman <span className="text-indigo-600">würden</span> doch ein Haus <span className="underline">kaufen</span> wenn....</p>
+                            <p className="text-slate-700">• Du <span className="text-indigo-600">würdest</span> das doch ook <span className="underline">machen</span>?</p>
+                        </div>
+                    </div>
+
+                    {/* DE CRUCIALE WAARSCHUWING */}
+                    <div className="bg-red-50 border-2 border-red-200 p-6 md:p-8 rounded-2xl shadow-sm relative overflow-hidden">
+                        <div className="absolute -right-6 -bottom-6 text-red-100 opacity-50">
+                            <i data-lucide="alert-octagon" className="w-32 h-32"></i>
+                        </div>
+                        <div className="relative z-10">
+                            <h3 className="text-lg font-black text-red-900 mb-2 flex items-center">
+                                <i data-lucide="alert-triangle" className="w-5 h-5 mr-2 shrink-0"></i>
+                                MAAR LET OP! (ZEER BELANGRIJK)
+                            </h3>
+                            <p className="text-red-800 text-sm leading-relaxed font-semibold">
+                                Een vorm van “würden” mag je <span className="underline uppercase">niet combineren</span> met:
+                            </p>
+                            <div className="flex gap-4 my-3 flex-wrap">
+                                <span className="px-3 py-1.5 bg-red-100 border border-red-300 rounded-lg text-red-950 font-bold text-xs">haben</span>
+                                <span className="px-3 py-1.5 bg-red-100 border border-red-300 rounded-lg text-red-950 font-bold text-xs">sein</span>
+                                <span className="px-3 py-1.5 bg-red-100 border border-red-300 rounded-lg text-red-950 font-bold text-xs">alle Modalverben (können, müssen, etc.)</span>
+                            </div>
+                            <p className="text-red-700 text-xs leading-relaxed">
+                                Fout: <span className="line-through">"Wenn ich Geld haben würde, dann würde ich das auch können."</span><br />
+                                Goed: <span className="font-bold">"Wenn ich Geld hätte, dann könnte ich das ook."</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* UIT JE HOOFD LEREN TABEL */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="mb-4">
+                            <h3 className="text-xl font-extrabold text-slate-800 mb-1 flex items-center">
+                                <span className="p-2.5 bg-amber-100 text-amber-600 rounded-xl mr-3">
+                                    <i data-lucide="key" className="w-5 h-5"></i>
+                                </span>
+                                Deze moet je uit je hoofd leren!
+                            </h3>
+                            <p className="text-slate-500 text-xs">Deze werkwoorden hebben hun eigen vaste Konjunktiv vorm.</p>
+                        </div>
+
+                        {/* Responsive Scrollable Table */}
+                        <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                            <table className="w-full text-left text-xs min-w-[700px]">
+                                <thead className="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-100">
+                                    <tr>
+                                        {theoryData.eigenForms.headers.map((h, idx) => (
+                                            <th key={idx} className="p-3 text-center first:text-left">{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 text-slate-700">
+                                    {theoryData.eigenForms.rows.map((row, rowIdx) => (
+                                        <tr key={rowIdx} className="hover:bg-slate-50/50 transition-colors">
+                                            {row.map((cell, cellIdx) => (
+                                                <td key={cellIdx} className={`p-3 text-center first:text-left first:font-bold ${cellIdx === 0 ? 'text-slate-900' : 'font-mono'}`}>
+                                                    {cell}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="text-right text-[10px] text-slate-400 mt-2">
+                            Bron: Seite 18 / 19 TB K16
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const FlashcardSection = ({ onExitRequest }) => {
+            const [currentIndex, setCurrentIndex] = React.useState(0);
+            const [isFlipped, setIsFlipped] = React.useState(false);
+            const [slideDirection, setSlideDirection] = React.useState('right'); // 'left' of 'right'
+            const [animKey, setAnimKey] = React.useState(0); // voor re-triggering animation
+
+            const handleNext = React.useCallback(() => {
+                setIsFlipped(false);
+                setSlideDirection('right');
+                setAnimKey(prev => prev + 1);
+                setTimeout(() => {
+                    setCurrentIndex((prev) => (prev + 1) % flashcardsData.length);
+                }, 100);
+            }, []);
+
+            const handlePrev = React.useCallback(() => {
+                setIsFlipped(false);
+                setSlideDirection('left');
+                setAnimKey(prev => prev + 1);
+                setTimeout(() => {
+                    setCurrentIndex((prev) => (prev - 1 + flashcardsData.length) % flashcardsData.length);
+                }, 100);
+            }, []);
+
+            // Keyboard navigation listener
+            React.useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowRight') {
+                        handleNext();
+                    } else if (e.key === 'ArrowLeft') {
+                        handlePrev();
+                    } else if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        setIsFlipped(prev => !prev);
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [handleNext, handlePrev]);
+
+            const card = flashcardsData[currentIndex];
+
+            return (
+                <div className="max-w-xl mx-auto space-y-6 animate-fade-in text-center relative px-2">
+                    
+                    {/* Header bar met Sluitknop */}
+                    <div className="flex justify-between items-center bg-white px-4 py-3 rounded-xl border border-slate-100 shadow-sm">
+                        <span className="text-xs font-bold text-slate-400">ACTIVITEIT: FLITSKAARTEN</span>
+                        <button 
+                            onClick={onExitRequest}
+                            className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg transition-colors"
+                        >
+                            <i data-lucide="log-out" className="w-3.5 h-3.5"></i> Sluiten
+                        </button>
+                    </div>
+
+                    <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-semibold text-amber-800">
+                        <div className="flex items-center space-x-2">
+                            <span className="px-1.5 py-0.5 bg-amber-200 text-amber-900 rounded-md">Besturing</span>
+                            <span>Gebruik de knoppen of <b>← / →</b> pijltjes op je keyboard!</span>
+                        </div>
+                        <span className="text-[10px] bg-amber-200/50 px-2 py-0.5 rounded text-amber-900">Spatie = Flip</span>
+                    </div>
+
+                    {/* 3D Card Wrapper met animatie-class op basis van richting */}
+                    <div 
+                        key={animKey}
+                        onClick={() => setIsFlipped(!isFlipped)}
+                        className={`w-full h-80 perspective-1000 cursor-pointer ${
+                            slideDirection === 'right' ? 'card-enter-right' : 'card-enter-left'
+                        }`}
+                    >
+                        <div className={`relative w-full h-full preserve-3d rounded-2xl shadow-md duration-500 ${isFlipped ? 'rotate-y-180' : ''}`}>
+                            
+                            {/* Voorkant */}
+                            <div className="absolute inset-0 w-full h-full backface-hidden bg-gradient-to-tr from-white to-slate-50 rounded-2xl border-2 border-slate-200 p-6 flex flex-col justify-between items-center">
+                                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Geef de eigen Konjunktiv vorm</span>
+                                <div className="text-center py-4">
+                                    <h4 className="text-4xl font-black text-slate-800 tracking-tight">{card.prompt}</h4>
+                                </div>
+                                <div className="text-blue-600 text-xs font-bold flex items-center bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                                    <i data-lucide="refresh-cw" className="w-3.5 h-3.5 mr-1.5"></i> Klik om antwoord te zien
+                                </div>
+                            </div>
+
+                            {/* Achterkant */}
+                            <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-slate-900 rounded-2xl p-6 flex flex-col justify-between items-center text-white border-2 border-slate-800">
+                                <span className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">Correcte Vorm</span>
+                                <div className="text-center py-2">
+                                    <h4 className="text-5xl font-black text-amber-400 tracking-tight mb-2">{card.answer}</h4>
+                                    <p className="text-slate-300 text-xs max-w-sm mx-auto leading-relaxed">{card.info}</p>
+                                </div>
+                                <div className="text-slate-500 text-[10px] flex items-center gap-1">
+                                    <i data-lucide="info" className="w-3 h-3"></i> Klik om terug te draaien
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* Controls */}
+                    <div className="flex justify-between items-center max-w-xs mx-auto pt-2">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+                            className="p-3 bg-white rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all active:scale-95"
+                            title="Vorige flitskaart (Linker pijltjestoets)"
+                        >
+                            <i data-lucide="arrow-left" className="w-5 h-5"></i>
+                        </button>
+                        <span className="text-xs font-bold text-slate-500">
+                            {currentIndex + 1} / {flashcardsData.length}
+                        </span>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                            className="p-3 bg-white rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all active:scale-95"
+                            title="Volgende flitskaart (Rechter pijltjestoets)"
+                        >
+                            <i data-lucide="arrow-right" className="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const MatchGame = ({ onExitRequest }) => {
+            const [leftSelected, setLeftSelected] = React.useState(null);
+            const [rightSelected, setRightSelected] = React.useState(null);
+            const [completed, setCompleted] = React.useState([]); 
+            const [errorPair, setErrorPair] = React.useState(null); 
+
+            const [randomLeft, setRandomLeft] = React.useState([]);
+            const [randomRight, setRandomRight] = React.useState([]);
+
+            React.useEffect(() => {
+                setRandomLeft([...MatchGameData].sort(() => Math.random() - 0.5));
+                setRandomRight([...MatchGameData].sort(() => Math.random() - 0.5));
+            }, []);
+
+            const handleLeftClick = (item) => {
+                if (completed.includes(item.id)) return;
+                setLeftSelected(item);
+                checkMatch(item, rightSelected);
+            };
+
+            const handleRightClick = (item) => {
+                if (completed.includes(item.id)) return;
+                setRightSelected(item);
+                checkMatch(leftSelected, item);
+            };
+
+            const checkMatch = (left, right) => {
+                if (left && right) {
+                    if (left.id === right.id) {
+                        setCompleted(prev => [...prev, left.id]);
+                        setLeftSelected(null);
+                        setRightSelected(null);
+                    } else {
+                        setErrorPair({ leftId: left.id, rightId: right.id });
+                        setTimeout(() => {
+                            setErrorPair(null);
+                            setLeftSelected(null);
+                            setRightSelected(null);
+                        }, 800);
+                    }
+                }
+            };
+
+            const resetGame = () => {
+                setLeftSelected(null);
+                setRightSelected(null);
+                setCompleted([]);
+                setErrorPair(null);
+                setRandomLeft([...MatchGameData].sort(() => Math.random() - 0.5));
+                setRandomRight([...MatchGameData].sort(() => Math.random() - 0.5));
+            };
+
+            return (
+                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 animate-fade-in max-w-2xl mx-auto space-y-6">
+                    
+                    {/* Header bar met Sluitknop */}
+                    <div className="flex justify-between items-center bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+                        <span className="text-xs font-bold text-slate-400">ACTIVITEIT: KOPPELAAR</span>
+                        <button 
+                            onClick={onExitRequest}
+                            className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg transition-colors"
+                        >
+                            <i data-lucide="log-out" className="w-3.5 h-3.5"></i> Sluiten
+                        </button>
+                    </div>
+
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-800">Snel-Koppelaar</h3>
+                        <p className="text-xs text-slate-500 mt-1">Combineer de Duitse eigen vormen met de juiste betekenis.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Duitse kolom */}
+                        <div className="space-y-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Duitse Vorm</span>
+                            {randomLeft.map((item) => {
+                                const isMatched = completed.includes(item.id);
+                                const isSelected = leftSelected && leftSelected.id === item.id;
+                                const isErroneous = errorPair && errorPair.leftId === item.id;
+
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => handleLeftClick(item)}
+                                        disabled={isMatched}
+                                        className={`w-full p-4 rounded-xl text-left border transition-all text-sm font-semibold flex justify-between items-center min-h-[56px]
+                                            ${isMatched 
+                                                ? 'bg-green-50 border-green-200 text-green-600 opacity-60' 
+                                                : isErroneous
+                                                    ? 'bg-red-50 border-red-300 text-red-600 animate-bounce'
+                                                    : isSelected
+                                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 scale-[1.02] shadow-sm'
+                                                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100 text-slate-700'}`}
+                                    >
+                                        <span>{item.german}</span>
+                                        {isMatched && <i data-lucide="check" className="w-4 h-4 text-green-500"></i>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Nederlandse kolom */}
+                        <div className="space-y-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Vertaling</span>
+                            {randomRight.map((item) => {
+                                const isMatched = completed.includes(item.id);
+                                const isSelected = rightSelected && rightSelected.id === item.id;
+                                const isErroneous = errorPair && errorPair.rightId === item.id;
+
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => handleRightClick(item)}
+                                        disabled={isMatched}
+                                        className={`w-full p-4 rounded-xl text-left border transition-all text-sm font-semibold flex justify-between items-center min-h-[56px]
+                                            ${isMatched 
+                                                ? 'bg-green-50 border-green-200 text-green-600 opacity-60' 
+                                                : isErroneous
+                                                    ? 'bg-red-50 border-red-300 text-red-600 animate-bounce'
+                                                    : isSelected
+                                                        ? 'bg-indigo-50 border-indigo-500 text-indigo-700 scale-[1.02] shadow-sm'
+                                                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100 text-slate-700'}`}
+                                    >
+                                        <span>{item.dutch}</span>
+                                        {isMatched && <i data-lucide="check" className="w-4 h-4 text-green-500"></i>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {completed.length === MatchGameData.length && (
+                        <div className="mt-6 p-5 bg-green-50 border border-green-200 rounded-xl text-center">
+                            <h4 className="font-extrabold text-green-800 text-base mb-1">Geweldig gedaan! 🎉</h4>
+                            <p className="text-xs text-green-600 mb-4">Je kent de uitzonderingen perfect uit je hoofd!</p>
+                            <button 
+                                onClick={resetGame}
+                                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all text-xs"
+                            >
+                                Nog een keer spelen
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const QuizSection = ({ onExitRequest }) => {
+            const [selectedQuestions, setSelectedQuestions] = React.useState([]);
+            const [userInputs, setUserInputs] = React.useState({});
+            const [showResults, setShowResults] = React.useState(false);
+            const [activeHint, setActiveHint] = React.useState(null);
+
+            // Trek een willekeurige selectie van 10 unieke vragen bij de mount of reset
+            const initializeQuizQuestions = () => {
+                const shuffled = [...questionsPool].sort(() => 0.5 - Math.random());
+                setSelectedQuestions(shuffled.slice(0, 10));
+                setUserInputs({});
+                setShowResults(false);
+                setActiveHint(null);
+            };
+
+            React.useEffect(() => {
+                initializeQuizQuestions();
+            }, []);
+
+            const handleInputChange = (id, val) => {
+                setUserInputs(prev => ({ ...prev, [id]: val }));
+            };
+
+            const triggerConfetti = () => {
+                const duration = 2.5 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 3,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#000000', '#FF0000', '#FFCC00', '#3b82f6'] // Duits & Blue accenten!
+                    });
+                    confetti({
+                        particleCount: 3,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#000000', '#FF0000', '#FFCC00', '#3b82f6']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            };
+
+            const checkAnswers = () => {
+                setShowResults(true);
+                triggerConfetti();
+            };
+
+            const getScore = () => {
+                let score = 0;
+                selectedQuestions.forEach(q => {
+                    if ((userInputs[q.id] || '').trim().toLowerCase() === q.correct.toLowerCase()) {
+                        score++;
+                    }
+                });
+                return score;
+            };
+
+            const getCijfer = () => {
+                const score = getScore();
+                const total = selectedQuestions.length;
+                if (total === 0) return "1.0";
+                // Bereken cijfer op de schaal van 1-10
+                const calculated = (score / total) * 9 + 1;
+                return calculated.toFixed(1);
+            };
+
+            return (
+                <div className="space-y-6 animate-fade-in px-1">
+                    <div className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                        
+                        {/* Header bar met Sluitknop */}
+                        <div className="flex justify-between items-center bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 mb-6">
+                            <span className="text-xs font-bold text-slate-400">ACTIVITEIT: EINDQUIZ (10 RANDOM VRAGEN)</span>
+                            <button 
+                                onClick={onExitRequest}
+                                className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg transition-colors"
+                            >
+                                <i data-lucide="log-out" className="w-3.5 h-3.5"></i> Sluiten
+                            </button>
+                        </div>
+
+                        {!showResults ? (
+                            <>
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-slate-800">Eindtoets: Konjunktiv</h3>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            Er zijn 80 mogelijke zinnen! Deze toets heeft 10 willekeurige zinnen geselecteerd. Vul de juiste vorm in.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Vragen lijst */}
+                                <div className="space-y-5">
+                                    {selectedQuestions.map((q, idx) => {
+                                        return (
+                                            <div key={q.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/40">
+                                                <div className="flex items-start gap-3">
+                                                    <span className="bg-slate-200 text-slate-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0 mt-1">
+                                                        {idx + 1}
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        <div className="text-sm md:text-base text-slate-800 leading-relaxed">
+                                                            <span>{q.before}</span>
+                                                            <input 
+                                                                type="text"
+                                                                value={userInputs[q.id] || ''}
+                                                                onChange={(e) => handleInputChange(q.id, e.target.value)}
+                                                                placeholder="..."
+                                                                className="mx-1 px-2.5 py-1 w-32 text-center rounded-lg border-2 font-semibold shadow-sm text-sm focus:outline-none focus:ring-2 bg-white border-slate-200 focus:border-blue-500 focus:ring-blue-100"
+                                                            />
+                                                            <span>{q.after}</span>
+                                                        </div>
+
+                                                        <div className="flex gap-2 items-center mt-2">
+                                                            <button 
+                                                                onClick={() => setActiveHint(activeHint === q.id ? null : q.id)}
+                                                                className="text-[11px] text-blue-600 font-semibold hover:text-blue-800 flex items-center"
+                                                            >
+                                                                <i data-lucide="help-circle" className="w-3 h-3 mr-1"></i>
+                                                                {activeHint === q.id ? 'Tip verbergen' : 'Toon tip'}
+                                                            </button>
+                                                        </div>
+
+                                                        {activeHint === q.id && (
+                                                            <div className="mt-2 text-xs bg-blue-50 text-blue-800 p-2.5 rounded-lg border border-blue-100">
+                                                                {q.hint}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Acties */}
+                                <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end">
+                                    <button 
+                                        onClick={checkAnswers}
+                                        className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-blue-100 flex items-center justify-center"
+                                    >
+                                        <i data-lucide="check" className="w-4 h-4 mr-2"></i> Toets Nakijken
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            /* PRACHTIG CONFETTI EN SUCCESS SCHERM */
+                            <div className="text-center py-8 space-y-6 animate-fade-in max-w-lg mx-auto">
+                                <div className="inline-flex p-4 bg-green-50 text-green-600 rounded-full border border-green-100 mb-2">
+                                    <i data-lucide="party-popper" className="w-12 h-12"></i>
+                                </div>
+                                
+                                <div>
+                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Gefeliciteerd! 🎉</h3>
+                                    <p className="text-slate-500 text-sm mt-1">Je hebt de Duitse Konjunktiv Toets afgerond.</p>
+                                </div>
+
+                                {/* Score board */}
+                                <div className="bg-slate-50 border border-slate-100 p-6 rounded-2xl grid grid-cols-2 gap-4 divide-x divide-slate-200">
+                                    <div>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Jouw Cijfer</span>
+                                        <span className={`text-4xl font-black block mt-1 ${parseFloat(getCijfer()) >= 5.5 ? 'text-green-600' : 'text-red-500'}`}>
+                                            {getCijfer()}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Goede Antwoorden</span>
+                                        <span className="text-4xl font-black text-slate-800 block mt-1">
+                                            {getScore()} / {selectedQuestions.length}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Feedback zin */}
+                                <p className="text-slate-600 text-sm leading-relaxed px-4">
+                                    {parseFloat(getCijfer()) >= 8.0 
+                                        ? "Sensationell! Je kent de Konjunktiv als een echte Duitse native speaker! 🚀" 
+                                        : parseFloat(getCijfer()) >= 5.5 
+                                            ? "Prima gedaan! Je bent geslaagd en snapt de regels uitstekend. 👍" 
+                                            : "Nog even oefenen! Bekijk de theorie nog eens goed en let op de uitzonderingen van 'haben' en 'sein'. 🇩🇪"}
+                                </p>
+
+                                {/* Grote Actieknoppen */}
+                                <div className="flex flex-col gap-3 pt-4">
+                                    <a 
+                                        href="https://loek.oerlemans.tv/loek-it-up/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full px-6 py-4 bg-[#fdc204] hover:bg-[#e8b200] text-slate-900 border-2 border-slate-900 border-b-4 active:border-b-2 active:translate-y-[2px] font-extrabold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-3 animate-bounce"
+                                    >
+                                        <img src="../../images/logo.svg" alt="Loek-It-Up Logo" className="w-7 h-7 drop-shadow-sm" />
+                                        <span>Oefen je woordjes sneller met Loek-it-up! 🚀</span>
+                                    </a>
+
+                                    <a 
+                                        href="../index.html"
+                                        className="w-full px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center shadow-md gap-2"
+                                    >
+                                        <i data-lucide="arrow-left" className="w-4 h-4"></i> Terug naar Duits Portaal
+                                    </a>
+
+                                    <button 
+                                        onClick={initializeQuizQuestions}
+                                        className="w-full px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all flex items-center justify-center"
+                                    >
+                                        <i data-lucide="rotate-ccw" className="w-4 h-4 mr-2"></i> Nieuwe Toets (Andere Zinnen!)
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = React.useState('uitleg'); 
+            const [nextTabCandidate, setNextTabCandidate] = React.useState(null); 
+            const [isWarningOpen, setIsWarningOpen] = React.useState(false);
+
+            // Trigger Lucide icons bij elke verandering
+            React.useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [activeTab, isWarningOpen]);
+
+            // Controleert of een tab-wissel of sluitactie is toegestaan
+            const requestTabChange = (targetTab) => {
+                const isCurrentlyActiveGame = ['kaarten', 'koppelen', 'quiz'].includes(activeTab);
+                const isGoingToDifferentTab = targetTab !== activeTab;
+
+                if (isCurrentlyActiveGame && isGoingToDifferentTab) {
+                    setNextTabCandidate(targetTab);
+                    setIsWarningOpen(true);
+                } else {
+                    setActiveTab(targetTab);
+                }
+            };
+
+            const confirmExit = () => {
+                setIsWarningOpen(false);
+                if (nextTabCandidate) {
+                    setActiveTab(nextTabCandidate);
+                    setNextTabCandidate(null);
+                } else {
+                    setActiveTab('uitleg');
+                }
+            };
+
+            const cancelExit = () => {
+                setIsWarningOpen(false);
+                setNextTabCandidate(null);
+            };
+
+            return (
+                <div className="min-h-screen pb-20 bg-slate-50">
+                    
+                    {/* Duitse vlag streep */}
+                    <div className="h-1.5 w-full flex">
+                        <div className="flex-1 bg-black"></div>
+                        <div className="flex-1 bg-red-600"></div>
+                        <div className="flex-1 bg-amber-500"></div>
+                    </div>
+
+                    {/* Jumbotron */}
+                    <header className="bg-slate-900 text-white py-12 px-4 shadow-lg text-center relative overflow-hidden">
+                        <div className="max-w-4xl mx-auto relative z-10">
+                            <span className="inline-flex items-center gap-1 bg-amber-500/20 border border-amber-400/30 text-amber-300 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase tracking-widest mb-3">
+                                🇩🇪 TB K16 MASTER PORTAAL
+                            </span>
+                            <h1 className="text-3xl md:text-5xl font-black mb-2 tracking-tight">Duitse Konjunktiv Master</h1>
+                            <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto font-light leading-relaxed">
+                                Nu met 80 unieke oefensituaties, soepele swipe-animaties en de direct gekoppelde woordjes-app.
+                            </p>
+                        </div>
+                    </header>
+
+                    {/* Hoofd Navigatie & Canvas Area */}
+                    <main className="max-w-4xl mx-auto px-2 sm:px-4 -mt-6 relative z-20">
+                        
+                        {/* Tabs Navigation */}
+                        <div className="bg-white rounded-xl p-1.5 shadow-md border border-slate-100 flex flex-wrap gap-1 mb-6">
+                            <button 
+                                onClick={() => requestTabChange('uitleg')}
+                                className={`flex-1 min-w-[120px] py-3 px-3 rounded-lg font-bold text-xs flex items-center justify-center transition-all
+                                    ${activeTab === 'uitleg' 
+                                        ? 'bg-blue-600 text-white shadow-sm' 
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
+                            >
+                                <i data-lucide="book-open" className="w-3.5 h-3.5 mr-1.5"></i>
+                                <span>Theorie & Regels</span>
+                            </button>
+                            
+                            <button 
+                                onClick={() => requestTabChange('kaarten')}
+                                className={`flex-1 min-w-[120px] py-3 px-3 rounded-lg font-bold text-xs flex items-center justify-center transition-all
+                                    ${activeTab === 'kaarten' 
+                                        ? 'bg-blue-600 text-white shadow-sm' 
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
+                            >
+                                <i data-lucide="layers" className="w-3.5 h-3.5 mr-1.5"></i>
+                                <span>Flitskaarten</span>
+                            </button>
+
+                            <button 
+                                onClick={() => requestTabChange('koppelen')}
+                                className={`flex-1 min-w-[120px] py-3 px-3 rounded-lg font-bold text-xs flex items-center justify-center transition-all
+                                    ${activeTab === 'koppelen' 
+                                        ? 'bg-blue-600 text-white shadow-sm' 
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
+                            >
+                                <i data-lucide="git-commit" className="w-3.5 h-3.5 mr-1.5"></i>
+                                <span>Koppelaar</span>
+                            </button>
+
+                            <button 
+                                onClick={() => requestTabChange('quiz')}
+                                className={`flex-1 min-w-[120px] py-3 px-3 rounded-lg font-bold text-xs flex items-center justify-center transition-all
+                                    ${activeTab === 'quiz' 
+                                        ? 'bg-blue-600 text-white shadow-sm' 
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
+                            >
+                                <i data-lucide="award" className="w-3.5 h-3.5 mr-1.5"></i>
+                                <span>Eindquiz</span>
+                            </button>
+                        </div>
+
+                        {/* Actieve Sectie */}
+                        <div className="min-h-[400px]">
+                            {activeTab === 'uitleg' && <TheoryTab />}
+                            {activeTab === 'kaarten' && <FlashcardSection onExitRequest={() => requestTabChange('uitleg')} />}
+                            {activeTab === 'koppelen' && <MatchGame onExitRequest={() => requestTabChange('uitleg')} />}
+                            {activeTab === 'quiz' && <QuizSection onExitRequest={() => requestTabChange('uitleg')} />}
+                        </div>
+                    </main>
+
+                    {/* Pop-up Waarschuwing */}
+                    <WarningModal 
+                        isOpen={isWarningOpen}
+                        onConfirm={confirmExit}
+                        onCancel={cancelExit}
+                    />
+
+                    {/* Footer */}
+                    <footer className="mt-20 text-center text-slate-400 text-xs py-6 border-t border-slate-200">
+                        <p className="font-semibold text-slate-500 mb-1">Duitse Konjunktiv Portal</p>
+                        <p>Inhoud gebaseerd op: Seite 18 / 19 TB K16 🇩🇪</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+    <style>
+        /* Fade-in animaties */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+    </style>
+</body>
+</html>
