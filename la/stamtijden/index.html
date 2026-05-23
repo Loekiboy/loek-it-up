@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latijn Grammatica Trainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 text-slate-900">
+
+    <div id="app" class="max-w-md w-full bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200">
+        <!-- Header -->
+        <div class="bg-indigo-600 p-6 text-white text-center relative">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold tracking-tight text-xs uppercase opacity-80">Onregelmatige WW</span>
+                </div>
+                <div class="flex gap-2">
+                    <div class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                        🏆 <span id="score-display">0</span>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold">
+                        🔥 <span id="streak-display">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 id="question-word" class="text-5xl font-black mb-2 drop-shadow-sm">-</h2>
+            
+            <div class="flex justify-center mt-4">
+                <button id="toggle-translation" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all bg-indigo-500 text-indigo-100">
+                    VERTALING: UIT
+                </button>
+            </div>
+        </div>
+
+        <div class="p-8 space-y-6">
+            <!-- Vraag 1: De Vorm -->
+            <div class="space-y-3">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">1. Welke vorm is dit?</label>
+                <div class="grid grid-cols-3 gap-2" id="type-buttons">
+                    <button data-type="INFINITIVUS" class="type-btn py-3.5 rounded-xl text-[10px] font-black transition-all border-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200">Infinitivus</button>
+                    <button data-type="PERFECTUM" class="type-btn py-3.5 rounded-xl text-[10px] font-black transition-all border-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200">Perfectum</button>
+                    <button data-type="PPP" class="type-btn py-3.5 rounded-xl text-[10px] font-black transition-all border-2 border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200">P.P.P.</button>
+                </div>
+            </div>
+
+            <!-- Vraag 2: De Infinitivus -->
+            <div class="space-y-3">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">2. Wat is de infinitivus?</label>
+                <input type="text" id="infinitive-input" placeholder="bv. esse" autocomplete="off" class="w-full px-5 py-4 rounded-xl border-2 text-lg font-bold outline-none transition-all border-slate-100 focus:border-indigo-500 bg-slate-50">
+            </div>
+
+            <!-- Vraag 3: De Vertaling -->
+            <div id="translation-section" class="space-y-3 hidden">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">3. Wat is de betekenis?</label>
+                <input type="text" id="translation-input" placeholder="bv. zijn" autocomplete="off" class="w-full px-5 py-4 rounded-xl border-2 text-lg font-bold outline-none transition-all border-slate-100 focus:border-indigo-500 bg-slate-50">
+            </div>
+
+            <div id="action-area">
+                <button id="check-btn" class="w-full py-4 bg-slate-900 hover:bg-black text-white font-black rounded-xl shadow-xl transition-all active:scale-95 tracking-wider text-sm">
+                    CONTROLEER
+                </button>
+            </div>
+
+            <div id="feedback-area" class="hidden animate-in">
+                <!-- Feedback content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const verbsData = [
+            { infinitivus: 'esse', perfectum: 'fui', ppp: '-', meaning: 'zijn' },
+            { infinitivus: 'dicere', perfectum: 'dixi', ppp: 'dictum', meaning: 'zeggen' },
+            { infinitivus: 'stare', perfectum: 'steti', ppp: 'statum', meaning: 'staan' },
+            { infinitivus: 'videre', perfectum: 'vidi', ppp: 'visum', meaning: 'zien' },
+            { infinitivus: 'facere', perfectum: 'feci', ppp: 'factum', meaning: 'doen, maken' },
+            { infinitivus: 'posse', perfectum: 'potui', ppp: '-', meaning: 'kunnen' },
+            { infinitivus: 'venire', perfectum: 'veni', ppp: 'ventum', meaning: 'komen' },
+            { infinitivus: 'ire', perfectum: 'ii', ppp: 'itum', meaning: 'gaan' },
+            { infinitivus: 'ferre', perfectum: 'tuli', ppp: 'latum', meaning: 'dragen, brengen' },
+            { infinitivus: 'dare', perfectum: 'dedi', ppp: 'datum', meaning: 'geven' },
+            { infinitivus: 'movere', perfectum: 'movi', ppp: 'motum', meaning: 'bewegen' },
+            { infinitivus: 'habere', perfectum: 'habui', ppp: 'habitum', meaning: 'hebben' }
+        ];
+
+        const TYPES = { INFINITIVUS: 'Infinitivus', PERFECTUM: 'Perfectum', PPP: 'P.P.P.' };
+
+        let currentQuestion = null;
+        let selectedType = null;
+        let score = 0;
+        let streak = 0;
+        let modeTranslation = false;
+        let isFeedbackShown = false;
+
+        const elements = {
+            questionWord: document.getElementById('question-word'),
+            toggleBtn: document.getElementById('toggle-translation'),
+            translationSection: document.getElementById('translation-section'),
+            infinitiveInput: document.getElementById('infinitive-input'),
+            translationInput: document.getElementById('translation-input'),
+            checkBtn: document.getElementById('check-btn'),
+            feedbackArea: document.getElementById('feedback-area'),
+            scoreDisplay: document.getElementById('score-display'),
+            streakDisplay: document.getElementById('streak-display'),
+            typeButtons: document.querySelectorAll('.type-btn')
+        };
+
+        function generateQuestion() {
+            isFeedbackShown = false;
+            selectedType = null;
+            elements.infinitiveInput.value = '';
+            elements.translationInput.value = '';
+            elements.infinitiveInput.disabled = false;
+            elements.translationInput.disabled = false;
+            elements.infinitiveInput.className = "w-full px-5 py-4 rounded-xl border-2 text-lg font-bold outline-none transition-all border-slate-100 focus:border-indigo-500 bg-slate-50";
+            elements.translationInput.className = "w-full px-5 py-4 rounded-xl border-2 text-lg font-bold outline-none transition-all border-slate-100 focus:border-indigo-500 bg-slate-50";
+            
+            elements.feedbackArea.classList.add('hidden');
+            elements.checkBtn.classList.remove('hidden');
+
+            elements.typeButtons.forEach(btn => {
+                btn.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700', 'bg-green-500', 'bg-red-500', 'text-white');
+                btn.classList.add('border-slate-100', 'bg-slate-50', 'text-slate-400');
+            });
+
+            const randomVerb = verbsData[Math.floor(Math.random() * verbsData.length)];
+            const availableTypes = Object.keys(TYPES).filter(key => randomVerb[key.toLowerCase()] !== '-');
+            const randomTypeKey = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+            
+            currentQuestion = {
+                verb: randomVerb,
+                typeKey: randomTypeKey,
+                word: randomVerb[randomTypeKey.toLowerCase()]
+            };
+
+            elements.questionWord.textContent = currentQuestion.word;
+            elements.infinitiveInput.focus();
+        }
+
+        function checkAnswer() {
+            if (!selectedType || !elements.infinitiveInput.value.trim()) return;
+            if (modeTranslation && !elements.translationInput.value.trim()) return;
+
+            const isTypeCorrect = selectedType === currentQuestion.typeKey;
+            const isInfCorrect = elements.infinitiveInput.value.trim().toLowerCase() === currentQuestion.verb.infinitivus.toLowerCase();
+            
+            let isTransCorrect = true;
+            if (modeTranslation) {
+                const userTrans = elements.translationInput.value.trim().toLowerCase();
+                const correctMeanings = currentQuestion.verb.meaning.toLowerCase().split(',').map(m => m.trim());
+                isTransCorrect = correctMeanings.some(m => userTrans.includes(m) || m.includes(userTrans)) && userTrans.length > 1;
+            }
+
+            isFeedbackShown = true;
+            elements.infinitiveInput.disabled = true;
+            elements.translationInput.disabled = true;
+
+            if (isTypeCorrect && isInfCorrect && isTransCorrect) {
+                score += 10;
+                streak += 1;
+                elements.infinitiveInput.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                showFeedback(true);
+            } else {
+                streak = 0;
+                elements.infinitiveInput.classList.add('border-red-500', 'bg-red-50', 'text-red-700');
+                showFeedback(false);
+            }
+
+            elements.scoreDisplay.textContent = score;
+            elements.streakDisplay.textContent = streak;
+            
+            // Highlight buttons
+            elements.typeButtons.forEach(btn => {
+                const bType = btn.getAttribute('data-type');
+                if (bType === currentQuestion.typeKey) {
+                    btn.classList.add('bg-green-500', 'border-green-500', 'text-white');
+                } else if (bType === selectedType) {
+                    btn.classList.add('bg-red-500', 'border-red-500', 'text-white');
+                }
+            });
+        }
+
+        function showFeedback(isCorrect) {
+            elements.checkBtn.classList.add('hidden');
+            elements.feedbackArea.classList.remove('hidden');
+            
+            let html = '';
+            if (!isCorrect) {
+                html = `
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-lg border-l-4 border-red-500 mb-4">
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div><p class="text-slate-400 font-bold uppercase text-[9px] mb-1">Vorm</p><p class="font-black text-sm">${TYPES[currentQuestion.typeKey]}</p></div>
+                            <div><p class="text-slate-400 font-bold uppercase text-[9px] mb-1">Infinitivus</p><p class="font-black text-sm text-indigo-300">${currentQuestion.verb.infinitivus}</p></div>
+                            <div class="col-span-2 border-t border-slate-700 pt-2"><p class="text-slate-400 font-bold uppercase text-[9px] mb-1">Betekenis</p><p class="font-black text-sm">${currentQuestion.verb.meaning}</p></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                <button id="next-btn" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xl transition-all flex items-center justify-center gap-2">
+                    VOLGENDE (ENTER)
+                </button>
+            `;
+            
+            elements.feedbackArea.innerHTML = html;
+            document.getElementById('next-btn').onclick = generateQuestion;
+        }
+
+        // Events
+        elements.typeButtons.forEach(btn => {
+            btn.onclick = () => {
+                if (isFeedbackShown) return;
+                selectedType = btn.getAttribute('data-type');
+                elements.typeButtons.forEach(b => {
+                    b.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700', 'shadow-md', '-translate-y-0.5');
+                    b.classList.add('border-slate-100', 'bg-slate-50', 'text-slate-400');
+                });
+                btn.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700', 'shadow-md', '-translate-y-0.5');
+                btn.classList.remove('border-slate-100', 'bg-slate-50', 'text-slate-400');
+            };
+        });
+
+        elements.toggleBtn.onclick = () => {
+            modeTranslation = !modeTranslation;
+            elements.toggleBtn.textContent = `VERTALING: ${modeTranslation ? 'AAN' : 'UIT'}`;
+            elements.toggleBtn.className = `flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${modeTranslation ? 'bg-yellow-400 text-indigo-900' : 'bg-indigo-500 text-indigo-100'}`;
+            elements.translationSection.classList.toggle('hidden', !modeTranslation);
+        };
+
+        elements.checkBtn.onclick = checkAnswer;
+
+        window.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                if (isFeedbackShown) {
+                    generateQuestion();
+                } else {
+                    checkAnswer();
+                }
+            }
+        };
+
+        // Start
+        generateQuestion();
+    </script>
+</body>
+</html>

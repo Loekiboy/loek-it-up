@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duitse Derde Naamval Oefening</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            background-color: #f5f5f7; /* Apple-like light gray background */
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #1d1d1f; /* Apple's primary text color */
+        }
+        #app-container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 18px; /* Rounded corners like Apple UI elements */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12); /* Softer shadow */
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1d1d1f;
+        }
+        .intro-text {
+            font-size: 16px;
+            color: #58585c; /* Slightly lighter text for intro */
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 20px 0;
+            text-align: left;
+        }
+        .question p.sentence-display {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #1d1d1f;
+            margin-bottom: 10px;
+        }
+        .answer-input {
+            padding: 8px 10px;
+            border: 1px solid #d2d2d7; /* Apple-like input border */
+            border-radius: 8px;
+            font-size: 17px;
+            margin: 0 5px; /* Spacing around inline input */
+            min-width: 100px; /* Ensure input is not too small */
+            line-height: normal; /* Reset line-height for input */
+        }
+        .answer-input:focus {
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.25);
+            outline: none;
+        }
+        .answer-input.correct-input {
+            border-color: #34c759; /* Green border for correct */
+            background-color: #e5f8e9;
+        }
+        .answer-input.incorrect-input {
+            border-color: #ff3b30; /* Red border for incorrect */
+            background-color: #ffebee;
+        }
+        .hint {
+            font-size: 14px;
+            color: #6e6e73; /* Apple's secondary text color */
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        .action-button {
+            padding: 10px 20px;
+            background-color: #007aff; /* Apple blue */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            display: block; /* Make buttons block for full width */
+            width: 100%;
+            margin-top: 10px;
+        }
+        .action-button:hover {
+            background-color: #005ec4; /* Darker blue on hover */
+        }
+        .action-button:disabled {
+            background-color: #b0d7ff; /* Lighter blue when disabled */
+            cursor: not-allowed;
+        }
+        .show-answer { /* Specific margin if needed, but action-button handles width */
+            margin-top: 15px;
+        }
+        .feedback {
+            margin-top: 15px;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .feedback.correct {
+            color: #2f8f4f; /* Darker green for text */
+            background-color: #e9f5ec; /* Light green background */
+        }
+        .feedback.incorrect {
+            color: #c02c21; /* Darker red for text */
+            background-color: #fbebed; /* Light red background */
+        }
+        #completion-message {
+            padding: 20px;
+        }
+        #completion-message h2 {
+            color: #34c759; /* Apple green */
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #completion-message p {
+            font-size: 18px;
+            color: #58585c;
+        }
+        .home-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background-color: #007aff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+        }
+        .home-button:hover {
+            background-color: #005ec4;
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        .home-button svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="home-button" title="Terug naar home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+    </a>
+    <div id="app-container">
+        <h1>Oefening: Duitse Derde Naamval (Dativ)</h1>
+        <p class="intro-text">Vul de correcte Duitse vorm in. De woorden tussen haakjes geven de hint. Alle zinnen vereisen de derde naamval.</p>
+
+        <div id="current-question-area">
+            <!-- Dynamische vraag wordt hier geladen -->
+        </div>
+
+        <div id="feedback-area" class="feedback" style="display: none;"></div>
+
+        <button id="next-question-button" class="action-button" style="display: none;" onclick="nextQuestion()">Volgende Vraag</button>
+
+        <div id="completion-message" style="display: none;">
+            <h2>Goed gedaan!</h2>
+            <p>Je hebt alle vragen beantwoord.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
+    <script>
+        const questions = [
+            { sentence: "Ich fahre mit <span class='blank'></span>.", hint: "(mijn) Auto (o)", answer: "meinem" },
+            { sentence: "Sie hilft <span class='blank'></span>.", hint: "(de) kind (o)", answer: "dem" },
+            { sentence: "Das Buch gehört <span class='blank'></span>.", hint: "(jij)", answer: "dir" },
+            { sentence: "Wir kommen aus <span class='blank'></span>.", hint: "(de) stad (v)", answer: "der" },
+            { sentence: "Er spricht mit <span class='blank'></span>.", hint: "(een) vriend (m)", answer: "einem" },
+            { sentence: "Seit <span class='blank'></span> Wochen (mv) wohne ich hier.", hint: "(de; laatste)", answer: "den letzten" },
+            { sentence: "Gehört das <span class='blank'></span>?", hint: "(u - formeel)", answer: "Ihnen" },
+            { sentence: "Nach <span class='blank'></span>.", hint: "(het) werk (o)", answer: "dem" },
+            { sentence: "Das schmeckt <span class='blank'></span> sehr gut.", hint: "(wij)", answer: "uns" },
+            { sentence: "Er steht gegenüber <span class='blank'></span>.", hint: "(de) bank (v)", answer: "der" },
+            { sentence: "Das passt nicht zu <span class='blank'></span>.", hint: "(zijn) plan (o)", answer: "seinem" },
+            { sentence: "Sie vertraut <span class='blank'></span>.", hint: "(haar) vriendje (o)", answer: "ihrem" },
+            { sentence: "Außer <span class='blank'></span> wollte niemand mitkommen.", hint: "(ik)", answer: "mir" },
+            { sentence: "Wir sind bei <span class='blank'></span>.", hint: "(onze) grootouders (mv)", answer: "unseren" },
+            { sentence: "Er gibt <span class='blank'></span> eine Frage.", hint: "(de) leraar (m)", answer: "dem" },
+            { sentence: "Das Bild hängt an <span class='blank'></span>.", hint: "(de) muur (v)", answer: "der" },
+            { sentence: "Die Katze liegt unter <span class='blank'></span>.", hint: "(de) tafel (v)", answer: "dem" },
+            { sentence: "Wir sitzen auf <span class='blank'></span>.", hint: "(het) balkon (o)", answer: "dem" },
+            { sentence: "Er steht vor <span class='blank'></span>.", hint: "(de) deur (v)", answer: "der" },
+            { sentence: "Sie schläft hinter <span class='blank'></span>.", hint: "(de) kast (m)", answer: "dem" },
+            { sentence: "Das liegt neben <span class='blank'></span>.", hint: "(het) bed (o)", answer: "dem" },
+            { sentence: "Zwischen <span class='blank'></span>.", hint: "(de) bomen (mv)", answer: "den" },
+            { sentence: "Das gehört <span class='blank'></span>?", hint: "(wie - Dativ)", answer: "wem" },
+            { sentence: "Mit <span class='blank'></span> fährst du?", hint: "(welke) trein (m)", answer: "welchem" },
+            { sentence: "Von <span class='blank'></span> kommst du?", hint: "(welke) stad (v)", answer: "welcher" },
+            { sentence: "Er hilft <span class='blank'></span>.", hint: "(de; arme) mensen (mv)", answer: "den armen" },
+            { sentence: "Sie dankt <span class='blank'></span>.", hint: "(haar; oud) buren (mv)", answer: "ihren alten" },
+            { sentence: "Das gehört <span class='blank'></span> mit dem roten Hut.", hint: "(die) Frau (v)", answer: "der" },
+            { sentence: "Mit <span class='blank'></span> bleiben wir zu Hause.", hint: "(zulk) Wetter (o)", answer: "solchem" },
+            { sentence: "Mit <span class='blank'></span>.", hint: "(warm) Wasser (o)", answer: "warmem" },
+            { sentence: "Er hat mir von <span class='blank'></span> erzählt.", hint: "(zijn; nieuwe) auto (o)", answer: "seinem neuen" },
+            { sentence: "Sie spricht mit <span class='blank'></span>.", hint: "(een; interessant) Frau (v)", answer: "einer interessanten" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let currentInput = null;
+        let isAnswerChecked = false;
+        const CONFETTI_SCORE_THRESHOLD = 70; // Percentage threshold for confetti celebration
+
+        /**
+         * Mengt een array (Fisher-Yates shuffle)
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        /**
+         * Laadt de huidige vraag
+         */
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showCompletionMessage();
+                return;
+            }
+
+            isAnswerChecked = false;
+            const questionArea = document.getElementById('current-question-area');
+            const feedbackArea = document.getElementById('feedback-area');
+            const nextButton = document.getElementById('next-question-button');
+
+            feedbackArea.style.display = 'none';
+            feedbackArea.className = 'feedback';
+            nextButton.style.display = 'none';
+
+            const q = questions[currentQuestionIndex];
+            
+            questionArea.innerHTML = `
+                <div class="question">
+                    <p class="sentence-display">${q.sentence.replace('<span class=\'blank\'></span>', '<input type="text" class="answer-input" id="answer-input" />')}</p>
+                    <p class="hint">${q.hint}</p>
+                    <button class="action-button show-answer" onclick="checkAnswer()">Controleer Antwoord</button>
+                </div>
+            `;
+
+            currentInput = document.getElementById('answer-input');
+            currentInput.focus();
+            
+            // Enter key support - using onkeydown to avoid memory leaks
+            currentInput.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!isAnswerChecked) {
+                        checkAnswer();
+                    } else {
+                        nextQuestion();
+                    }
+                }
+            };
+        }
+
+        /**
+         * Controleert het antwoord
+         */
+        function checkAnswer() {
+            if (isAnswerChecked) return;
+            
+            const q = questions[currentQuestionIndex];
+            const userAnswer = currentInput.value.trim().toLowerCase();
+            const correctAnswer = q.answer.toLowerCase();
+            const feedbackArea = document.getElementById('feedback-area');
+            const nextButton = document.getElementById('next-question-button');
+
+            isAnswerChecked = true;
+
+            if (userAnswer === correctAnswer) {
+                score++;
+                currentInput.classList.add('correct-input');
+                feedbackArea.className = 'feedback correct';
+                feedbackArea.innerHTML = `✅ Correct! Het juiste antwoord is <strong>${q.answer}</strong>`;
+            } else {
+                currentInput.classList.add('incorrect-input');
+                feedbackArea.className = 'feedback incorrect';
+                feedbackArea.innerHTML = `❌ Fout. Je antwoordde "${currentInput.value}". Het juiste antwoord is <strong>${q.answer}</strong>`;
+            }
+
+            feedbackArea.style.display = 'block';
+            currentInput.disabled = true;
+            nextButton.style.display = 'block';
+            nextButton.focus();
+        }
+
+        /**
+         * Gaat naar de volgende vraag
+         */
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        /**
+         * Toont het voltooiingsscherm
+         */
+        function showCompletionMessage() {
+            const questionArea = document.getElementById('current-question-area');
+            const feedbackArea = document.getElementById('feedback-area');
+            const nextButton = document.getElementById('next-question-button');
+            const completionMessage = document.getElementById('completion-message');
+
+            questionArea.style.display = 'none';
+            feedbackArea.style.display = 'none';
+            nextButton.style.display = 'none';
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            let message = '';
+            
+            if (percentage === 100) {
+                message = 'Perfect! Je beheerst de derde naamval uitstekend!';
+            } else if (percentage >= 80) {
+                message = 'Zeer goed gedaan! Je hebt de meeste vragen correct beantwoord.';
+            } else if (percentage >= 60) {
+                message = 'Goed bezig! Blijf oefenen om nog beter te worden.';
+            } else {
+                message = 'Blijf oefenen! De derde naamval is lastig maar je komt er wel!';
+            }
+
+            completionMessage.innerHTML = `
+                <h2>Goed gedaan!</h2>
+                <p>Je hebt <strong>${score}</strong> van de <strong>${questions.length}</strong> vragen correct beantwoord (${percentage}%).</p>
+                <p>${message}</p>
+                <button class="action-button" onclick="restartQuiz()">Opnieuw Beginnen</button>
+            `;
+            completionMessage.style.display = 'block';
+
+            // Confetti voor goede scores
+            if (percentage >= CONFETTI_SCORE_THRESHOLD && typeof confetti !== 'undefined') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        /**
+         * Herstart de quiz
+         */
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            shuffleArray(questions);
+            
+            document.getElementById('current-question-area').style.display = 'block';
+            document.getElementById('completion-message').style.display = 'none';
+            
+            loadQuestion();
+        }
+
+        // Initialisatie
+        window.onload = function() {
+            shuffleArray(questions);
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>

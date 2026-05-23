@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latijnse Ambiguïteit Oefenaar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'Inter', 'sans-serif'],
+                        serif: ['Cinzel', 'Georgia', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --latijn-gradient: radial-gradient(circle at top, rgba(255, 215, 0, 0.25), transparent 55%), radial-gradient(circle at 20% 80%, rgba(100, 149, 237, 0.2), transparent 60%), linear-gradient(135deg, #f8fafc, #e0e7ff);
+            --latijn-card: rgba(255, 255, 255, 0.95);
+            --latijn-border: rgba(255, 255, 255, 0.35);
+            --latijn-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+            --latijn-blue: #1d4ed8;
+            --latijn-gold: #fbbf24;
+        }
+
+        body.latijn-body {
+            margin: 0;
+            min-height: 100vh;
+            background-image: var(--latijn-gradient);
+            font-family: 'Poppins', 'Inter', sans-serif;
+            color: #111827;
+            padding: clamp(1.5rem, 4vw, 3.5rem);
+        }
+
+        .latijn-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .latijn-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(18px);
+            border: 1px solid var(--latijn-border);
+            box-shadow: var(--latijn-shadow);
+            flex-wrap: wrap;
+        }
+
+        .latijn-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .latijn-logo img {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+        }
+
+        .latijn-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .latijn-logo-text span:first-child {
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+
+        .latijn-logo-text span:last-child {
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+
+        .latijn-nav-links {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .latijn-nav-links a {
+            text-decoration: none;
+            color: #1f2937;
+            font-weight: 500;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .latijn-nav-links a:hover {
+            background: rgba(29, 78, 216, 0.08);
+            color: var(--latijn-blue);
+        }
+
+        .latijn-nav-links .active {
+            background: rgba(29, 78, 216, 0.12);
+            color: var(--latijn-blue);
+        }
+
+        .latijn-nav-cta {
+            text-decoration: none;
+            padding: 0.55rem 1.25rem;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+        }
+
+        .latijn-hero {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .latijn-hero-card,
+        .latijn-hero-text {
+            background: var(--latijn-card);
+            border-radius: 24px;
+            border: 1px solid var(--latijn-border);
+            box-shadow: var(--latijn-shadow);
+            padding: clamp(1.5rem, 3vw, 2.5rem);
+        }
+
+        .latijn-hero-text h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin: 0.4rem 0 0.75rem 0;
+            font-family: 'Cinzel', serif;
+            color: #0f172a;
+        }
+
+        .latijn-hero-text p {
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(29, 78, 216, 0.1);
+            color: var(--latijn-blue);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .latijn-hero-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .latijn-hero-button {
+            border: none;
+            border-radius: 999px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 18px 30px rgba(76, 29, 149, 0.25);
+        }
+
+        .latijn-hero-link {
+            text-decoration: none;
+            padding: 0.75rem 1.35rem;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.15);
+            font-weight: 600;
+            color: #1f2937;
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .latijn-hero-card h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.35rem;
+            color: #111827;
+        }
+
+        .latijn-hero-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .latijn-hero-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .latijn-hero-list span {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--latijn-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .latijn-app-card {
+            background: var(--latijn-card);
+            border-radius: 30px;
+            border: 1px solid var(--latijn-border);
+            box-shadow: var(--latijn-shadow);
+            padding: clamp(1.5rem, 3vw, 2.5rem);
+        }
+
+        .latijn-app-main {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .latijn-intro {
+            margin: 0 0 1.5rem 0;
+            color: #4b5563;
+            line-height: 1.5;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .latijn-footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.95rem;
+            padding-bottom: 1rem;
+        }
+
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 8l3 3 3-3' stroke='%234B5563' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em;
+            padding-right: 2.5rem !important;
+        }
+
+        @media (max-width: 640px) {
+            .latijn-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .latijn-nav-cta {
+                width: 100%;
+                text-align: center;
+            }
+
+            .latijn-hero-actions {
+                flex-direction: column;
+            }
+
+            .latijn-hero-button,
+            .latijn-hero-link {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="latijn-body">
+
+    <div class="latijn-wrapper">
+        <section class="latijn-app-card" id="practice-root">
+            <p class="latijn-intro">
+                Kies minimaal één verbuigingsgroep en probeer alle mogelijke combinaties te vinden voordat je het antwoord toont.
+            </p>
+            <main class="latijn-app-main space-y-6">
+                <!-- Groep Selector Container -->
+                <div id="group-selector-container"></div>
+
+                <!-- Quiz Card Container -->
+                <div id="quiz-card-container"></div>
+                
+                <!-- Scoreboard Container -->
+                <div id="scoreboard-container"></div>
+
+                <!-- Not Ready Message -->
+                <div id="not-ready-message" class="p-4 mt-6 text-center text-gray-500 hidden">
+                    <p>Kies je groepen hierboven om te beginnen met oefenen.</p>
+                </div>
+                
+                <!-- Statische Tabel Container -->
+                <div id="static-table-container" class="mt-12"></div>
+            </main>
+        </section>
+
+        <footer class="latijn-footer">
+            <p>Gebaseerd op verbuigingsgroepen 1 t/m 5 (Latijn), zonder macrons.</p>
+        </footer>
+    </div>
+
+    <!-- Volledige Verbuigingstabel Modal (VERWIJDERD) -->
+    
+    <script>
+        // --- Data en Constants ---
+
+        const CASES = [
+            { value: "nom.", label: "Nominativus" },
+            { value: "gen.", label: "Genitivus" },
+            { value: "dat.", label: "Dativus" },
+            { value: "acc.", label: "Accusativus" },
+            { value: "abl.", label: "Ablativus" }
+        ];
+
+        const NUMBERS = [
+            { value: "ev.", label: "Enkelvoud (ev.)" },
+            { value: "mv.", label: "Meervoud (mv.)" }
+        ];
+        
+        // --- Nieuwe Aliassen voor Tekst Parser ---
+        const ALIAS_MAP = {
+            'ev': 'ev.', 'enkelvoud': 'ev.', 'ev.': 'ev.',
+            'mv': 'mv.', 'meervoud': 'mv.', 'mv.': 'mv.',
+            'nom': 'nom.', 'nominativus': 'nom.', 'nom.': 'nom.',
+            'gen': 'gen.', 'genitivus': 'gen.', 'gen.': 'gen.',
+            'dat': 'dat.', 'dativus': 'dat.', 'dat.': 'dat.',
+            'acc': 'acc.', 'accusativus': 'acc.', 'acc.': 'acc.',
+            'abl': 'abl.', 'ablativus': 'abl.', 'abl.': 'abl.',
+        };
+        const NUMBER_ALIASES = ['ev.', 'mv.'];
+        const CASE_ALIASES = ['nom.', 'gen.', 'dat.', 'acc.', 'abl.'];
+
+
+        // De volledige set met verbuigingsvormen (met macrons verwijderd)
+        const DECLENSION_FORMS = [
+            // Groep 1 - serva (V) - slavin
+            { group: 1, lemma: "serva", meaning: "slavin", forms: [
+                { number: "ev.", case: "nom.", form: "serva" }, { number: "ev.", case: "gen.", form: "servae" },
+                { number: "ev.", case: "dat.", form: "servae" }, { number: "ev.", case: "acc.", form: "servam" },
+                { number: "ev.", case: "abl.", form: "serva" }, 
+                { number: "mv.", case: "nom.", form: "servae" }, { number: "mv.", case: "gen.", form: "servarum" },
+                { number: "mv.", case: "dat.", form: "servis" }, { number: "mv.", case: "acc.", form: "servas" },
+                { number: "mv.", case: "abl.", form: "servis" }
+            ]},
+            // Groep 2 (M) - servus (M) - slaaf
+            { group: 2, lemma: "servus", meaning: "slaaf", forms: [
+                { number: "ev.", case: "nom.", form: "servus" }, { number: "ev.", case: "gen.", form: "servi" },
+                { number: "ev.", case: "dat.", form: "servo" }, 
+                { number: "ev.", case: "acc.", form: "servum" },
+                { number: "ev.", case: "abl.", form: "servo" }, 
+                { number: "mv.", case: "nom.", form: "servi" }, { number: "mv.", case: "gen.", form: "servorum" }, 
+                { number: "mv.", case: "dat.", form: "servis" }, { number: "mv.", case: "acc.", form: "servos" }, 
+                { number: "mv.", case: "abl.", form: "servis" }
+            ]},
+            // Groep 2 (O) - bellum (O) - oorlog
+            { group: 2, lemma: "bellum", meaning: "oorlog", forms: [
+                { number: "ev.", case: "nom.", form: "bellum" }, { number: "ev.", case: "gen.", form: "belli" }, 
+                { number: "ev.", case: "dat.", form: "bello" }, 
+                { number: "ev.", case: "acc.", form: "bellum" },
+                { number: "ev.", case: "abl.", form: "bello" }, 
+                { number: "mv.", case: "nom.", form: "bella" }, { number: "mv.", case: "gen.", form: "bellorum" }, 
+                { number: "mv.", case: "dat.", form: "bellis" }, { number: "mv.", case: "acc.", form: "bella" },
+                { number: "mv.", case: "abl.", form: "bellis" }
+            ]},
+            // Groep 3 (M/V) - homo (M) - mens
+            { group: 3, lemma: "homo", meaning: "mens", forms: [ 
+                { number: "ev.", case: "nom.", form: "homo" }, 
+                { number: "ev.", case: "gen.", form: "hominis" },
+                { number: "ev.", case: "dat.", form: "homini" }, 
+                { number: "ev.", case: "acc.", form: "hominem" },
+                { number: "ev.", case: "abl.", form: "homine" },
+                { number: "mv.", case: "nom.", form: "homines" }, 
+                { number: "mv.", case: "gen.", form: "hominum" },
+                { number: "mv.", case: "dat.", form: "hominibus" }, { number: "mv.", case: "acc.", form: "homines" }, 
+                { number: "mv.", case: "abl.", form: "hominibus" }
+            ]},
+            // Groep 3 (O) - nomen (O) - naam
+            { group: 3, lemma: "nomen", meaning: "naam", forms: [ 
+                { number: "ev.", case: "nom.", form: "nomen" }, 
+                { number: "ev.", case: "gen.", form: "nominis" }, 
+                { number: "ev.", case: "dat.", form: "nomini" }, 
+                { number: "ev.", case: "acc.", form: "nomen" }, 
+                { number: "ev.", case: "abl.", form: "nomine" }, 
+                { number: "mv.", case: "nom.", form: "nomina" }, 
+                { number: "mv.", case: "gen.", form: "nominum" }, 
+                { number: "mv.", case: "dat.", form: "nominibus" }, { number: "mv.", case: "acc.", form: "nomina" }, 
+                { number: "mv.", case: "abl.", form: "nominibus" }
+            ]},
+            // Groep 4 (M) - exercitus (M) - leger
+            { group: 4, lemma: "exercitus", meaning: "leger", forms: [
+                { number: "ev.", case: "nom.", form: "exercitus" },
+                { number: "ev.", case: "gen.", form: "exercitus" }, 
+                { number: "ev.", case: "dat.", form: "exercitui" }, 
+                { number: "ev.", case: "acc.", form: "exercitum" },
+                { number: "ev.", case: "abl.", form: "exercitu" }, 
+                { number: "mv.", case: "nom.", form: "exercitus" }, 
+                { number: "mv.", case: "gen.", form: "exercituum" },
+                { number: "mv.", case: "dat.", form: "exercitibus" }, { number: "mv.", case: "acc.", form: "exercitus" }, 
+                { number: "mv.", case: "abl.", form: "exercitibus" }
+            ]},
+            // Groep 5 (V) - res (V) - ding
+            { group: 5, lemma: "res", meaning: "ding", forms: [ 
+                { number: "ev.", case: "nom.", form: "res" }, 
+                { number: "ev.", case: "gen.", form: "rei" }, 
+                { number: "ev.", case: "dat.", form: "rei" }, 
+                { number: "ev.", case: "acc.", form: "rem" },
+                { number: "ev.", case: "abl.", form: "re" }, 
+                { number: "mv.", case: "nom.", form: "res" }, 
+                { number: "mv.", case: "gen.", form: "rerum" }, 
+                { number: "mv.", case: "dat.", form: "rebus" }, 
+                { number: "mv.", case: "acc.", form: "res" }, 
+                { number: "mv.", case: "abl.", form: "rebus" } 
+            ]},
+        ];
+
+        // --- State Management ---
+        const state = {
+            selectedGroups: [1, 2, 3, 4, 5], // Dit wordt overschreven door localStorage
+            numAnswersToProvide: 1,
+            currentForm: null,
+            possibleParsings: [],
+            userAnswers: Array.from({ length: 4 }, () => ({ number: '', case: '', isCorrect: null })),
+            showAnswer: false,
+            score: 0,
+            totalQuestions: 0,
+            inputMode: 'dropdown', // 'dropdown' or 'text'
+            textAreaValue: '',
+            isPerfectMatch: null, // true, false, or null
+            isTableVisible: false, // Nieuw: Controleert of de tabel zichtbaar is
+        };
+
+        let ambiguityMap = new Map();
+
+        // --- DOM Elements ---
+        const $groupSelectorContainer = document.getElementById('group-selector-container');
+        const $quizCardContainer = document.getElementById('quiz-card-container');
+        const $scoreboardContainer = document.getElementById('scoreboard-container');
+        const $notReadyMessage = document.getElementById('not-ready-message');
+        const $staticTableContainer = document.getElementById('static-table-container'); // Nieuw
+
+        // --- Helper Functies ---
+
+        /**
+         * Maakt de ambiguïteitsmap opnieuw aan op basis van geselecteerde groepen.
+         */
+        function createAmbiguityMap() {
+            const map = new Map();
+
+            DECLENSION_FORMS
+                .filter(d => state.selectedGroups.includes(d.group))
+                .forEach(declension => {
+                    declension.forms.forEach(formEntry => {
+                        const key = formEntry.form;
+                        const parsing = {
+                            number: formEntry.number,
+                            case: formEntry.case,
+                            lemma: declension.lemma,
+                            meaning: declension.meaning,
+                            group: declension.group
+                        };
+
+                        if (map.has(key)) {
+                            map.get(key).push(parsing);
+                        } else {
+                            map.set(key, [parsing]);
+                        }
+                    });
+                });
+            ambiguityMap = map;
+        }
+
+        // --- Nieuwe Tekst Parser ---
+        /**
+         * Parseert de tekst uit de textarea naar een Set van unieke parsings.
+         * @param {string} text - De rauwe tekst uit de textarea.
+         * @returns {Set<string>} Een Set van gestandaardiseerde keys (e.g., 'ev.-acc.').
+         */
+        function parseTextInput(text) {
+            const lines = text.trim().split('\n');
+            const userParsingSet = new Set();
+            
+            for (const line of lines) {
+                if (line.trim() === '') continue;
+                
+                // Split op alles wat geen letter of punt is (voor afkortingen)
+                const tokens = line.toLowerCase().split(/[^a-z.]+/i).filter(Boolean);
+                let foundNumber = null;
+                let foundCase = null;
+
+                for (const token of tokens) {
+                    const normalized = ALIAS_MAP[token];
+                    if (normalized) {
+                        if (NUMBER_ALIASES.includes(normalized) && !foundNumber) {
+                            foundNumber = normalized;
+                        } else if (CASE_ALIASES.includes(normalized) && !foundCase) {
+                            foundCase = normalized;
+                        }
+                    }
+                }
+
+                if (foundNumber && foundCase) {
+                    userParsingSet.add(`${foundNumber}-${foundCase}`);
+                }
+            }
+            return userParsingSet;
+        }
+
+
+        /**
+         * Controleert of een gebruikersantwoord correct en uniek is.
+         * @param {Object} userAnswer - Het antwoord van de gebruiker.
+         * @param {Array} correctParsings - Alle mogelijke correcte parsingen.
+         * @param {Set} foundCorrectAnswers - Set van reeds gevonden correcte antwoorden (keys: 'ev.-nom.').
+         * @returns {boolean}
+         */
+        function isAnswerCorrectAndUnused(userAnswer, correctParsings, foundCorrectAnswers) {
+            if (!userAnswer.number || !userAnswer.case) return false;
+
+            const userAnswerKey = `${userAnswer.number}-${userAnswer.case}`;
+
+            // 1. Check of de parsing correct is
+            const isCorrect = correctParsings.some(parsing =>
+                parsing.number === userAnswer.number && parsing.case === userAnswer.case
+            );
+
+            // 2. Check of deze specifieke correcte parsing al is gebruikt
+            const isUsed = foundCorrectAnswers.has(userAnswerKey);
+
+            return isCorrect && !isUsed;
+        }
+
+        // --- Core Game Functies ---
+
+        /**
+         * Genereert een nieuwe vraag.
+         */
+        function generateNewQuestion() {
+            const uniqueForms = Array.from(ambiguityMap.keys());
+
+            // Reset state
+            state.userAnswers = Array.from({ length: 4 }, () => ({ number: '', case: '', isCorrect: null }));
+            state.showAnswer = false;
+            state.isPerfectMatch = null;
+            state.textAreaValue = '';
+            
+            if (uniqueForms.length === 0) {
+                state.currentForm = null;
+                state.possibleParsings = [];
+                renderUI();
+                return;
+            }
+
+            // Kies een willekeurige unieke vorm
+            const randomIndex = Math.floor(Math.random() * uniqueForms.length);
+            const selectedForm = uniqueForms[randomIndex];
+
+            state.currentForm = selectedForm;
+            state.possibleParsings = ambiguityMap.get(selectedForm);
+
+            renderUI();
+        }
+
+        /**
+         * Controleert de ingevoerde antwoorden. (Volledig herschreven)
+         */
+        function handleCheckAnswer() {
+            if (!state.currentForm || state.selectedGroups.length === 0 || state.showAnswer) return;
+
+            state.totalQuestions++;
+            
+            const correctParsingSet = new Set(state.possibleParsings.map(p => `${p.number}-${p.case}`));
+            const totalUniqueParsings = correctParsingSet.size;
+
+            let userParsingSet = new Set();
+            let isPerfectMatch = false;
+
+            if (state.inputMode === 'dropdown') {
+                // --- Logica voor Dropdowns ---
+                const answersToEvaluate = state.userAnswers.slice(0, state.numAnswersToProvide);
+                
+                // 1. Verzamel unieke antwoorden van gebruiker
+                answersToEvaluate.forEach(userA => {
+                    if (userA.number && userA.case) {
+                        userParsingSet.add(`${userA.number}-${userA.case}`);
+                    }
+                });
+                
+                // 2. Evalueer individuele dropdowns voor kleur-feedback
+                state.userAnswers = state.userAnswers.map((ans, index) => {
+                    if (index >= state.numAnswersToProvide) return {...ans, isCorrect: null};
+                    const key = `${ans.number}-${ans.case}`;
+                    // Is dit antwoord *één* van de correcte antwoorden?
+                    const isCorrect = correctParsingSet.has(key); 
+                    return {...ans, isCorrect: isCorrect};
+                });
+                
+                // 3. Check voor "Perfecte Match" (Nieuwe strenge regel)
+                // A: Heeft de gebruiker het juiste *aantal* opties geselecteerd?
+                const isAmountCorrect = state.numAnswersToProvide === totalUniqueParsings;
+                // B: Heeft de gebruiker unieke antwoorden gegeven (gelijk aan het aantal opties)?
+                const isUserConsistent = userParsingSet.size === state.numAnswersToProvide;
+                // C: Zijn alle gegeven antwoorden correct?
+                const allProvidedAreCorrect = [...userParsingSet].every(key => correctParsingSet.has(key));
+                
+                isPerfectMatch = isAmountCorrect && isUserConsistent && allProvidedAreCorrect;
+
+            } else {
+                // --- Logica voor Tekstveld ---
+                userParsingSet = parseTextInput(state.textAreaValue);
+                
+                // 1. Check voor "Perfecte Match"
+                // A: Is het aantal gevonden unieke parsings gelijk aan het correcte aantal?
+                const isAmountCorrect = userParsingSet.size === totalUniqueParsings;
+                // B: Zijn alle gevonden parsings ook correct?
+                const allProvidedAreCorrect = [...userParsingSet].every(key => correctParsingSet.has(key));
+                
+                isPerfectMatch = isAmountCorrect && allProvidedAreCorrect;
+            }
+
+            // Set algemene match status
+            state.isPerfectMatch = isPerfectMatch;
+            
+            if (isPerfectMatch) {
+                state.score++; // Alleen scoren bij een perfecte match
+            }
+
+            state.showAnswer = true;
+            renderUI();
+        }
+
+        /**
+         * Wisselt de zichtbaarheid van de tabel
+         */
+        function toggleTableVisibility() {
+            state.isTableVisible = !state.isTableVisible;
+            renderUI();
+        }
+
+
+        // --- Render Functies ---
+
+        /**
+         * Render de statische verbuigingstabel onderaan de pagina.
+         */
+        function renderStaticTable() {
+            const visibleForms = DECLENSION_FORMS.filter(d => state.selectedGroups.includes(d.group));
+            
+            // --- De Toggle Knop ---
+            let html = `
+                <div class="mt-8 border-t pt-6">
+                    <button 
+                        id="toggle-table-button"
+                        class="w-full p-3 rounded-xl font-bold text-white shadow-md transition-all duration-200 bg-purple-600 hover:bg-purple-700 active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                        <svg class="w-5 h-5 transition-transform duration-300 ${state.isTableVisible ? 'rotate-180' : 'rotate-0'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        ${state.isTableVisible ? 'Verberg Verbuigingstabel' : 'Toon Verbuigingstabel'}
+                    </button>
+                </div>
+            `;
+            
+            // --- De Collapsible Inhoud ---
+            // Gebruik max-h en opacity voor een vloeiend vouw-effect
+            html += `<div id="table-content-wrapper" class="${state.isTableVisible ? 'max-h-[2000px] opacity-100 mt-6' : 'max-h-0 opacity-0 overflow-hidden mt-0'} transition-all duration-700 ease-in-out">`;
+            
+            if (visibleForms.length === 0) {
+                html += '<p class="text-center text-gray-500">Selecteer een groep om de tabel te zien.</p>';
+            } else {
+                html += '<h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Verbuigingstabel (Geselecteerde Groepen)</h2>';
+
+                visibleForms.forEach(declension => {
+                    html += `<h3 class="text-xl font-semibold mt-6 mb-2 text-blue-700">${declension.lemma} (${declension.meaning}) - Groep ${declension.group}</h3>`;
+                    
+                    const formsEV = declension.forms.filter(f => f.number === 'ev.');
+                    const formsMV = declension.forms.filter(f => f.number === 'mv.');
+
+                    const createTable = (forms, numberLabel) => {
+                        let table = `<h4 class="font-medium text-gray-600 mt-3">${numberLabel}</h4>`;
+                        table += `<table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden mt-2">`;
+                        table += `<thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Naamval</th>`;
+                        table += `<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vorm</th></tr></thead>`;
+                        table += `<tbody class="bg-white divide-y divide-gray-200">`;
+
+                        CASES.forEach(c => {
+                            const formEntry = forms.find(f => f.case === c.value);
+                            const form = formEntry ? formEntry.form : '-';
+                            table += `<tr><td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${c.label}</td>`;
+                            table += `<td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500 font-mono">${form}</td></tr>`;
+                        });
+                        
+                        table += '</tbody></table>';
+                        return table;
+                    };
+                    
+                    html += `<div class="grid sm:grid-cols-2 gap-4">${createTable(formsEV, 'Enkelvoud')}${createTable(formsMV, 'Meervoud')}</div>`;
+                });
+            }
+            
+            html += `</div>`; // Close the collapsible wrapper
+            $staticTableContainer.innerHTML = html;
+        }
+
+        /**
+         * Render de input velden voor de antwoorden.
+         */
+        function renderAnswerInput(index) {
+            // ... (Deze functie blijft ongewijzigd) ...
+            const userAnswer = state.userAnswers[index];
+            if (!userAnswer) return '';
+
+            const isCorrect = userAnswer.isCorrect;
+
+            const statusColor = isCorrect === true ? 'border-green-400 bg-green-50' :
+                                isCorrect === false ? 'border-red-400 bg-red-50' :
+                                'border-gray-200 bg-white';
+
+            // Feedback tekst
+            let statusText;
+            if (state.showAnswer) {
+                // Als de *hele* match fout was, maar dit *specifieke* veld correct, geef dat aan.
+                if (state.isPerfectMatch === false && isCorrect === true) {
+                    statusText = 'Correct (maar niet compleet)';
+                } else {
+                    statusText = isCorrect === true ? 'JUIST' : 'FOUT (Leeg of Onjuist)';
+                }
+            } else {
+                statusText = `Optie ${index + 1}`;
+            }
+
+            const headerColor = isCorrect === true ? 'text-green-600' :
+                                isCorrect === false ? 'text-red-600' :
+                                'text-gray-700';
+            
+            const disabledAttr = state.showAnswer ? 'disabled' : '';
+            const numberValue = userAnswer.number || '';
+            const caseValue = userAnswer.case || '';
+
+            return `
+                <div class="p-3 rounded-lg border-2 transition-all duration-300 ${statusColor}">
+                    <p class="font-semibold mb-2 ${headerColor}">${statusText}</p>
+                    <div class="flex gap-2">
+                        <!-- Dropdown Getal -->
+                        <div class="flex-1">
+                            <select
+                                id="number-${index}"
+                                data-index="${index}"
+                                data-type="number"
+                                value="${numberValue}"
+                                ${disabledAttr}
+                                class="w-full p-2 border border-gray-300 rounded-lg text-sm appearance-none cursor-pointer disabled:bg-gray-100 disabled:opacity-75"
+                            >
+                                <option value="" disabled ${numberValue === '' ? 'selected' : ''}>Getal</option>
+                                ${NUMBERS.map(option => `
+                                    <option value="${option.value}" ${numberValue === option.value ? 'selected' : ''}>${option.label}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+
+                        <!-- Dropdown Naamval -->
+                        <div class="flex-1">
+                            <select
+                                id="case-${index}"
+                                data-index="${index}"
+                                data-type="case"
+                                value="${caseValue}"
+                                ${disabledAttr}
+                                class="w-full p-2 border border-gray-300 rounded-lg text-sm appearance-none cursor-pointer disabled:bg-gray-100 disabled:opacity-75"
+                            >
+                                <option value="" disabled ${caseValue === '' ? 'selected' : ''}>Naamval</option>
+                                ${CASES.map(option => `
+                                    <option value="${option.value}" ${caseValue === option.value ? 'selected' : ''}>${option.label}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        /**
+         * Render de quiz kaart en eventueel de oplossing. (Grote aanpassing)
+         */
+        function renderQuizCard() {
+            if (!state.currentForm) {
+                return `
+                    <div class="bg-yellow-100 p-6 rounded-xl text-center text-yellow-800 font-semibold">
+                        Selecteer een of meer verbuigingsgroepen om de oefening te starten!
+                    </div>
+                `;
+            }
+
+            const { lemma, meaning, group } = state.possibleParsings[0] || {};
+            
+            const uniqueParsings = Array.from(new Set(state.possibleParsings.map(p => `${p.number}-${p.case}`)));
+            const totalUniqueParsings = uniqueParsings.length;
+            
+            const numFields = state.numAnswersToProvide;
+
+            // --- Input Modus Toggle ---
+            const inputModeToggle = `
+                <div class="flex justify-center gap-2 mb-6 border rounded-full p-1 bg-gray-100 max-w-sm mx-auto">
+                    <button id="toggle-dropdown" class="flex-1 p-2 rounded-full text-sm font-semibold transition-all ${state.inputMode === 'dropdown' ? 'bg-white shadow' : 'text-gray-500'}">
+                        Gebruik Dropdowns
+                    </button>
+                    <button id="toggle-text" class="flex-1 p-2 rounded-full text-sm font-semibold transition-all ${state.inputMode === 'text' ? 'bg-white shadow' : 'text-gray-500'}">
+                        Gebruik Tekstveld
+                    </button>
+                </div>
+            `;
+            
+            // --- Input Gebied (Dropdowns of Tekst) ---
+            let inputAreaHtml = '';
+            if (state.inputMode === 'dropdown') {
+                const optionsButtons = [1, 2, 3, 4].map(n => `
+                    <button
+                        data-options="${n}"
+                        class="
+                        options-button
+                        p-2 px-4 rounded-full font-semibold text-sm transition-all duration-200
+                        ${state.numAnswersToProvide === n
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'bg-gray-100 text-gray-600 hover:bg-purple-50 hover:text-purple-600'
+                        }
+                        "
+                    >
+                        ${n} Optie${n === 1 ? '' : 's'}
+                    </button>
+                `).join('');
+                
+                const inputFields = Array.from({ length: numFields }).map((_, index) => renderAnswerInput(index)).join('');
+
+                inputAreaHtml = `
+                    <div class="mb-4 mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Aantal opties om te gokken:
+                        </label>
+                        <div id="options-selector" class="flex flex-wrap gap-2">
+                            ${optionsButtons}
+                        </div>
+                    </div>
+                    <div class="grid gap-3 ${numFields > 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}">
+                        ${inputFields}
+                    </div>
+                `;
+            } else {
+                inputAreaHtml = `
+                    <div class="mb-4 mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Voer antwoorden in (één per regel):
+                        </label>
+                        <textarea id="text-input-area" class="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm font-mono" placeholder="e.g.\nev acc\nnominativus meervoud\n...">${state.textAreaValue}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Scheid naamval/getal (bv: 'ev acc' of 'acc, ev'). Gebruik 'enter' voor een nieuwe optie.</p>
+                    </div>
+                `;
+            }
+
+
+            // --- Feedback/Oplossing (Aangepast voor Perfect Match) ---
+            let feedback = '';
+            if (state.showAnswer) {
+                const correctCount = state.userAnswers.filter(a => a.isCorrect).length;
+                
+                const uniqueParsingList = uniqueParsings
+                    .map(key => {
+                        const [number, caseVal] = key.split('-');
+                        const numberLabel = NUMBERS.find(n => n.value === number)?.label;
+                        const caseLabel = CASES.find(c => c.value === caseVal)?.label;
+                        const formDetails = state.possibleParsings.find(p => p.number === number && p.case === caseVal);
+                        
+                        return `<li>
+                            <span class="font-bold">${caseLabel}</span>, 
+                            <span class="font-bold">${numberLabel}</span> 
+                            <span class="text-xs text-gray-500">
+                                (Groep ${formDetails.group} - ${formDetails.lemma})
+                            </span>
+                        </li>`;
+                    })
+                    .join('');
+
+                const feedbackHeader = state.isPerfectMatch ?
+                    `<p class="text-2xl font-bold text-green-600">PERFECT!</p>` :
+                    `<p class="text-2xl font-bold text-red-600">FOUT!</p>`;
+                
+                let feedbackReason = '';
+                if (!state.isPerfectMatch) {
+                    if (state.inputMode === 'dropdown') {
+                        feedbackReason = `<p class="text-sm text-red-700">Je selectie was niet perfect (verkeerd aantal geselecteerde opties of een foute gok).</p>`;
+                    } else {
+                        feedbackReason = `<p class="text-sm text-red-700">Je hebt niet alle correcte vormen (en alleen de correcte vormen) gevonden.</p>`;
+                    }
+                }
+
+                feedback = `
+                    <div class="mt-5 p-4 rounded-lg border-l-4 ${state.isPerfectMatch ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}">
+                        <div class="text-center mb-3">${feedbackHeader} ${feedbackReason}</div>
+                        <p class="font-semibold mb-2 ${state.isPerfectMatch ? 'text-green-800' : 'text-red-800'}">Correcte Antwoorden (${totalUniqueParsings} opties):</p>
+                        <ul class="list-disc pl-5 text-sm space-y-1">
+                            ${uniqueParsingList}
+                        </ul>
+                        ${state.inputMode === 'dropdown' && !state.isPerfectMatch ? `<p class="mt-3 text-xs text-gray-500">
+                            Je hebt <span class="font-bold text-base text-blue-600">${correctCount}</span> van de ${totalUniqueParsings} mogelijke correcte antwoorden gevonden.
+                        </p>` : ''}
+                    </div>
+                `;
+            }
+
+            const buttonHtml = state.showAnswer ? 
+                `<button id="next-question-button" class="flex-1 p-3 rounded-xl font-bold text-white shadow-md bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all duration-200">
+                    Volgende Vraag
+                </button>` :
+                `<button id="check-answer-button" class="flex-1 p-3 rounded-xl font-bold text-white shadow-md transition-all duration-200 ${state.selectedGroups.length > 0 ? 'bg-green-600 hover:bg-green-700 active:scale-[0.98]' : 'bg-gray-400 cursor-not-allowed'}" ${state.selectedGroups.length === 0 ? 'disabled' : ''}>
+                    Controleer Antwoord
+                </button>`;
+
+            return `
+                <div class="bg-white p-6 rounded-xl shadow-xl transition-all duration-300">
+                    
+                    <div class="text-center pb-4 border-b">
+                        <p class="text-2xl font-medium text-gray-500">Welke Naamval/Getal combinaties zijn mogelijk?</p>
+                        <h3 class="text-6xl font-extrabold text-blue-700 mt-2 tracking-wide font-serif">${state.currentForm}</h3>
+                        <p class="text-sm mt-1 text-gray-400">
+                            (Hoofdlemma: ${lemma} / Betekenis: ${meaning})
+                        </p>
+                    </div>
+
+                    <div class="mt-6">
+                        ${inputModeToggle}
+                    </div>
+                    
+                    ${inputAreaHtml}
+
+                    <!-- Controle Knoppen -->
+                    <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                        ${buttonHtml}
+                    </div>
+
+                    <!-- Feedback en Oplossing -->
+                    ${feedback}
+                </div>
+            `;
+        }
+
+        /**
+         * Render het scorebord. (Aangepast)
+         */
+        function renderScoreboard() {
+            if (state.totalQuestions === 0) return '';
+            
+            return `
+                <div class="bg-blue-50 p-4 rounded-xl shadow-md mt-6">
+                    <h2 class="text-xl font-bold text-blue-800 mb-2">Score</h2>
+                    <p class="text-lg text-gray-700 mb-1">
+                        Aantal perfecte antwoorden: <span class="font-bold">${state.score}</span>
+                    </p>
+                    <p class="text-sm text-gray-500">Totaal geanalyseerde vormen: ${state.totalQuestions}</p>
+                </div>
+            `;
+        }
+
+        /**
+         * Render de groepenselector.
+         */
+        function renderGroupSelector() {
+            // Render de groepen 1 t/m 5
+            const groupButtons = [1, 2, 3, 4, 5].map(group => `
+                <button
+                    data-group="${group}"
+                    class="
+                        group-button
+                        p-3 px-5 rounded-full font-semibold transition-all duration-200 shadow-md
+                        ${state.selectedGroups.includes(group)
+                            ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                            : 'bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                        }
+                    "
+                    aria-pressed="${state.selectedGroups.includes(group)}"
+                >
+                    Groep ${group}
+                </button>
+            `).join('');
+
+            return `
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <h2 class="text-xl font-bold text-gray-700 mb-3 border-b pb-2">Kies Oefengroepen</h2>
+                    <div id="group-buttons-container" class="flex flex-wrap gap-3">
+                        ${groupButtons}
+                    </div>
+                    ${state.selectedGroups.length === 0 ? 
+                        '<p class="mt-3 text-red-500 font-medium">Selecteer minimaal één groep om te beginnen.</p>' : ''}
+                </div>
+            `;
+        }
+
+        /**
+         * Render alle UI-componenten en voeg event listeners toe.
+         */
+        function renderUI() {
+            // 1. Render Group Selector
+            $groupSelectorContainer.innerHTML = renderGroupSelector();
+            
+            // 2. Render Quiz Card / Not Ready Message
+            const isGameReady = state.selectedGroups.length > 0;
+            $quizCardContainer.innerHTML = isGameReady ? renderQuizCard() : '';
+            $notReadyMessage.classList.toggle('hidden', isGameReady);
+
+            // 3. Render Scoreboard
+            $scoreboardContainer.innerHTML = renderScoreboard();
+            
+            // 4. Render Statische Tabel (Nieuw)
+            renderStaticTable();
+
+            // 5. Voeg Event Listeners toe (na renderen)
+
+            // Event listener voor Groepsknoppen
+            document.querySelectorAll('.group-button').forEach(button => {
+                button.onclick = (e) => {
+                    const group = parseInt(e.target.dataset.group);
+                    
+                    if (state.selectedGroups.includes(group)) {
+                        state.selectedGroups = state.selectedGroups.filter(g => g !== group);
+                    } else {
+                        state.selectedGroups = [...state.selectedGroups, group].sort((a, b) => a - b);
+                    }
+                    
+                    localStorage.setItem('selectedGroups', JSON.stringify(state.selectedGroups));
+
+                    createAmbiguityMap();
+                    generateNewQuestion(); 
+                };
+            });
+            
+            // Event listener voor de toggle knop van de tabel
+            const $toggleTableButton = document.getElementById('toggle-table-button');
+            if ($toggleTableButton) {
+                $toggleTableButton.onclick = toggleTableVisibility;
+            }
+
+            // --- Listeners voor Dropdown Modus ---
+            if (state.inputMode === 'dropdown') {
+                // Event listener voor antwoord dropdowns
+                for (let i = 0; i < state.numAnswersToProvide; i++) {
+                    const $numberSelect = document.getElementById(`number-${i}`);
+                    const $caseSelect = document.getElementById(`case-${i}`);
+
+                    if ($numberSelect) {
+                        $numberSelect.onchange = (e) => {
+                            const index = parseInt(e.target.dataset.index);
+                            const type = e.target.dataset.type;
+                            state.userAnswers[index][type] = e.target.value;
+                            state.showAnswer = false; 
+                            renderUI(); 
+                        };
+                    }
+                    if ($caseSelect) {
+                        $caseSelect.onchange = (e) => {
+                            const index = parseInt(e.target.dataset.index);
+                            const type = e.target.dataset.type;
+                            state.userAnswers[index][type] = e.target.value;
+                            state.showAnswer = false; 
+                            renderUI(); 
+                        };
+                    }
+                }
+                
+                // Event listener voor Dynamic Options Selector knoppen
+                document.querySelectorAll('.options-button').forEach(button => {
+                    button.onclick = (e) => {
+                        const options = parseInt(e.target.dataset.options);
+                        state.numAnswersToProvide = options;
+                        state.showAnswer = false; // Reset feedback
+                        renderUI(); // Render de kaart opnieuw om het aantal velden te tonen
+                    };
+                });
+            }
+            
+            // --- Listeners voor Tekst Modus ---
+            if (state.inputMode === 'text') {
+                const $textArea = document.getElementById('text-input-area');
+                if ($textArea && !state.showAnswer) {
+                    $textArea.oninput = (e) => {
+                        state.textAreaValue = e.target.value;
+                    };
+                } else if ($textArea && state.showAnswer) {
+                    $textArea.disabled = true;
+                }
+            }
+            
+            // --- Algemene Listeners ---
+
+            // Event listener voor Check/Next knoppen
+            const $checkButton = document.getElementById('check-answer-button');
+            if ($checkButton) {
+                $checkButton.onclick = handleCheckAnswer;
+            }
+
+            const $nextButton = document.getElementById('next-question-button');
+            if ($nextButton) {
+                $nextButton.onclick = generateNewQuestion;
+            }
+
+            // Event listeners voor Input Modus Toggle
+            const $toggleDropdown = document.getElementById('toggle-dropdown');
+            if ($toggleDropdown) {
+                $toggleDropdown.onclick = () => {
+                    if (state.inputMode !== 'dropdown') {
+                        state.inputMode = 'dropdown';
+                        renderUI();
+                    }
+                };
+            }
+            const $toggleText = document.getElementById('toggle-text');
+            if ($toggleText) {
+                $toggleText.onclick = () => {
+                    if (state.inputMode !== 'text') {
+                        state.inputMode = 'text';
+                        renderUI();
+                    }
+                };
+            }
+        }
+
+        const startButton = document.getElementById('start-practice-button');
+        if (startButton) {
+            startButton.addEventListener('click', () => {
+                const practiceSection = document.getElementById('practice-root');
+                if (practiceSection && practiceSection.scrollIntoView) {
+                    practiceSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        }
+
+        // --- Global Event Listeners ---
+        document.addEventListener('keydown', (e) => {
+            // Alleen actief als we in tekstmodus zijn (zoals gevraagd)
+            if (state.inputMode === 'text' && e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                if (state.showAnswer) {
+                    generateNewQuestion();
+                } else {
+                    handleCheckAnswer();
+                }
+            }
+        });
+
+        // --- Initialisatie ---
+        window.onload = function() {
+            // 1. Laad geselecteerde groepen van localStorage
+            const savedGroups = localStorage.getItem('selectedGroups');
+            if (savedGroups) {
+                try {
+                    const parsedGroups = JSON.parse(savedGroups);
+                    if (Array.isArray(parsedGroups) && parsedGroups.every(g => typeof g === 'number' && [1,2,3,4,5].includes(g)) && parsedGroups.length > 0) {
+                        state.selectedGroups = parsedGroups;
+                    }
+                } catch (e) {
+                    console.error("Fout bij het laden van groepen uit localStorage:", e);
+                }
+            }
+            
+            createAmbiguityMap();
+            generateNewQuestion(); // Start de eerste vraag
+        };
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oefen je Griekse Aoristus</title>
+    <link rel="icon" href="images/fav_icon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap&subset=greek" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <!-- Theme Sidebar -->
+    <div class="theme-sidebar">
+        <div class="theme-sidebar-header">
+            <h3>Kies je thema</h3>
+            <button class="theme-sidebar-close" aria-label="Close theme sidebar">✕</button>
+        </div>
+        <div class="theme-options">
+            <button id="light-mode-button" class="theme-option active" data-theme="light">
+                <span class="theme-icon">☀️</span>
+                <span class="theme-name">Licht</span>
+            </button>
+            <button id="dark-mode-button" class="theme-option" data-theme="dark">
+                <span class="theme-icon">🌙</span>
+                <span class="theme-name">Donker</span>
+            </button>
+            <button id="hell-mode-button" class="theme-option" data-theme="hell">
+                <span class="theme-icon">🔥</span>
+                <span class="theme-name">Hel</span>
+            </button>
+        </div>
+    </div>
+        :root {
+            --primary-color: #FFD700; /* Goud */
+            --secondary-color: #FFA500; /* Oranje */
+            --text-color: #2d3436;
+            --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--background-gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 700px; /* Iets breder voor de opties */
+            text-align: center;
+        }
+
+        .site-logo {
+            width: 200px; /* Vergroot logo */
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 2.8em; /* Iets kleiner dan LoekItUp */
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #startScherm h2 {
+            font-size: 1.8em;
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .vraag {
+            font-size: 2em; /* Groter voor Griekse tekst */
+            margin-bottom: 25px;
+            font-weight: bold;
+            min-height: 2em;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            color: #333; /* Donkerder voor leesbaarheid Grieks */
+            line-height: 1.4;
+        }
+
+        #antwoordContainer {
+            margin-top: 20px;
+            margin-bottom: 25px;
+            display: none;
+            background-color: rgba(232, 244, 232, 0.9); /* Lichter groen met transparantie */
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        #antwoordContainer p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+         #antwoordContainer strong {
+             color: #2e7d32; /* Donkerder groen */
+         }
+
+        button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            transition: all var(--transition-speed) ease;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 8px 4px; /* Iets meer verticale marge */
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+        }
+        button:disabled {
+             background: linear-gradient(135deg, #b0bec5, #90a4ae); /* Grijs gradient */
+             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* Lichte inset schaduw */
+             cursor: not-allowed;
+             transform: none;
+             color: #607d8b; /* Donkerder grijs tekst */
+        }
+
+        #startScherm button {
+             display: block;
+             width: 200px;
+             margin: 15px auto;
+             padding: 15px;
+             font-size: 1.1em;
+        }
+
+        #feedbackContainer {
+            margin: 20px 0; /* Iets meer ruimte rondom */
+            font-weight: bold;
+            min-height: 1.2em;
+            font-size: 1.1em;
+            opacity: 0; /* Start onzichtbaar voor animatie */
+            transition: opacity 0.4s ease-in-out; /* Fade-in animatie */
+        }
+        #feedbackContainer.zichtbaar {
+            opacity: 1; /* Maak zichtbaar */
+        }
+        .correct { color: #1b5e20; } /* Donkergroen */
+        .fout { color: #c62828; } /* Donkerrood */
+
+        #resultatenContainer {
+            margin-top: 40px;
+            font-size: 1.2em;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+        }
+         #resultatenContainer button {
+             margin-top: 15px;
+         }
+
+        #quizContainer, #resultatenContainer {
+            /* Display wordt nu beheerd door JS */
+            /* display: none; Initieel verborgen */
+        }
+
+        /* Styling voor voortgangsbalk (toegevoegd) */
+        #progress-container {
+            width: 100%;
+            margin-bottom: 20px;
+            display: none; /* Start verborgen */
+        }
+        .progress-bar-background {
+            background-color: #e0e0e0; /* Lichte achtergrond */
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0%; /* Start op 0 */
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+        #progress-text {
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: var(--text-color);
+        }
+
+        /* Styling voor vraag-slider */
+        #vragenSliderContainer {
+            margin: 20px auto;
+            max-width: 300px;
+        }
+        #vragenSliderContainer label {
+             display: block;
+             margin-bottom: 8px;
+             font-weight: 500;
+        }
+        #vragenSlider {
+            -webkit-appearance: none; /* Override default look */
+            appearance: none;
+            width: 100%; /* Full width */
+            height: 10px; /* Thinner track */
+            background: #ddd; /* Light grey background */
+            outline: none;
+            opacity: 0.9;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+
+        #vragenSlider:hover {
+            opacity: 1; /* Fully visible on hover */
+        }
+
+        /* Styling Thumb (Chrome, Edge, Safari) */
+        #vragenSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px; /* Size of the thumb */
+            height: 22px;
+            background: var(--secondary-color); /* Orange color */
+            cursor: pointer;
+            border-radius: 50%; /* Circle */
+            border: 2px solid white; /* White border */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-top: -6px; /* Trek de thumb iets omhoog om te centreren */
+        }
+
+        /* Styling Thumb (Firefox) */
+        #vragenSlider::-moz-range-thumb {
+            width: 20px; /* Size of the thumb */
+            height: 20px;
+            background: var(--secondary-color); /* Orange color */
+            cursor: pointer;
+            border-radius: 50%; /* Circle */
+            border: 2px solid white; /* White border */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Styling Track (Chrome, Edge, Safari) - make it match thumb better */
+        #vragenSlider::-webkit-slider-runnable-track {
+            height: 10px;
+            cursor: pointer;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color)); /* Gradient track */
+            border-radius: 5px;
+        }
+
+         /* Styling Track (Firefox) - make it match thumb better */
+        #vragenSlider::-moz-range-track {
+            height: 10px;
+            cursor: pointer;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color)); /* Gradient track */
+            border-radius: 5px;
+        }
+
+        #toetsInputContainer {
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+         #toetsInputContainer label, #toetsInputContainer div {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 500;
+            text-align: left;
+         }
+         #toetsInputContainer input[type="text"] {
+            padding: 12px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: calc(100% - 26px); /* Rekening houdend met padding */
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+         }
+         #toetsInputContainer input[type="text"]:focus {
+             outline: none;
+             border-color: var(--secondary-color); /* Oranje focus */
+             box-shadow: 0 0 5px rgba(255, 165, 0, 0.3); /* Lichte oranje gloed */
+         }
+
+        #aoristusTypeSelectie {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        #aoristusTypeSelectie label {
+            display: block; /* Onder elkaar */
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-weight: normal;
+            padding: 5px 0; /* Meer verticale ruimte voor tikken */
+        }
+         #aoristusTypeSelectie label:hover {
+            background-color: rgba(255, 215, 0, 0.1); /* Lichte highlight bij hover */
+         }
+         #aoristusTypeSelectie input[type="radio"] {
+             margin-right: 8px;
+             cursor: pointer;
+         }
+         #toetsInputContainer button {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1em;
+         }
+
+        /* Responsive aanpassingen */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px 10px; /* Meer verticale padding */
+            }
+            .container {
+                width: 95%;
+            }
+            .site-logo {
+                width: 120px; /* Iets kleiner logo op mobiel */
+            }
+            h1 {
+                font-size: 2.0em; /* Nog iets kleiner */
+                margin-bottom: 20px;
+            }
+            .vraag {
+                font-size: 1.6em;
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            button {
+                padding: 10px 18px;
+                font-size: 0.95rem;
+            }
+            #startScherm button {
+                 width: 180px;
+                 padding: 12px;
+                 font-size: 1em;
+            }
+             #toetsInputContainer input[type="text"] {
+                font-size: 0.95em;
+                padding: 10px;
+             }
+             #toetsInputContainer button {
+                 padding: 12px;
+                 font-size: 1em;
+             }
+             #antwoordContainer p {
+                 font-size: 1em;
+             }
+             #aoristusTypeSelectie label {
+                 padding: 5px 0; /* Meer verticale ruimte voor tikken */
+             }
+             #feedbackContainer {
+                font-size: 1em;
+             }
+             #resultatenContainer {
+                 font-size: 1.1em;
+                 padding: 20px;
+             }
+        }
+
+    </nav>
+
+    <div class="container">
+        <img src="images/icon.png" alt="Grieks Oefenen Logo" class="site-logo">
+        <h1>Oefen je Griekse Aoristus</h1>
+
+        <div id="startScherm" style="display: block;"> <!-- Zorg dat startscherm zichtbaar is bij laden -->
+            <h2>Kies een modus:</h2>
+            <div id="vragenSliderContainer">
+                <label for="vragenSlider">Kies aantal vragen: <span id="sliderWaarde"></span></label>
+                <input type="range" id="vragenSlider" min="1" value="10"> <!-- Max en value worden door JS ingesteld -->
+            </div>
+            <button onclick="startQuiz('gedachten')">In gedachten</button>
+            <button onclick="startQuiz('toets')">Toets</button>
+        </div>
+
+        <div id="quizContainer" style="display: none;"> <!-- Start verborgen -->
+            <!-- Voortgangsbalk -->
+            <div id="progress-container" style="display: none;">
+                <div id="progress-text"></div>
+                <div class="progress-bar-background">
+                     <div id="progress-bar"></div>
+                 </div>
+            </div>
+
+            <div id="vraag" class="vraag"></div>
+
+            <!-- Input voor Toets modus -->
+            <div id="toetsInputContainer" style="display: none;">
+                <label for="vertalingInput">Jouw vertaling:</label>
+                <input type="text" id="vertalingInput" placeholder="Typ hier de vertaling...">
+
+                <div>Kies het type werkwoord:</div>
+                <div id="aoristusTypeSelectie">
+                    <label>
+                        <input type="radio" name="aoristusType" value="Pseudo-Sigmatisch"> Pseudo-Sigmatisch
+                    </label>
+                    <label>
+                        <input type="radio" name="aoristusType" value="Thematisch"> Thematisch
+                    </label>
+                    <label>
+                        <input type="radio" name="aoristusType" value="Imperfectum"> Imperfectum
+                    </label>
+                </div>
+
+                <!-- Nieuwe sectie voor persoon/getal -->
+                <div id="persoonGetalSelectieContainer" style="display: none;"> <!-- Start verborgen -->
+                    <div>Bepaal persoon en getal:</div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <div style="flex-basis: 48%;">
+                            <label for="persoonSelect" style="display: block; margin-bottom: 5px; font-weight: normal;">Persoon:</label>
+                            <select id="persoonSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                                <option value="">Kies...</option>
+                                <option value="1e">1e</option>
+                                <option value="2e">2e</option>
+                                <option value="3e">3e</option>
+                            </select>
+                        </div>
+                        <div style="flex-basis: 48%;">
+                            <label for="getalSelect" style="display: block; margin-bottom: 5px; font-weight: normal;">Getal:</label>
+                            <select id="getalSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                                <option value="">Kies...</option>
+                                <option value="ev">Enkelvoud (ev.)</option>
+                                <option value="mv">Meervoud (mv.)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- Einde nieuwe sectie -->
+
+                <button onclick="controleerAntwoord()" id="controleerAntwoordBtn">Controleer Antwoord</button>
+            </div>
+
+            <!-- Knop voor In Gedachten modus -->
+            <button id="toonAntwoordBtn" onclick="toonAntwoord()" style="display: none;">Toon Antwoord</button>
+
+            <div id="antwoordContainer">
+                <p><strong>Correct antwoord:</strong></p>
+                <p>Vertaling: <span id="antwoordVertaling"></span></p>
+                <p>Grammatica: <span id="antwoordGrammatica"></span></p>
+                <p>Type: <span id="antwoordType"></span></p>
+            </div>
+
+            <div id="feedbackContainer"></div>
+
+            <button onclick="volgendeVraag()" id="volgendeVraagBtn" style="display: none;">Volgende Vraag</button>
+        </div>
+
+        <div id="resultatenContainer" style="display: none;"></div> <!-- Start verborgen -->
+    </div>
+
+    <audio id="confetti-sound" src="sounds/confetti.mp3" preload="auto"></audio>
+
+    <script>
+        const quizVragen = [
+            { grieks: "ἔλυσα", nederlands: "ik maakte los / heb losgemaakt", grammatica: "1e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἔλυσας", nederlands: "jij maakte los / hebt losgemaakt", grammatica: "2e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἔλυσε(ν)", nederlands: "hij/zij/het maakte los / heeft losgemaakt", grammatica: "3e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἐλύσαμεν", nederlands: "wij maakten los / hebben losgemaakt", grammatica: "1e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἐλύσατε", nederlands: "jullie maakten los / hebben losgemaakt", grammatica: "2e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἔλυσαν", nederlands: "zij maakten los / hebben losgemaakt", grammatica: "3e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "λῦσον", nederlands: "maak los!", grammatica: "2e pers. ev. imperativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "λύσατε", nederlands: "maak los!", grammatica: "2e pers. mv. imperativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "λῦσαι", nederlands: "om los te maken", grammatica: "infinitivus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἔπραξα", nederlands: "ik handelde / heb gehandeld", grammatica: "1e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἔπραξας", nederlands: "jij handelde / hebt gehandeld", grammatica: "2e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἔπραξε(ν)", nederlands: "hij/zij/het handelde / heeft gehandeld", grammatica: "3e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἐπράξαμεν", nederlands: "wij handelden / hebben gehandeld", grammatica: "1e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἐπράξατε", nederlands: "jullie handelden / hebben gehandeld", grammatica: "2e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἔπραξαν", nederlands: "zij handelden / hebben gehandeld", grammatica: "3e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "πρᾶξον", nederlands: "handel!", grammatica: "2e pers. ev. imperativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "πράξατε", nederlands: "handel!", grammatica: "2e pers. mv. imperativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "πρᾶξαι", nederlands: "om te handelen", grammatica: "infinitivus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἤγγειλα", nederlands: "ik berichtte / heb bericht", grammatica: "1e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἤγγειλας", nederlands: "jij berichtte / hebt bericht", grammatica: "2e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἤγγειλε(ν)", nederlands: "hij/zij/het berichtte / heeft bericht", grammatica: "3e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἠγγείλαμεν", nederlands: "wij berichtten / hebben bericht", grammatica: "1e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἠγγείλατε", nederlands: "jullie berichtten / hebben bericht", grammatica: "2e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἤγγειλαν", nederlands: "zij berichtten / hebben bericht", grammatica: "3e pers. mv. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἄγγειλον", nederlands: "bericht!", grammatica: "2e pers. ev. imperativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἀγγείλατε", nederlands: "bericht!", grammatica: "2e pers. mv. imperativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "ἀγγεῖλαι", nederlands: "om te berichten", grammatica: "infinitivus", type: "Pseudo-Sigmatisch" },
+            { grieks: "εἶδον", nederlands: "ik zag", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "εἶδες", nederlands: "jij zag", grammatica: "2e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "εἶδε(ν)", nederlands: "hij/zij/het zag", grammatica: "3e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "εἴδομεν", nederlands: "wij zagen", grammatica: "1e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "εἴδετε", nederlands: "jullie zagen", grammatica: "2e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "εἶδον", nederlands: "zij zagen", grammatica: "3e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἰδέ", nederlands: "zie!", grammatica: "2e pers. ev. imperativus", type: "Thematisch" },
+            { grieks: "ἴδετε", nederlands: "zie!", grammatica: "2e pers. mv. imperativus", type: "Thematisch" },
+            { grieks: "ἰδεῖν", nederlands: "om te zien", grammatica: "infinitivus", type: "Thematisch" },
+            { grieks: "εἶπον", nederlands: "ik zei / sprak", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἦλθον", nederlands: "ik kwam / ging", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἀπέθανον", nederlands: "ik stierf", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἤνεγκον", nederlands: "ik droeg / bracht", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔλαβον", nederlands: "ik pakte / nam", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔλιπον", nederlands: "ik liet / verliet", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔτεκον", nederlands: "ik baarde / bracht ter wereld", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἤγαγον", nederlands: "ik bracht / leidde", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔπεσον", nederlands: "ik viel", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔφυγον", nederlands: "ik vluchtte", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔσχον", nederlands: "ik had / kreeg", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔβαλον", nederlands: "ik gooide / wierp", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔθρεψα", nederlands: "ik voedde / voedde op", grammatica: "1e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "κατῆλθον", nederlands: "ik ging naar beneden / daalde af", grammatica: "1e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔλυον", nederlands: "ik maakte los (imperfectum)", grammatica: "1e pers. ev. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἔλυες", nederlands: "jij maakte los (imperfectum)", grammatica: "2e pers. ev. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἔλυε(ν)", nederlands: "hij/zij/het maakte los (imperfectum)", grammatica: "3e pers. ev. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἐλύομεν", nederlands: "wij maakten los (imperfectum)", grammatica: "1e pers. mv. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἐλύετε", nederlands: "jullie maakten los (imperfectum)", grammatica: "2e pers. mv. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἔλυον", nederlands: "zij maakten los (imperfectum)", grammatica: "3e pers. mv. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἔπραττον", nederlands: "ik handelde (imperfectum)", grammatica: "1e pers. ev. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἤγγελον", nederlands: "ik berichtte (imperfectum)", grammatica: "1e pers. ev. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἔβαινον", nederlands: "ik ging (imperfectum)", grammatica: "1e pers. ev. actief indicativus", type: "Imperfectum" },
+            { grieks: "ἐποίεις", nederlands: "jij deed / maakte", grammatica: "2e pers. ev. imperfectum", type: "Imperfectum" },
+            { grieks: "ἐποίει", nederlands: "hij/zij/het deed / maakte", grammatica: "3e pers. ev. imperfectum", type: "Imperfectum" },
+            { grieks: "ἐποιοῦμεν", nederlands: "wij deden / maakten", grammatica: "1e pers. mv. imperfectum", type: "Imperfectum" },
+            { grieks: "ἐποιεῖτε", nederlands: "jullie deden / maakten", grammatica: "2e pers. mv. imperfectum", type: "Imperfectum" },
+            { grieks: "ἐποίουν", nederlands: "zij deden / maakten", grammatica: "3e pers. mv. imperfectum", type: "Imperfectum" },
+            { grieks: "ἦσθα", nederlands: "jij was", grammatica: "2e pers. ev. imperfectum", type: "Imperfectum" },
+            { grieks: "ἦν", nederlands: "hij/zij/het was", grammatica: "3e pers. ev. imperfectum", type: "Imperfectum" },
+            { grieks: "ἦμεν", nederlands: "wij waren", grammatica: "1e pers. mv. imperfectum", type: "Imperfectum" },
+            { grieks: "ἦτε", nederlands: "jullie waren", grammatica: "2e pers. mv. imperfectum", type: "Imperfectum" },
+            { grieks: "ἦσαν", nederlands: "zij waren", grammatica: "3e pers. mv. imperfectum", type: "Imperfectum" },
+
+            // Thematische Aoristus van λαμβάνω (aor. ἔλαβον) (van Afbeelding 3)
+            { grieks: "ἔλαβες", nederlands: "jij nam", grammatica: "2e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔλαβε(ν)", nederlands: "hij/zij/het nam", grammatica: "3e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἐλάβομεν", nederlands: "wij namen", grammatica: "1e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἐλάβετε", nederlands: "jullie namen", grammatica: "2e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἔλαβον", nederlands: "zij namen", grammatica: "3e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "λαβέ", nederlands: "neem!", grammatica: "2e pers. ev. imperativus", type: "Thematisch" },
+            { grieks: "λάβετε", nederlands: "neem!", grammatica: "2e pers. mv. imperativus", type: "Thematisch" },
+            { grieks: "λαβεῖν", nederlands: "om te nemen", grammatica: "infinitivus", type: "Thematisch" },
+
+            // Thematische Aoristus van ἔρχομαι (aor. ἦλθον) (van Afbeelding 3)
+            { grieks: "ἦλθες", nederlands: "jij ging", grammatica: "2e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἦλθε(ν)", nederlands: "hij/zij/het ging", grammatica: "3e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἤλθομεν", nederlands: "wij gingen", grammatica: "1e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἤλθετε", nederlands: "jullie gingen", grammatica: "2e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἦλθον", nederlands: "zij gingen", grammatica: "3e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἐλθέ", nederlands: "ga!", grammatica: "2e pers. ev. imperativus", type: "Thematisch" },
+            { grieks: "ἔλθετε", nederlands: "ga!", grammatica: "2e pers. mv. imperativus", type: "Thematisch" },
+            { grieks: "ἐλθεῖν", nederlands: "om te gaan", grammatica: "infinitivus", type: "Thematisch" },
+
+            // Thematische Aoristus van εἶδον (van Afbeelding 3) - deze hadden we al, maar voor de volledigheid:
+            { grieks: "εἶδες", nederlands: "jij zag", grammatica: "2e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "εἶδε(ν)", nederlands: "hij/zij/het zag", grammatica: "3e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "εἴδομεν", nederlands: "wij zagen", grammatica: "1e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "εἴδετε", nederlands: "jullie zagen", grammatica: "2e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "εἶδον", nederlands: "zij zagen", grammatica: "3e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἰδέ", nederlands: "zie!", grammatica: "2e pers. ev. imperativus", type: "Thematisch" },
+            { grieks: "ἴδετε", nederlands: "zie!", grammatica: "2e pers. mv. imperativus", type: "Thematisch" },
+            { grieks: "ἰδεῖν", nederlands: "om te zien", grammatica: "infinitivus", type: "Thematisch" },
+            { grieks: "ἔλυον", nederlands: "zij maakten los", grammatica: "3e pers. mv. imperfectum", type: "Imperfectum" },
+            { grieks: "ἦμεν", nederlands: "wij waren", grammatica: "1e pers. mv. imperfectum", type: "Imperfectum" },
+            { grieks: "ἐλάβετε", nederlands: "jullie namen", grammatica: "2e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "ἦλθε(ν)", nederlands: "hij/zij/het ging", grammatica: "3e pers. ev. actief indicativus", type: "Thematisch" },
+            { grieks: "ἤγγειλας", nederlands: "jij berichtte / hebt bericht", grammatica: "2e pers. ev. actief indicativus", type: "Pseudo-Sigmatisch" },
+            { grieks: "εἴδομεν", nederlands: "wij zagen", grammatica: "1e pers. mv. actief indicativus", type: "Thematisch" },
+            { grieks: "λῦσον", nederlands: "maak los!", grammatica: "2e pers. ev. imperativus", type: "Pseudo-Sigmatisch" }
+
+        ];
+
+        let huidigeVraagIndex = -1;
+        let correcteAntwoorden = 0;
+        let aantalVragen = 0; // Wordt gezet in startQuiz
+        let geoefendeVragen = [];
+        let quizMode = '';
+        let shuffledVragen = [];
+
+        const startScherm = document.getElementById("startScherm");
+        const quizContainer = document.getElementById("quizContainer");
+        const vraagElement = document.getElementById("vraag");
+        const vragenSlider = document.getElementById("vragenSlider");
+        const sliderWaardeSpan = document.getElementById("sliderWaarde");
+        const toetsInputContainer = document.getElementById("toetsInputContainer");
+        const vertalingInputElement = document.getElementById("vertalingInput");
+        const aoristusTypeSelectie = document.getElementById("aoristusTypeSelectie");
+        const toonAntwoordButton = document.getElementById("toonAntwoordBtn");
+        const controleerAntwoordButton = document.getElementById("controleerAntwoordBtn");
+        const antwoordContainer = document.getElementById("antwoordContainer");
+        const antwoordVertalingElement = document.getElementById("antwoordVertaling");
+        const antwoordGrammaticaElement = document.getElementById("antwoordGrammatica");
+        const antwoordTypeElement = document.getElementById("antwoordType");
+        const volgendeVraagButton = document.getElementById("volgendeVraagBtn");
+        const feedbackContainer = document.getElementById("feedbackContainer");
+        const resultatenContainer = document.getElementById("resultatenContainer");
+
+        // Voortgangsbalk elementen
+        const progressContainer = document.getElementById("progress-container");
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
+
+        // Nieuwe elementen voor persoon/getal selectie
+        const persoonGetalSelectieContainer = document.getElementById("persoonGetalSelectieContainer");
+        const persoonSelectElement = document.getElementById("persoonSelect");
+        const getalSelectElement = document.getElementById("getalSelect");
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+         function startQuiz(mode) {
+            const geselecteerdAantal = parseInt(vragenSlider.value);
+
+            quizMode = mode;
+            huidigeVraagIndex = -1;
+            correcteAntwoorden = 0;
+            geoefendeVragen = [];
+            // Shuffle eerst alle vragen, neem dan het geselecteerde aantal
+            const alleGeschuddeVragen = shuffleArray([...quizVragen]);
+            shuffledVragen = alleGeschuddeVragen.slice(0, geselecteerdAantal);
+            aantalVragen = shuffledVragen.length; // Dit is nu het geselecteerde aantal
+
+            startScherm.style.display = "none";
+            resultatenContainer.style.display = "none";
+            resultatenContainer.innerHTML = ''; // Leeg resultaten voor nieuwe ronde
+            quizContainer.style.display = "block";
+            volgendeVraag();
+            progressContainer.style.display = "block"; // Toon voortgangsbalk
+            updateProgress(); // Initiele voortgang (Vraag 1 van X)
+        }
+
+
+        function toonVraag() {
+            if (huidigeVraagIndex < aantalVragen) {
+                const huidigeVraag = shuffledVragen[huidigeVraagIndex];
+                vraagElement.textContent = huidigeVraag.grieks;
+                antwoordContainer.style.display = "none";
+                volgendeVraagButton.style.display = "none";
+                feedbackContainer.textContent = "";
+                feedbackContainer.className = "";
+                controleerAntwoordButton.disabled = false; // Re-enable button
+
+                if (quizMode === 'gedachten') {
+                    toetsInputContainer.style.display = "none";
+                    toonAntwoordButton.style.display = "inline-block";
+                    persoonGetalSelectieContainer.style.display = "none"; // Ook hier verbergen
+                } else { // quizMode === 'toets'
+                    toetsInputContainer.style.display = "block";
+                    toonAntwoordButton.style.display = "none";
+                    vertalingInputElement.value = "";
+                    const radios = document.querySelectorAll('input[name="aoristusType"]');
+                    radios.forEach(radio => radio.checked = false);
+                    // Reset en toon/verberg persoon/getal selecties
+                    persoonSelectElement.selectedIndex = 0;
+                    getalSelectElement.selectedIndex = 0;
+                    // Controleer of persoon/getal relevant is (op basis van 'pers.' in grammatica)
+                    if (huidigeVraag.grammatica.includes("pers.")) {
+                         persoonGetalSelectieContainer.style.display = "block";
+                    } else {
+                         persoonGetalSelectieContainer.style.display = "none";
+                    }
+
+                    vertalingInputElement.focus();
+                }
+                updateProgress(); // Werk voortgang bij voor elke nieuwe vraag (ongeacht modus)
+            } else {
+                toonResultaten();
+            }
+        }
+
+        function toonAntwoord() { // Alleen voor 'gedachten' modus
+            if (huidigeVraagIndex < aantalVragen) {
+                toonCorrecteAntwoordDetails();
+                toonAntwoordButton.style.display = "none";
+                volgendeVraagButton.style.display = "inline-block";
+            }
+        }
+
+        function controleerAntwoord() { // Alleen voor 'toets' modus
+            if (huidigeVraagIndex < aantalVragen) {
+                controleerAntwoordButton.disabled = true; // Disable button to prevent double clicks
+                const huidigeVraag = shuffledVragen[huidigeVraagIndex];
+                const gebruikersVertaling = vertalingInputElement.value.trim().toLowerCase();
+                const geselecteerdTypeInput = document.querySelector('input[name="aoristusType"]:checked');
+                const gebruikersType = geselecteerdTypeInput ? geselecteerdTypeInput.value : "";
+
+                // Haal persoon/getal op indien relevant
+                const isPersoonGetalRelevant = huidigeVraag.grammatica.includes("pers.");
+                const gebruikersPersoon = isPersoonGetalRelevant ? persoonSelectElement.value : "";
+                const gebruikersGetal = isPersoonGetalRelevant ? getalSelectElement.value : "";
+
+                // Check vertaling (rekening houdend met '/')
+                const correcteOpties = huidigeVraag.nederlands.split('/').map(optie => optie.trim().toLowerCase());
+                const isVertalingCorrect = correcteOpties.includes(gebruikersVertaling);
+
+                // Check type
+                const isTypeCorrect = gebruikersType === huidigeVraag.type;
+
+                // Check persoon/getal (indien relevant)
+                let isPersoonCorrect = !isPersoonGetalRelevant; // Standaard true als niet relevant
+                let isGetalCorrect = !isPersoonGetalRelevant;   // Standaard true als niet relevant
+                let correctePersoon = "";
+                let correcteGetal = "";
+
+                if (isPersoonGetalRelevant) {
+                    // Probeer persoon en getal te extraheren uit grammatica string
+                    const match = huidigeVraag.grammatica.match(/(\d+)(?:e|ste|de)\s*pers\.\s*(ev|mv)/i);
+                    if (match && match.length >= 3) {
+                         correctePersoon = match[1] + "e"; // bv. "1e", "2e", "3e"
+                         correcteGetal = match[2].toLowerCase(); // bv. "ev", "mv"
+
+                         isPersoonCorrect = (gebruikersPersoon === correctePersoon);
+                         isGetalCorrect = (gebruikersGetal === correcteGetal);
+                     } else {
+                         // Fallback als parsing mislukt (zou niet moeten gebeuren met huidige data)
+                         console.warn("Kon persoon/getal niet parsen uit:", huidigeVraag.grammatica);
+                         isPersoonCorrect = false;
+                         isGetalCorrect = false;
+                     }
+                }
+
+                let feedbackTekst = "";
+                let feedbackClass = "fout";
+
+                // Controleer of ALLES correct is
+                if (isVertalingCorrect && isTypeCorrect && isPersoonCorrect && isGetalCorrect) {
+                    feedbackTekst = "Correct!";
+                    feedbackClass = "correct";
+                    correcteAntwoorden++;
+                } else {
+                    feedbackTekst = "Fout. ";
+                    if (!isVertalingCorrect && gebruikersVertaling !== "") {
+                        feedbackTekst += `Vertaling: "${huidigeVraag.nederlands}". `;
+                    } else if (!isVertalingCorrect && gebruikersVertaling === "") {
+                         feedbackTekst += `Je hebt geen vertaling ingevuld. De juiste vertaling is: "${huidigeVraag.nederlands}". `;
+                    }
+                    if (!isTypeCorrect && gebruikersType !== "") {
+                        feedbackTekst += `Type: ${huidigeVraag.type}. `;
+                    } else if (!isTypeCorrect && gebruikersType === "") {
+                         feedbackTekst += `Je hebt geen type geselecteerd. Het juiste type is: ${huidigeVraag.type}. `;
+                    }
+                     // Voeg feedback toe voor persoon/getal indien relevant en fout
+                     if(isPersoonGetalRelevant) {
+                        if (!isPersoonCorrect && gebruikersPersoon !== "") {
+                             feedbackTekst += `Persoon: ${correctePersoon}. `;
+                        } else if (!isPersoonCorrect && gebruikersPersoon === "") {
+                            feedbackTekst += `Je hebt geen persoon geselecteerd. Het is ${correctePersoon}. `;
+                        }
+                        if (!isGetalCorrect && gebruikersGetal !== "") {
+                             feedbackTekst += `Getal: ${correcteGetal === 'ev' ? 'Enkelvoud' : 'Meervoud'}. `;
+                        } else if (!isGetalCorrect && gebruikersGetal === "") {
+                             feedbackTekst += `Je hebt geen getal geselecteerd. Het is ${correcteGetal === 'ev' ? 'Enkelvoud' : 'Meervoud'}. `;
+                        }
+                     }
+
+                     // Toon het correcte antwoord blok bij fout
+                     toonCorrecteAntwoordDetails();
+                }
+
+                feedbackContainer.textContent = feedbackTekst.trim(); // Zet eerst tekst
+                feedbackContainer.className = feedbackClass;
+                feedbackContainer.classList.add('zichtbaar'); // Maak zichtbaar met animatie
+
+                 // Verberg invoer, toon volgende knop
+                 // toetsInputContainer.style.display = "none"; // Laat staan voor context
+                 volgendeVraagButton.style.display = "inline-block";
+            }
+        }
+
+         function toonCorrecteAntwoordDetails() {
+            // Hulpfunctie om het correcte antwoord blok te tonen
+             const huidigeVraag = shuffledVragen[huidigeVraagIndex];
+             antwoordVertalingElement.textContent = huidigeVraag.nederlands;
+             antwoordGrammaticaElement.textContent = `(${huidigeVraag.grammatica})`;
+             antwoordTypeElement.textContent = huidigeVraag.type;
+             antwoordContainer.style.display = "block";
+         }
+
+        function volgendeVraag() {
+            // Controleer of er een vorige vraag was (index >= 0) voordat we het type toevoegen.
+            // Dit voorkomt een fout bij de allereerste keer dat 'volgendeVraag' wordt aangeroepen vanuit startQuiz.
+            if (huidigeVraagIndex >= 0) {
+                 geoefendeVragen.push(shuffledVragen[huidigeVraagIndex].type);
+            }
+            huidigeVraagIndex++;
+            toonVraag();
+        }
+
+        function toonResultaten() {
+            quizContainer.style.display = "none";
+            progressContainer.style.display = "none"; // Verberg voortgangsbalk
+            resultatenContainer.style.display = "block";
+
+            // Haal alle unieke types uit de oorspronkelijke vragenlijst
+            const alleTypes = [...new Set(quizVragen.map(v => v.type))];
+            const geoefendeUniekeTypes = [...new Set(geoefendeVragen)];
+
+            let resultatenTekst = "";
+            if (quizMode === 'toets') {
+                 const scorePercentage = aantalVragen > 0 ? Math.round((correcteAntwoorden / aantalVragen) * 100) : 0;
+                 resultatenTekst += `Je score: ${correcteAntwoorden} / ${aantalVragen} correct (${scorePercentage}%).<br><br>`;
+            } else {
+                 resultatenTekst += "Je hebt alle vragen gehad!<br><br>";
+            }
+
+            let nogOefenen = alleTypes.filter(type => !geoefendeUniekeTypes.includes(type));
+
+            if (nogOefenen.length > 0) {
+                resultatenTekst += "Je hebt nog niet geoefend met de volgende types: " + nogOefenen.join(" en ") + ".";
+            } else if (geoefendeUniekeTypes.length < alleTypes.length && quizMode === 'toets') {
+                // Dit scenario kan voorkomen als de gebruiker stopt voordat alle types aan bod kwamen in 'toets' modus
+                resultatenTekst += "Je hebt nog niet alle beschikbare types geoefend in deze sessie.";
+            }
+             else {
+                 resultatenTekst += `Je hebt alle beschikbare types (${alleTypes.join(', ')}) geoefend!`;
+            }
+
+             resultatenTekst += "<br><br><button onclick='location.reload()'>Opnieuw spelen</button>";
+
+            resultatenContainer.innerHTML = resultatenTekst;
+
+            // Toon confetti en speel geluid
+            showConfetti();
+            const confettiSound = document.getElementById('confetti-sound');
+            if (confettiSound) {
+                confettiSound.play().catch(e => console.warn("Confetti geluid afspelen mislukt:", e));
+            }
+        }
+
+        function updateProgress() {
+            if (aantalVragen > 0) {
+                // huidigeVraagIndex is 0-based, dus +1 voor weergave
+                const vraagNummer = huidigeVraagIndex + 1;
+                const percentage = (vraagNummer / aantalVragen) * 100;
+                progressBar.style.width = `${percentage}%`;
+                progressText.textContent = `Vraag ${vraagNummer} van ${aantalVragen}`;
+            } else {
+                progressBar.style.width = '0%';
+                progressText.textContent = '';
+            }
+        }
+
+        // Confetti functie (gebaseerd op Loek-It-Up)
+        function showConfetti() {
+            const duration = 3 * 1000; // 3 seconden
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                // since particles fall down, start a bit higher than random
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+
+        // Initialisatie bij laden van de pagina
+        function initializeQuiz() {
+            // Stel slider max in op basis van aantal vragen
+            const maxVragen = quizVragen.length;
+            vragenSlider.max = maxVragen;
+            // Stel default waarde in (bv. 10 of max als < 10)
+            const defaultValue = Math.min(10, maxVragen);
+            vragenSlider.value = defaultValue;
+            sliderWaardeSpan.textContent = defaultValue;
+
+            // Update de waarde tekst als de slider verandert
+            vragenSlider.addEventListener('input', (event) => {
+                sliderWaardeSpan.textContent = event.target.value;
+            });
+
+             // Zorg dat alleen het startscherm zichtbaar is
+             startScherm.style.display = 'block';
+             quizContainer.style.display = 'none';
+             resultatenContainer.style.display = 'none';
+             progressContainer.style.display = 'none';
+        }
+
+        // Roep initialisatie aan als de DOM geladen is
+        document.addEventListener('DOMContentLoaded', initializeQuiz);
+
+    </script>
+    <!-- Confetti library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        // Theme sidebar toggle
+        const themeToggle = document.querySelector('.theme-toggle');
+        const themeSidebar = document.querySelector('.theme-sidebar');
+        const themeSidebarClose = document.querySelector('.theme-sidebar-close');
+
+        themeToggle.addEventListener('click', () => {
+            themeSidebar.classList.toggle('open');
+        });
+
+        themeSidebarClose.addEventListener('click', () => {
+            themeSidebar.classList.remove('open');
+        });
+
+        // Close theme sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!themeToggle.contains(e.target) && !themeSidebar.contains(e.target)) {
+                themeSidebar.classList.remove('open');
+            }
+        });
+
+        // Theme switching functionality
+        const themeOptions = document.querySelectorAll('.theme-option');
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Update theme button states
+        function updateThemeButtons(activeTheme) {
+            themeOptions.forEach(option => {
+                option.classList.toggle('active', option.dataset.theme === activeTheme);
+            });
+        }
+
+        updateThemeButtons(savedTheme);
+
+        // Theme change handlers
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const theme = option.dataset.theme;
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                updateThemeButtons(theme);
+                themeSidebar.classList.remove('open'); // Close sidebar after selection
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oefen je Latijnse Betrekkelijk Voornaamwoord</title>
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Confetti library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #FFD700; /* Goud */
+            --secondary-color: #FFA500; /* Oranje */
+            --text-color: #2d3436;
+            --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--background-gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .site-logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed) ease-out;
+            margin: 20px auto;
+        }
+
+        .table-container.expanded {
+            max-height: 1000px; /* Genoeg ruimte voor de tabel */
+        }
+
+        .toggle-table-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            transition: all var(--transition-speed) ease;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        .toggle-table-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+
+        .table-container.expanded table {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: rgba(255, 215, 0, 0.2);
+            font-weight: 600;
+        }
+
+        .reference-table th:first-child,
+        .reference-table td:first-child {
+            font-style: italic;
+            color: #555;
+            background-color: rgba(255, 215, 0, 0.1);
+        }
+
+        #startScherm {
+            display: block;
+        }
+
+        #quizContainer {
+            display: none;
+        }
+
+        #vragenSliderContainer {
+            margin: 20px auto;
+            max-width: 300px;
+        }
+
+        #vragenSliderContainer label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        #vragenSlider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 10px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.9;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+
+        #vragenSlider:hover {
+            opacity: 1;
+        }
+
+        #vragenSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: var(--secondary-color);
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-top: -6px;
+        }
+
+        #vragenSlider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--secondary-color);
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #vragenSlider::-webkit-slider-runnable-track {
+            height: 10px;
+            cursor: pointer;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+        }
+
+        #vragenSlider::-moz-range-track {
+            height: 10px;
+            cursor: pointer;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+        }
+
+        #practice-area {
+            margin-top: 30px;
+            padding: 25px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        #question {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            width: calc(100% - 24px);
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            transition: border-color var(--transition-speed);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(255, 165, 0, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            transition: all var(--transition-speed) ease;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 8px 4px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #b0bec5, #90a4ae);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            cursor: not-allowed;
+            transform: none;
+            color: #607d8b;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+            min-height: 1.2em;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        #feedback.visible {
+            opacity: 1;
+        }
+
+        .correct {
+            color: #1b5e20;
+        }
+
+        .incorrect {
+            color: #c62828;
+        }
+
+        #progress-container {
+            width: 100%;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .progress-bar-background {
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        #progress-text {
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px 10px;
+            }
+
+            .container {
+                width: 95%;
+            }
+
+            .site-logo {
+                width: 120px;
+            }
+
+            h1 {
+                font-size: 2.0em;
+                margin-bottom: 20px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            #question {
+                font-size: 1.2em;
+            }
+
+            input[type="text"] {
+                font-size: 1em;
+                padding: 10px;
+            }
+
+            button {
+                padding: 10px 18px;
+                font-size: 0.95rem;
+            }
+        }
+
+        .dropdown-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dropdown-row label {
+            flex: 1;
+            text-align: left;
+            margin-right: 10px;
+        }
+
+        .dropdown-row select {
+            flex: 2;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            background-color: white;
+        }
+
+        .dropdown-row select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(255, 165, 0, 0.3);
+        }
+
+        #answer-inputs {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="images/icon.png" alt="Latijn Oefenen Logo" class="site-logo">
+        <h1>Oefen je Latijnse Betrekkelijk Voornaamwoord</h1>
+
+        <div id="startScherm">
+            <h2>Kies een modus:</h2>
+            <div id="vragenSliderContainer">
+                <label for="vragenSlider">Kies aantal vragen: <span id="sliderWaarde"></span></label>
+                <input type="range" id="vragenSlider" min="1" value="10">
+            </div>
+            <button onclick="startQuiz('gedachten')">In gedachten</button>
+            <button onclick="startQuiz('toets')">Toets</button>
+        </div>
+
+        <div id="quizContainer">
+            <div id="progress-container">
+                <div id="progress-text"></div>
+                <div class="progress-bar-background">
+                    <div id="progress-bar"></div>
+                </div>
+            </div>
+
+            <button class="toggle-table-button" onclick="toggleTable()">Toon/Verberg Verbuigingstabel</button>
+            <div class="table-container">
+                <table class="reference-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>Mannelijk (M)</th>
+                            <th>Vrouwelijk (V)</th>
+                            <th>Onzijdig (O)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="5"><b>ev</b></td>
+                            <td>nom.</td>
+                            <td>qui</td>
+                            <td>quae</td>
+                            <td>quod</td>
+                        </tr>
+                        <tr>
+                            <td>gen.</td>
+                            <td>cuius</td>
+                            <td>cuius</td>
+                            <td>cuius</td>
+                        </tr>
+                        <tr>
+                            <td>dat.</td>
+                            <td>cui</td>
+                            <td>cui</td>
+                            <td>cui</td>
+                        </tr>
+                        <tr>
+                            <td>acc.</td>
+                            <td>quem</td>
+                            <td>quam</td>
+                            <td>quod</td>
+                        </tr>
+                        <tr>
+                            <td>abl.</td>
+                            <td>quo</td>
+                            <td>qua</td>
+                            <td>quo</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5"><b>mv</b></td>
+                            <td>nom.</td>
+                            <td>qui</td>
+                            <td>quae</td>
+                            <td>quae</td>
+                        </tr>
+                        <tr>
+                            <td>gen.</td>
+                            <td>quorum</td>
+                            <td>quarum</td>
+                            <td>quorum</td>
+                        </tr>
+                        <tr>
+                            <td>dat.</td>
+                            <td>quibus</td>
+                            <td>quibus</td>
+                            <td>quibus</td>
+                        </tr>
+                        <tr>
+                            <td>acc.</td>
+                            <td>quos</td>
+                            <td>quas</td>
+                            <td>quae</td>
+                        </tr>
+                        <tr>
+                            <td>abl.</td>
+                            <td>quibus</td>
+                            <td>quibus</td>
+                            <td>quibus</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="practice-area">
+                <p id="question">Klik op 'Volgende vraag' om te beginnen.</p>
+                <div id="answer-inputs">
+                    <input type="text" id="answer-input" placeholder="Typ hier je antwoord" style="display: none;">
+                    <div id="dropdown-inputs" style="display: none;">
+                        <div class="dropdown-row">
+                            <label for="gender-select">Geslacht:</label>
+                            <select id="gender-select">
+                                <option value="">Kies...</option>
+                                <option value="M">Mannelijk</option>
+                                <option value="V">Vrouwelijk</option>
+                                <option value="O">Onzijdig</option>
+                            </select>
+                        </div>
+                        <div class="dropdown-row">
+                            <label for="case-select">Naamval:</label>
+                            <select id="case-select">
+                                <option value="">Kies...</option>
+                                <option value="nom">Nominativus</option>
+                                <option value="gen">Genitivus</option>
+                                <option value="dat">Dativus</option>
+                                <option value="acc">Accusativus</option>
+                                <option value="abl">Ablativus</option>
+                            </select>
+                        </div>
+                        <div class="dropdown-row">
+                            <label for="number-select">Getal:</label>
+                            <select id="number-select">
+                                <option value="">Kies...</option>
+                                <option value="ev">Enkelvoud</option>
+                                <option value="mv">Meervoud</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button id="submit-button">Controleer</button>
+                <button id="next-button" style="display: none;">Volgende vraag</button>
+                <p id="feedback"></p>
+            </div>
+        </div>
+    </div>
+
+    <audio id="correct-sound" src="sounds/correct.mp3" preload="auto"></audio>
+    <audio id="incorrect-sound" src="sounds/incorrect.mp3" preload="auto"></audio>
+    <audio id="confetti-sound" src="sounds/confetti.mp3" preload="auto"></audio>
+
+    <script>
+        const declensions = [
+            { gender: 'M', number: 'ev', case: 'nom', form: 'qui' }, { gender: 'V', number: 'ev', case: 'nom', form: 'quae' }, { gender: 'O', number: 'ev', case: 'nom', form: 'quod' },
+            { gender: 'M', number: 'ev', case: 'gen', form: 'cuius' }, { gender: 'V', number: 'ev', case: 'gen', form: 'cuius' }, { gender: 'O', number: 'ev', case: 'gen', form: 'cuius' },
+            { gender: 'M', number: 'ev', case: 'dat', form: 'cui' }, { gender: 'V', number: 'ev', case: 'dat', form: 'cui' }, { gender: 'O', number: 'ev', case: 'dat', form: 'cui' },
+            { gender: 'M', number: 'ev', case: 'acc', form: 'quem' }, { gender: 'V', number: 'ev', case: 'acc', form: 'quam' }, { gender: 'O', number: 'ev', case: 'acc', form: 'quod' },
+            { gender: 'M', number: 'ev', case: 'abl', form: 'quo' }, { gender: 'V', number: 'ev', case: 'abl', form: 'qua' }, { gender: 'O', number: 'ev', case: 'abl', form: 'quo' },
+            { gender: 'M', number: 'mv', case: 'nom', form: 'qui' }, { gender: 'V', number: 'mv', case: 'nom', form: 'quae' }, { gender: 'O', number: 'mv', case: 'nom', form: 'quae' },
+            { gender: 'M', number: 'mv', case: 'gen', form: 'quorum' }, { gender: 'V', number: 'mv', case: 'gen', form: 'quarum' }, { gender: 'O', number: 'mv', case: 'gen', form: 'quorum' },
+            { gender: 'M', number: 'mv', case: 'dat', form: 'quibus' }, { gender: 'V', number: 'mv', case: 'dat', form: 'quibus' }, { gender: 'O', number: 'mv', case: 'dat', form: 'quibus' },
+            { gender: 'M', number: 'mv', case: 'acc', form: 'quos' }, { gender: 'V', number: 'mv', case: 'acc', form: 'quas' }, { gender: 'O', number: 'mv', case: 'acc', form: 'quae' },
+            { gender: 'M', number: 'mv', case: 'abl', form: 'quibus' }, { gender: 'V', number: 'mv', case: 'abl', form: 'quibus' }, { gender: 'O', number: 'mv', case: 'abl', form: 'quibus' },
+        ];
+
+        const genderMap = { 'M': 'Mannelijk', 'V': 'Vrouwelijk', 'O': 'Onzijdig' };
+        const numberMap = { 'ev': 'enkelvoud', 'mv': 'meervoud' };
+        const caseMap = { 'nom': 'nominativus', 'gen': 'genitivus', 'dat': 'dativus', 'acc': 'accusativus', 'abl': 'ablativus' };
+
+        const questionElement = document.getElementById('question');
+        const answerInputElement = document.getElementById('answer-input');
+        const submitButton = document.getElementById('submit-button');
+        const nextButton = document.getElementById('next-button');
+        const feedbackElement = document.getElementById('feedback');
+        const startScherm = document.getElementById('startScherm');
+        const quizContainer = document.getElementById('quizContainer');
+        const vragenSlider = document.getElementById('vragenSlider');
+        const sliderWaardeSpan = document.getElementById('sliderWaarde');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const tableContainer = document.querySelector('.table-container');
+
+        let currentCorrectAnswer = '';
+        let huidigeVraagIndex = -1;
+        let correcteAntwoorden = 0;
+        let aantalVragen = 0;
+        let quizMode = '';
+        let shuffledVragen = [];
+        let fouteVragen = [];
+        let tabelGebruikt = false;
+
+        const answerInputs = document.getElementById('answer-inputs');
+        const answerInput = document.getElementById('answer-input');
+        const dropdownInputs = document.getElementById('dropdown-inputs');
+        const genderSelect = document.getElementById('gender-select');
+        const caseSelect = document.getElementById('case-select');
+        const numberSelect = document.getElementById('number-select');
+
+        function toggleTable() {
+            tableContainer.classList.toggle('expanded');
+            if (tableContainer.classList.contains('expanded')) {
+                tabelGebruikt = true;
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function resetDropdowns() {
+            genderSelect.value = '';
+            caseSelect.value = '';
+            numberSelect.value = '';
+        }
+
+        function startQuiz(mode) {
+            const geselecteerdAantal = parseInt(vragenSlider.value);
+            quizMode = mode;
+            huidigeVraagIndex = -1;
+            correcteAntwoorden = 0;
+            fouteVragen = [];
+            
+            // Maak een unieke set van vragen
+            const uniekeVragen = new Set();
+            const alleGeschuddeVragen = shuffleArray([...declensions]);
+            const vraagType1 = Math.floor(geselecteerdAantal * 0.8);
+            const vraagType2 = geselecteerdAantal - vraagType1;
+            
+            shuffledVragen = [];
+            let type1Count = 0;
+            let type2Count = 0;
+            
+            // Voeg eerst type 1 vragen toe
+            for (let i = 0; i < alleGeschuddeVragen.length && type1Count < vraagType1; i++) {
+                const vraag = alleGeschuddeVragen[i];
+                const vraagKey = `1-${vraag.form}`;
+                if (!uniekeVragen.has(vraagKey)) {
+                    uniekeVragen.add(vraagKey);
+                    shuffledVragen.push({ type: 1, data: vraag });
+                    type1Count++;
+                }
+            }
+            
+            // Voeg dan type 2 vragen toe
+            for (let i = 0; i < alleGeschuddeVragen.length && type2Count < vraagType2; i++) {
+                const vraag = alleGeschuddeVragen[i];
+                const vraagKey = `2-${vraag.gender}-${vraag.case}-${vraag.number}`;
+                if (!uniekeVragen.has(vraagKey)) {
+                    uniekeVragen.add(vraagKey);
+                    shuffledVragen.push({ type: 2, data: vraag });
+                    type2Count++;
+                }
+            }
+            
+            // Als we niet genoeg unieke vragen hebben, vul aan met de rest
+            while (shuffledVragen.length < geselecteerdAantal) {
+                const resterendeVragen = alleGeschuddeVragen.filter(vraag => {
+                    const key1 = `1-${vraag.form}`;
+                    const key2 = `2-${vraag.gender}-${vraag.case}-${vraag.number}`;
+                    return !uniekeVragen.has(key1) && !uniekeVragen.has(key2);
+                });
+                
+                if (resterendeVragen.length === 0) break;
+                
+                const randomVraag = resterendeVragen[Math.floor(Math.random() * resterendeVragen.length)];
+                const type = shuffledVragen.length < vraagType1 ? 1 : 2;
+                const key = type === 1 ? `1-${randomVraag.form}` : `2-${randomVraag.gender}-${randomVraag.case}-${randomVraag.number}`;
+                
+                uniekeVragen.add(key);
+                shuffledVragen.push({ type, data: randomVraag });
+            }
+            
+            shuffledVragen = shuffleArray(shuffledVragen);
+            aantalVragen = shuffledVragen.length;
+            
+            startScherm.style.display = "none";
+            quizContainer.style.display = "block";
+            progressContainer.style.display = "block";
+            volgendeVraag();
+            updateProgress();
+        }
+
+        function generateQuestion() {
+            if (huidigeVraagIndex < aantalVragen) {
+                const huidigeVraag = shuffledVragen[huidigeVraagIndex];
+                tabelGebruikt = false;
+                tableContainer.classList.remove('expanded');
+                
+                if (huidigeVraag.type === 1) {
+                    questionElement.textContent = `Wat is het geslacht, de naamval en het getal van "${huidigeVraag.data.form}"?`;
+                    if (quizMode === 'toets') {
+                        answerInput.style.display = 'none';
+                        dropdownInputs.style.display = 'block';
+                        resetDropdowns();
+                    } else {
+                        answerInput.style.display = 'none';
+                        dropdownInputs.style.display = 'none';
+                        submitButton.textContent = 'Laat antwoord zien';
+                    }
+                } else {
+                    questionElement.textContent = `${genderMap[huidigeVraag.data.gender]}, ${caseMap[huidigeVraag.data.case]}, ${numberMap[huidigeVraag.data.number]}?`;
+                    if (quizMode === 'toets') {
+                        answerInput.style.display = 'block';
+                        dropdownInputs.style.display = 'none';
+                        answerInput.placeholder = "Typ hier het Latijnse woord";
+                    } else {
+                        answerInput.style.display = 'none';
+                        dropdownInputs.style.display = 'none';
+                        submitButton.textContent = 'Laat antwoord zien';
+                    }
+                }
+
+                currentCorrectAnswer = huidigeVraag.data;
+                answerInput.value = '';
+                feedbackElement.textContent = '';
+                feedbackElement.className = '';
+                submitButton.disabled = false;
+                answerInput.disabled = false;
+                genderSelect.disabled = false;
+                caseSelect.disabled = false;
+                numberSelect.disabled = false;
+                nextButton.style.display = 'none';
+                updateProgress();
+            } else {
+                toonResultaten();
+            }
+        }
+
+        function checkAnswer() {
+            const huidigeVraag = shuffledVragen[huidigeVraagIndex];
+            
+            if (quizMode === 'gedachten') {
+                if (huidigeVraag.type === 1) {
+                    const mogelijkeVormen = declensions.filter(d => d.form === huidigeVraag.data.form);
+                    const antwoorden = mogelijkeVormen.map(vorm => 
+                        `${genderMap[vorm.gender]}, ${caseMap[vorm.case]}, ${numberMap[vorm.number]}`
+                    ).join(' of ');
+                    feedbackElement.textContent = `Het juiste antwoord is: ${antwoorden}`;
+                } else {
+                    const mogelijkeVormen = declensions.filter(d => 
+                        d.gender === huidigeVraag.data.gender &&
+                        d.case === huidigeVraag.data.case &&
+                        d.number === huidigeVraag.data.number
+                    );
+                    const antwoorden = mogelijkeVormen.map(vorm => vorm.form).join(' of ');
+                    feedbackElement.textContent = `Het juiste antwoord is: ${antwoorden}`;
+                }
+                feedbackElement.className = 'correct visible';
+                submitButton.disabled = true;
+                nextButton.style.display = 'inline-block';
+                return;
+            }
+
+            let isCorrect = false;
+
+            if (huidigeVraag.type === 1) {
+                if (quizMode === 'toets') {
+                    const mogelijkeVormen = declensions.filter(d => 
+                        d.form === huidigeVraag.data.form
+                    );
+                    isCorrect = mogelijkeVormen.some(vorm => 
+                        genderSelect.value === vorm.gender &&
+                        caseSelect.value === vorm.case &&
+                        numberSelect.value === vorm.number
+                    );
+                } else {
+                    isCorrect = !tabelGebruikt;
+                }
+            } else {
+                if (quizMode === 'toets') {
+                    const userAnswer = answerInput.value.trim().toLowerCase();
+                    const mogelijkeVormen = declensions.filter(d => 
+                        d.gender === huidigeVraag.data.gender &&
+                        d.case === huidigeVraag.data.case &&
+                        d.number === huidigeVraag.data.number
+                    );
+                    isCorrect = mogelijkeVormen.some(vorm => 
+                        userAnswer === vorm.form.toLowerCase()
+                    );
+                } else {
+                    isCorrect = !tabelGebruikt;
+                }
+            }
+
+            if (isCorrect) {
+                feedbackElement.textContent = 'Correct!';
+                feedbackElement.className = 'correct visible';
+                correcteAntwoorden++;
+                playSound('correct');
+            } else {
+                if (tabelGebruikt) {
+                    feedbackElement.textContent = 'Je hebt de tabel gebruikt, dat telt als fout!';
+                } else if (huidigeVraag.type === 1) {
+                    const mogelijkeVormen = declensions.filter(d => d.form === huidigeVraag.data.form);
+                    const antwoorden = mogelijkeVormen.map(vorm => 
+                        `${genderMap[vorm.gender]}, ${caseMap[vorm.case]}, ${numberMap[vorm.number]}`
+                    ).join(' of ');
+                    feedbackElement.textContent = `Helaas, het juiste antwoord was: ${antwoorden}`;
+                } else {
+                    const mogelijkeVormen = declensions.filter(d => 
+                        d.gender === huidigeVraag.data.gender &&
+                        d.case === huidigeVraag.data.case &&
+                        d.number === huidigeVraag.data.number
+                    );
+                    const antwoorden = mogelijkeVormen.map(vorm => vorm.form).join(' of ');
+                    feedbackElement.textContent = `Helaas, het juiste antwoord was: ${antwoorden}`;
+                }
+                feedbackElement.className = 'incorrect visible';
+                playSound('incorrect');
+                fouteVragen.push(huidigeVraag);
+            }
+
+            submitButton.disabled = true;
+            answerInput.disabled = true;
+            genderSelect.disabled = true;
+            caseSelect.disabled = true;
+            numberSelect.disabled = true;
+            nextButton.style.display = 'inline-block';
+        }
+
+        function volgendeVraag() {
+            huidigeVraagIndex++;
+            generateQuestion();
+        }
+
+        function updateProgress() {
+            if (aantalVragen > 0) {
+                const vraagNummer = huidigeVraagIndex + 1;
+                const percentage = (vraagNummer / aantalVragen) * 100;
+                progressBar.style.width = `${percentage}%`;
+                progressText.textContent = `Vraag ${vraagNummer} van ${aantalVragen}`;
+            }
+        }
+
+        function toonResultaten() {
+            const scorePercentage = Math.round((correcteAntwoorden / aantalVragen) * 100);
+            let resultatenHTML = `<div class="resultaten-container">
+                <h2>Resultaten</h2>
+                <p>Je score: ${correcteAntwoorden} / ${aantalVragen} correct (${scorePercentage}%)</p>`;
+
+            if (quizMode === 'toets' && fouteVragen.length > 0) {
+                resultatenHTML += `
+                    <div class="foute-vragen">
+                        <h3>Vragen die je fout had:</h3>
+                        <ul>`;
+                fouteVragen.forEach(vraag => {
+                    if (vraag.type === 1) {
+                        const mogelijkeVormen = declensions.filter(d => d.form === vraag.data.form);
+                        const antwoorden = mogelijkeVormen.map(vorm => 
+                            `${genderMap[vorm.gender]}, ${caseMap[vorm.case]}, ${numberMap[vorm.number]}`
+                        ).join(' of ');
+                        resultatenHTML += `<li>"${vraag.data.form}" - ${antwoorden}</li>`;
+                    } else {
+                        const mogelijkeVormen = declensions.filter(d => 
+                            d.gender === vraag.data.gender &&
+                            d.case === vraag.data.case &&
+                            d.number === vraag.data.number
+                        );
+                        const antwoorden = mogelijkeVormen.map(vorm => vorm.form).join(' of ');
+                        resultatenHTML += `<li>${genderMap[vraag.data.gender]}, ${caseMap[vraag.data.case]}, ${numberMap[vraag.data.number]} - "${antwoorden}"</li>`;
+                    }
+                });
+                resultatenHTML += `</ul></div>`;
+            }
+
+            resultatenHTML += `
+                <div class="advies">
+                    <h3>Advies voor verbetering:</h3>
+                    <p>${genereerAdvies()}</p>
+                </div>`;
+
+             resultatenHTML += `
+                 <div class="resultaten-knoppen">
+                     <button onclick="location.reload()">Nieuwe oefening</button>
+                 </div>
+             </div>`;
+
+            quizContainer.innerHTML = resultatenHTML;
+            showConfetti();
+            playSound('confetti');
+        }
+
+        function genereerAdvies() {
+            let advies = '';
+            const foutenPerType = {
+                'M': 0, 'V': 0, 'O': 0,
+                'nom': 0, 'gen': 0, 'dat': 0, 'acc': 0, 'abl': 0,
+                'ev': 0, 'mv': 0
+            };
+
+            fouteVragen.forEach(vraag => {
+                foutenPerType[vraag.data.gender]++;
+                foutenPerType[vraag.data.case]++;
+                foutenPerType[vraag.data.number]++;
+            });
+
+            const meestFouteGeslacht = Object.entries(foutenPerType)
+                .filter(([key]) => ['M', 'V', 'O'].includes(key))
+                .sort((a, b) => b[1] - a[1])[0];
+            
+            const meestFouteNaamval = Object.entries(foutenPerType)
+                .filter(([key]) => ['nom', 'gen', 'dat', 'acc', 'abl'].includes(key))
+                .sort((a, b) => b[1] - a[1])[0];
+            
+            const meestFouteGetal = Object.entries(foutenPerType)
+                .filter(([key]) => ['ev', 'mv'].includes(key))
+                .sort((a, b) => b[1] - a[1])[0];
+
+            if (meestFouteGeslacht[1] > 0) {
+                advies += `Oefen extra met ${genderMap[meestFouteGeslacht[0]]}e woorden. `;
+            }
+            if (meestFouteNaamval[1] > 0) {
+                advies += `Let vooral op de ${caseMap[meestFouteNaamval[0]]}. `;
+            }
+            if (meestFouteGetal[1] > 0) {
+                advies += `Concentreer je op ${numberMap[meestFouteGetal[0]]}. `;
+            }
+
+            if (advies === '') {
+                advies = 'Je hebt het al heel goed onder de knie! Blijf oefenen om het nog beter te maken.';
+            }
+
+            return advies;
+        }
+
+        function herhaalFouteVragen() {
+            if (fouteVragen.length > 0) {
+                // Maak een unieke set van foute vragen
+                const uniekeFouteVragen = new Set();
+                const uniekeFouteVragenArray = [];
+                
+                fouteVragen.forEach(vraag => {
+                    const key = vraag.type === 1 
+                        ? `1-${vraag.data.form}`
+                        : `2-${vraag.data.gender}-${vraag.data.case}-${vraag.data.number}`;
+                    
+                    if (!uniekeFouteVragen.has(key)) {
+                        uniekeFouteVragen.add(key);
+                        uniekeFouteVragenArray.push(vraag);
+                    }
+                });
+                
+                shuffledVragen = shuffleArray(uniekeFouteVragenArray);
+                aantalVragen = shuffledVragen.length;
+                huidigeVraagIndex = -1;
+                correcteAntwoorden = 0;
+                fouteVragen = [];
+                
+                // Reset de quiz container
+                quizContainer.innerHTML = `
+                    <div id="progress-container">
+                        <div id="progress-text"></div>
+                        <div class="progress-bar-background">
+                            <div id="progress-bar"></div>
+                        </div>
+                    </div>
+                    <button class="toggle-table-button" onclick="toggleTable()">Toon/Verberg Verbuigingstabel</button>
+                    <div class="table-container">
+                        ${document.querySelector('.table-container').innerHTML}
+                    </div>
+                    <div id="practice-area">
+                        <p id="question"></p>
+                        <div id="answer-inputs">
+                            <input type="text" id="answer-input" placeholder="Typ hier je antwoord" style="display: none;">
+                            <div id="dropdown-inputs" style="display: none;">
+                                ${document.getElementById('dropdown-inputs').innerHTML}
+                            </div>
+                        </div>
+                        <button id="submit-button">Controleer</button>
+                        <button id="next-button" style="display: none;">Volgende vraag</button>
+                        <p id="feedback"></p>
+                    </div>`;
+                
+                // Herinitialiseer de event listeners
+                document.getElementById('submit-button').addEventListener('click', checkAnswer);
+                document.getElementById('next-button').addEventListener('click', volgendeVraag);
+                document.getElementById('answer-input').addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        if (!document.getElementById('submit-button').disabled) {
+                            checkAnswer();
+                        }
+                    }
+                });
+                
+                volgendeVraag();
+            }
+        }
+
+        function playSound(type) {
+            const sound = document.getElementById(`${type}-sound`);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.warn("Geluid afspelen mislukt:", e));
+            }
+        }
+
+        function showConfetti() {
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+
+        function initializeQuiz() {
+            const maxVragen = declensions.length;
+            vragenSlider.max = maxVragen;
+            const defaultValue = Math.min(10, maxVragen);
+            vragenSlider.value = defaultValue;
+            sliderWaardeSpan.textContent = defaultValue;
+
+            vragenSlider.addEventListener('input', (event) => {
+                sliderWaardeSpan.textContent = event.target.value;
+            });
+
+            startScherm.style.display = 'block';
+            quizContainer.style.display = 'none';
+            progressContainer.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeQuiz);
+        submitButton.addEventListener('click', checkAnswer);
+        nextButton.addEventListener('click', volgendeVraag);
+
+        answerInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (!submitButton.disabled) {
+                    checkAnswer();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duitse Modale Werkwoorden Oefening</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
+    
+    <!-- Gebruik Inter font -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9; /* Lichtgrijze achtergrond */
+        }
+        .correct {
+            background-color: #d1fae5; /* Groene lichte tint */
+            border-left: 4px solid #10b981;
+        }
+        .incorrect {
+            background-color: #fee2e2; /* Rode lichte tint */
+            border-left: 4px solid #ef4444;
+        }
+        .feedback-box {
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 1rem;
+        }
+        .feedback-box.show {
+            opacity: 1;
+            max-height: 200px; /* Voldoende hoogte tonen */
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        /* Styling voor focus ring */
+        input:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.5);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex justify-center items-start min-h-screen">
+
+    <div id="app" class="w-full max-w-lg bg-white rounded-xl shadow-2xl p-6 sm:p-8">
+        <div class="flex justify-between items-center mb-2">
+            <h1 class="text-3xl font-extrabold text-gray-800 border-b-2 border-indigo-500 pb-2 flex-grow">
+                Duits: Modale Werkwoorden T.T.
+            </h1>
+            <a href="../index.html" class="text-indigo-600 hover:text-indigo-800 transition duration-200 ml-4" title="Terug naar home">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </a>
+        </div>
+        <p class="text-gray-500 mb-6">Vervoeg het werkwoord in de tegenwoordige tijd (t.t.). Elke quiz bestaat uit 10 willekeurige vragen uit de 36 unieke oefeningen.</p>
+
+        <!-- Voortgangsbalk -->
+        <div class="mb-6">
+            <div id="progress-bar" class="h-2 bg-indigo-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            <div class="text-sm text-gray-500 mt-1">Vraag <span id="current-question-number">0</span> van <span id="total-questions">10</span></div>
+        </div>
+
+        <!-- De Zin -->
+        <div id="question-container" class="mb-6 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-lg">
+            <p id="sentence-display" class="text-xl font-medium text-gray-700 leading-relaxed">Laden...</p>
+        </div>
+
+        <!-- Input en Check Knop -->
+        <div id="input-area" class="flex flex-col sm:flex-row gap-4 mb-4">
+            <input type="text" id="user-input" placeholder="Vervoeging hier"
+                   class="flex-grow p-3 border-2 border-gray-300 rounded-lg text-gray-800 focus:border-indigo-600 transition duration-150 shadow-md"
+                   onkeydown="handleKeyDown(event)">
+            <button id="check-button" onclick="checkAnswer()"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-[1.02] shadow-lg">
+                Controleer
+            </button>
+        </div>
+
+        <!-- Feedback Box -->
+        <div id="feedback-box" class="feedback-box rounded-lg">
+            <p id="feedback-text" class="text-base font-semibold"></p>
+        </div>
+
+        <!-- Volgende/Herstart Knop -->
+        <button id="next-button" onclick="nextQuestion()" disabled
+                class="w-full bg-gray-400 text-white font-bold py-3 px-6 rounded-lg mt-4 transition duration-200 shadow-lg disabled:opacity-75 disabled:cursor-not-allowed">
+            Volgende Vraag
+        </button>
+
+        <!-- Resultaten Scherm (einde van de quiz) -->
+        <div id="results-screen" class="hidden text-center p-8 mt-4 bg-green-50 rounded-xl shadow-inner">
+            <h2 class="text-2xl font-extrabold text-green-700 mb-3">Quiz Voltooid! 🎉</h2>
+            <p class="text-gray-600 text-lg mb-4">Je hebt **<span id="final-score" class="font-bold text-green-800"></span>** van de **<span id="total-questions-final" class="font-bold"></span>** vragen correct beantwoord.</p>
+            
+            <!-- Samenvatting -->
+            <div id="summary-text" class="mb-6 p-4 rounded-lg text-gray-700 border border-gray-200 bg-white text-left">
+                <!-- Hier komt de gedetailleerde feedbacktekst op basis van de score -->
+            </div>
+
+            <button onclick="window.location.reload()"
+                    class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg mt-6 transition duration-200 transform hover:scale-105 shadow-xl">
+                Nieuwe Quiz Starten
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Configuratie
+        const MAX_QUIZ_SIZE = 10;
+        let questions = []; // De willekeurig geselecteerde vragen
+        
+        let verbStats; // Houdt bij waar de fouten per persoon zijn gemaakt
+        const PRONOUN_MAP_NL = {
+            'ich': 'ik (Ich)',
+            'du': 'jij (Du)',
+            'er/sie/es': 'hij/zij/het (Er/Sie/Es)',
+            'wir': 'wij (Wir)',
+            'ihr': 'jullie (Ihr)',
+            'Sie/sie': 'u / zij (Sie/sie)' // Formele en meervoudsvorm
+        };
+
+        function resetStats() {
+            verbStats = {
+                'ich': { attempts: 0, incorrect: 0 },
+                'du': { attempts: 0, incorrect: 0 },
+                'er/sie/es': { attempts: 0, incorrect: 0 },
+                'wir': { attempts: 0, incorrect: 0 },
+                'ihr': { attempts: 0, incorrect: 0 },
+                'Sie/sie': { attempts: 0, incorrect: 0 } 
+            };
+        }
+
+
+        // Pool van alle 36 unieke combinaties van modale werkwoorden in de T.T.
+        const questionsPool = [
+            // --- ICH ---
+            { prefix: "Ich", verb: "dürfen", suffix: "keine Cola trinken.", answer: "darf", hint: "Ik mag (toestemming)", person: "ich" },
+            { prefix: "Ich", verb: "können", suffix: "den Home Assistant neu starten.", answer: "kann", hint: "Ik kan (mogelijkheid)", person: "ich" },
+            { prefix: "Ich", verb: "mögen", suffix: "keine laute Musik.", answer: "mag", hint: "Ik lust/houd niet van", person: "ich" },
+            { prefix: "Ich", verb: "müssen", suffix: "noch meinen 3D-Drucker kalibreren.", answer: "muss", hint: "Ik moet (noodzaak)", person: "ich" },
+            { prefix: "Ich", verb: "sollen", suffix: "meine Hausaufgaben machen.", answer: "soll", hint: "Ik zou moeten (plicht)", person: "ich" },
+            { prefix: "Ich", verb: "wollen", suffix: "bald weer op vakantie in de bergen.", answer: "will", hint: "Ik wil (wens)", person: "ich" },
+
+            // --- DU ---
+            { prefix: "Du", verb: "dürfen", suffix: "nicht über die Straße gehen.", answer: "darfst", hint: "Jij mag (toestemming)", person: "du" },
+            { prefix: "Du", verb: "können", suffix: "den Raspberry Pi schnell bedienen.", answer: "kannst", hint: "Jij kunt (capaciteit)", person: "du" },
+            { prefix: "Du", verb: "mögen", suffix: "diesen neuen Film schauen.", answer: "magst", hint: "Jij vindt leuk", person: "du" },
+            { prefix: "Du", verb: "müssen", suffix: "deinen Eltern helfen.", answer: "musst", hint: "Jij moet (noodzaak)", person: "du" },
+            { prefix: "Du", verb: "sollen", suffix: "sofort deinen Lehrer anrufen.", answer: "sollst", hint: "Jij zou moeten (bevel)", person: "du" },
+            { prefix: "Du", verb: "wollen", suffix: "meer tijd aan coderen besteden.", answer: "willst", hint: "Jij wilt (wens)", person: "du" },
+
+            // --- ER/SIE/ES (We gebruiken 'Er' of 'Sie' enkelvoud) ---
+            { prefix: "Er", verb: "dürfen", suffix: "heute Abend fernsehen.", answer: "darf", hint: "Hij mag (toestemming)", person: "er/sie/es" },
+            { prefix: "Er", verb: "können", suffix: "sehr gut Deutsch sprechen.", answer: "kann", hint: "Hij kan (capaciteit)", person: "er/sie/es" },
+            { prefix: "Sie (enkelvoud)", verb: "mögen", suffix: "keine tomatensoep.", answer: "mag", hint: "Zij lust/houdt niet van", person: "er/sie/es" },
+            { prefix: "Es", verb: "müssen", suffix: "schnell funktionieren.", answer: "muss", hint: "Het moet (noodzaak)", person: "er/sie/es" },
+            { prefix: "Er", verb: "sollen", suffix: "sich entschuldigen.", answer: "soll", hint: "Hij zou moeten (plicht)", person: "er/sie/es" },
+            { prefix: "Sie (enkelvoud)", verb: "wollen", suffix: "in dit restaurant gaan eten.", answer: "will", hint: "Zij wil (wens)", person: "er/sie/es" },
+
+            // --- WIR ---
+            { prefix: "Wir", verb: "dürfen", suffix: "die neue software testen.", answer: "dürfen", hint: "Wij mogen (toestemming)", person: "wir" },
+            { prefix: "Wir", verb: "können", suffix: "das Problem gemeinsam oplossen.", answer: "können", hint: "Wij kunnen (mogelijkheid)", person: "wir" },
+            { prefix: "Wir", verb: "mögen", suffix: "die Harry Potter films heel graag.", answer: "mögen", hint: "Wij houden van", person: "wir" },
+            { prefix: "Wir", verb: "müssen", suffix: "de presentatie vandaag afmaken.", answer: "müssen", hint: "Wij moeten (noodzaak)", person: "wir" },
+            { prefix: "Wir", verb: "sollen", suffix: "zu Hause bleiben.", answer: "sollen", hint: "Wij zouden moeten (plicht)", person: "wir" },
+            { prefix: "Wir", verb: "wollen", suffix: "nu direct beginnen.", answer: "wollen", hint: "Wij willen (wens)", person: "wir" },
+
+            // --- IHR ---
+            { prefix: "Ihr", verb: "dürfen", suffix: "jetzt naar huis gaan.", answer: "dürft", hint: "Jullie mogen (toestemming)", person: "ihr" },
+            { prefix: "Ihr", verb: "können", suffix: "dat niet alleen doen.", answer: "könnt", hint: "Jullie kunnen (capaciteit)", person: "ihr" },
+            { prefix: "Ihr", verb: "mögen", suffix: "italienisch kochen.", answer: "mögt", hint: "Jullie vinden leuk", person: "ihr" },
+            { prefix: "Ihr", verb: "müssen", suffix: "eerst de Ender 3 V2 klaarmaken.", answer: "müsst", hint: "Jullie moeten (noodzaak)", person: "ihr" },
+            { prefix: "Ihr", verb: "sollen", suffix: "die Anweisungen lezen.", answer: "sollt", hint: "Jullie zouden moeten (plicht)", person: "ihr" },
+            { prefix: "Ihr", verb: "wollen", suffix: "am Wochenende zur Messe gehen.", answer: "wollt", hint: "Jullie willen (wens)", person: "ihr" },
+
+            // --- SIE/SIE (Formeel/Meervoud) ---
+            { prefix: "Sie (meervoud)", verb: "dürfen", suffix: "hier parkeren.", answer: "dürfen", hint: "Zij mogen (meervoud)", person: "Sie/sie" },
+            { prefix: "Sie (meervoud)", verb: "können", suffix: "niet zum Konzert komen.", answer: "können", hint: "Zij kunnen (meervoud)", person: "Sie/sie" },
+            { prefix: "Sie (meervoud)", verb: "mögen", suffix: "diesen Komponisten sehr.", answer: "mögen", hint: "Zij houden van (meervoud)", person: "Sie/sie" },
+            { prefix: "Sie (Formeel)", verb: "müssen", suffix: "dieses Formular unterschreiben?", answer: "müssen", hint: "Moet u (formeel)", person: "Sie/sie" },
+            { prefix: "Sie (Formeel)", verb: "sollen", suffix: "pünktlich sein.", answer: "sollen", hint: "U zou moeten (formeel)", person: "Sie/sie" },
+            { prefix: "Sie (Formeel)", verb: "wollen", suffix: "mir dabei helfen?", answer: "wollen", hint: "Wilt u (formeel)", person: "Sie/sie" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let incorrectCount = 0;
+        let totalQuestions; // Wordt ingesteld in initQuiz
+        let isAnswerChecked = false;
+
+        // DOM Elementen
+        const sentenceDisplay = document.getElementById('sentence-display');
+        const userInput = document.getElementById('user-input');
+        const checkButton = document.getElementById('check-button');
+        const nextButton = document.getElementById('next-button');
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackText = document.getElementById('feedback-text');
+        const resultsScreen = document.getElementById('results-screen');
+        const appContainer = document.getElementById('app');
+        const progressBar = document.getElementById('progress-bar');
+        const currentQuestionNumber = document.getElementById('current-question-number');
+        const summaryTextElement = document.getElementById('summary-text');
+
+        /**
+         * Mengt een array (Fisher-Yates shuffle)
+         * @param {Array} array - De te mengen array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        /**
+         * Hanteert de Enter-toetsaanslag voor zowel controleren als naar de volgende vraag gaan.
+         */
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Voorkom standaard formuliergedrag
+                if (!checkButton.disabled) {
+                    checkAnswer();
+                } else if (!nextButton.disabled) {
+                    nextQuestion();
+                }
+            }
+        }
+
+
+        /**
+         * Laadt de volgende vraag in de interface.
+         */
+        function loadSentence() {
+            if (currentQuestionIndex >= totalQuestions) {
+                showResults();
+                return;
+            }
+
+            // Reset UI
+            userInput.value = '';
+            userInput.disabled = false;
+            checkButton.disabled = false;
+            nextButton.disabled = true;
+            feedbackBox.classList.remove('show', 'correct', 'incorrect');
+            feedbackText.textContent = '';
+            isAnswerChecked = false;
+            
+            // Focus op de invoer voor snelle bediening
+            setTimeout(() => userInput.focus(), 50); 
+
+
+            const q = questions[currentQuestionIndex];
+            // Toon de zin, met het werkwoord tussen haakjes als hint
+            sentenceDisplay.innerHTML = `<span class="font-bold text-indigo-700">${q.prefix}</span> 
+                                        (<span class="italic font-normal">${q.verb}</span>) 
+                                        <input type="text" id="temp-input" value="" 
+                                               class="p-1 border-b-2 border-dashed border-gray-400 w-24 text-center font-bold text-indigo-900 bg-transparent" 
+                                               style="display: inline;" placeholder="..."/> 
+                                        ${q.suffix}`;
+
+            // De echte input is de user-input box, de inline input is een visuele weergave.
+            document.getElementById('temp-input').value = userInput.value;
+
+            // Update voortgang
+            currentQuestionNumber.textContent = currentQuestionIndex + 1;
+            const progress = ((currentQuestionIndex) / totalQuestions) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        /**
+         * Controleert het antwoord van de gebruiker.
+         */
+        function checkAnswer() {
+            if (isAnswerChecked || currentQuestionIndex >= totalQuestions) return;
+
+            const q = questions[currentQuestionIndex];
+            const userAnswer = userInput.value.trim().toLowerCase();
+            const correctAnswer = q.answer.toLowerCase();
+
+            // Altijd de poging bijhouden, ongeacht of deze correct is
+            const currentPerson = q.person;
+            if (verbStats[currentPerson]) {
+                 verbStats[currentPerson].attempts++;
+            }
+
+            // Toon de juiste vervoeging in de zin
+            sentenceDisplay.innerHTML = `<span class="font-bold text-indigo-700">${q.prefix}</span> 
+                                        <span class="p-1 border-b-2 border-solid ${userAnswer === correctAnswer ? 'border-green-500 text-green-700' : 'border-red-500 text-red-700'} font-bold">${q.answer}</span> 
+                                        ${q.suffix}`;
+
+
+            if (userAnswer === correctAnswer) {
+                // Correct Antwoord
+                score++;
+                feedbackBox.classList.remove('incorrect');
+                feedbackBox.classList.add('show', 'correct');
+                feedbackText.innerHTML = `✅ **Correct!** Goed gedaan! De juiste vervoeging is <span class="font-bold">${q.answer}</span>.`;
+            } else {
+                // Fout Antwoord
+                incorrectCount++;
+                if (verbStats[currentPerson]) {
+                    verbStats[currentPerson].incorrect++;
+                }
+                
+                feedbackBox.classList.remove('correct');
+                feedbackBox.classList.add('show', 'incorrect');
+                feedbackText.innerHTML = `❌ **Fout.** Je antwoord was "${userInput.value}". De juiste vervoeging is <span class="font-bold">${q.answer}</span>. (${q.hint})`;
+            }
+
+            isAnswerChecked = true;
+            checkButton.disabled = true;
+            userInput.disabled = true;
+            nextButton.disabled = false;
+            nextButton.textContent = (currentQuestionIndex < totalQuestions - 1) ? "Volgende Vraag" : "Resultaten Tonen";
+            
+            // Focus op de volgende knop zodat Enter direct doorgaat
+            setTimeout(() => nextButton.focus(), 50); 
+        }
+
+        /**
+         * Gaat naar de volgende vraag.
+         */
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadSentence();
+            // Scroll naar de bovenkant van de app container voor mobiel gebruik
+            appContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /**
+         * Genereert en toont de gedetailleerde feedbacktekst op basis van de score en de fouten per persoon.
+         */
+        function generateSummaryText(score, total) {
+            const percentage = (score / total) * 100;
+            let generalFeedback = "";
+
+            if (percentage === 100) {
+                generalFeedback = "Fantastisch! Je beheerst de modale werkwoorden in de tegenwoordige tijd perfect! Dit is topniveau.";
+            } else if (percentage >= 80) {
+                generalFeedback = "Zeer goed gedaan! Je hebt een sterke beheersing. Je bent bijna perfect!";
+            } else if (percentage >= 50) {
+                generalFeedback = "Goed bezig! Je bent op de goede weg, maar er is ruimte voor verbetering. Blijf de onregelmatige vormen oefenen.";
+            } else {
+                generalFeedback = "Blijf oefenen! De modale werkwoorden zijn lastig. Concentreer je op de onregelmatige enkelvoudsvormen. Herhaling is de sleutel!";
+            }
+            
+            // --- Gedetailleerde Analyse ---
+            let strength = [];
+            let weak = [];
+            
+            // Verzamel en filter resultaten met minstens één poging
+            const personResults = Object.keys(verbStats)
+                .map(person => {
+                    const stats = verbStats[person];
+                    // Berekent de foutenratio (0 als geen pogingen)
+                    const errorRate = stats.attempts > 0 ? stats.incorrect / stats.attempts : 0;
+                    return { person, errorRate, attempts: stats.attempts };
+                })
+                .filter(res => res.attempts > 0);
+            
+            // Sorteer op foutenpercentage (laag naar hoog)
+            personResults.sort((a, b) => a.errorRate - b.errorRate);
+
+            // Identificeer sterke punten: 0% fout
+            strength = personResults
+                .filter(r => r.errorRate === 0)
+                .map(r => PRONOUN_MAP_NL[r.person]);
+            
+            // Identificeer zwakke punten: 50% of meer fout, of de hoogste (niet-nul) foutenrate
+            const maxErrorRate = personResults.length > 0 ? personResults[personResults.length - 1].errorRate : 0;
+
+            weak = personResults
+                .filter(r => r.errorRate >= 0.5 || (r.errorRate > 0 && r.errorRate === maxErrorRate))
+                .map(r => PRONOUN_MAP_NL[r.person]);
+
+            
+            let detailedText = `<h3 class="font-extrabold text-gray-800 mt-4 mb-2">Gedetailleerde Analyse:</h3>`;
+
+            if (strength.length > 0) {
+                detailedText += `<p class="mb-2">✅ **Sterke Punten:** Je beheerst de vormen voor **${strength.join(', ')}** heel goed. Ga zo door!</p>`;
+            } else {
+                 detailedText += `<p class="mb-2">💡 **Tip:** Je hebt op alle vormen fouten gemaakt, focus je vooral op de onregelmatige enkelvoudsvormen (ik, jij, hij/zij/het).</p>`;
+            }
+
+            if (weak.length > 0 && weak.some(p => strength.indexOf(p) === -1)) {
+                 // Zorg ervoor dat zwakke punten niet in sterke punten zitten (kan gebeuren bij 100% score)
+                const uniqueWeak = [...new Set(weak.filter(w => !strength.includes(w)))];
+                 if (uniqueWeak.length > 0) {
+                    detailedText += `<p class="mb-2 text-red-600">⚠️ **Aandachtspunten:** Oefen extra op de vormen voor **${uniqueWeak.join(', ')}**. Dit zijn vaak de lastige onregelmatige vormen.</p>`;
+                 }
+            } else if (percentage < 100 && weak.length === 0) {
+                 detailedText += `<p class="mb-2">⚠️ **Aandachtspunten:** Je fouten waren verspreid. Let bij een volgende quiz goed op de stamklinker-verandering van de enkelvoudsvormen.</p>`;
+            }
+
+            // Geef het eindresultaat in één vloeiende tekst
+            return `<p class="font-bold text-lg mb-2">${generalFeedback}</p>
+                    <p class="mb-4">Correct: ${score} van de ${total} | Fout: ${total - score}</p>
+                    ${detailedText}`;
+        }
+
+
+        /**
+         * Toont het eindresultaat.
+         */
+        function showResults() {
+            const finalScoreElement = document.getElementById('final-score');
+            const totalQuestionsFinalElement = document.getElementById('total-questions-final');
+
+            finalScoreElement.textContent = score;
+            totalQuestionsFinalElement.textContent = totalQuestions;
+
+            // Genereer de samenvattende tekst
+            summaryTextElement.innerHTML = generateSummaryText(score, totalQuestions);
+
+            // Verberg quiz elementen en toon resultaten
+            document.getElementById('input-area').classList.add('hidden');
+            document.getElementById('question-container').classList.add('hidden');
+            document.getElementById('check-button').classList.add('hidden');
+            document.getElementById('next-button').classList.add('hidden');
+            document.getElementById('feedback-box').classList.remove('show');
+            document.getElementById('progress-bar').parentNode.classList.add('hidden'); // Voortgangsbalk verbergen
+
+            resultsScreen.classList.remove('hidden');
+
+            // Final progress bar update
+            progressBar.style.width = `100%`;
+            currentQuestionNumber.textContent = totalQuestions;
+            
+            // Start Confetti! 🎉
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 }
+            });
+        }
+
+        /**
+         * Initialiseert de quiz.
+         */
+        function initQuiz() {
+            resetStats(); // Reset statistieken
+            // 1. Shuffle de hele pool en selecteer de MAX_QUIZ_SIZE
+            shuffleArray(questionsPool);
+            questions = questionsPool.slice(0, MAX_QUIZ_SIZE);
+            totalQuestions = questions.length;
+            
+            // Zorg ervoor dat de totale nummers correct zijn ingesteld
+            document.getElementById('total-questions').textContent = totalQuestions;
+
+            // Start de eerste vraag
+            loadSentence();
+        }
+
+        // Start de quiz wanneer de pagina geladen is
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Latijn Oefenen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    <style>
+        body {
+            margin: 0;
+            padding: 40px 20px 60px;
+            font-family: 'Poppins', sans-serif;
+            background-image: url('images/background.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            color: #FFD700;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .container {
+            margin-top: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 800px;
+            margin-left: 0;
+            margin-right: 0;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
+        }
+
+        h1 {
+            font-size: 2.8em;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-family: 'Cinzel', serif;
+        }
+
+        .latin-button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            font-family: 'Times New Roman', serif;
+            color: #000;
+            background: linear-gradient(45deg, #FFD700, #FFF7D6);
+            border: 2px solid #8B4513;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .latin-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-icon {
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .site-logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px 40px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .latin-button {
+                width: 90%;
+                padding: 15px 20px;
+                font-size: 16px;
+                margin: 8px auto;
+            }
+
+            .site-logo {
+                width: 120px;
+            }
+
+            .container {
+                margin-top: 0;
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="images/icon.png" alt="Latijn Oefenen Logo" class="site-logo">
+        <h1>Latijn Oefenen</h1>
+        <p>Selecteer een onderwerp om te oefenen:</p>
+        
+        <p><a href="https://loek.oerlemans.tv/loek-it-up/la/betr_vnw/" target="_blank" class="latin-button">
+            Betrekkelijk Voornaamwoord
+        </a></p>
+        <p><a href="https://loek.oerlemans.tv/loek-it-up/la/zn/" target="_blank" class="latin-button">
+            Zelfstandig Naamwoord Ambiguïteit
+        </a></p>
+        <p><a href="ww/" class="latin-button">
+            Werkwoorden Oefenen
+        </a></p>
+        <p><a href="stamtijden/" class="latin-button">
+            Stamtijden Oefenen
+        </a></p>
+        <p><a href="onregelmatige_ww/" class="latin-button">
+            Onregelmatige Werkwoorden
+        </a></p>
+        <p><a href="words/" class="latin-button">
+            Woorden Oefenen
+        </a></p>
+    </div>
+</body>
+</html>

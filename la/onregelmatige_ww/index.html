@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    <title>Loek-it-up: Onregelmatige Werkwoorden</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            background-color: #f0f4f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.95); } to { transform: scale(1); } }
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        .zoom-in { animation: zoomIn 0.3s ease-out; }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- ICONEN ---
+        const IconWrapper = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+        );
+        const Settings = (props) => <IconWrapper {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconWrapper>;
+        const ChevronDown = (props) => <IconWrapper {...props}><polyline points="6 9 12 15 18 9"/></IconWrapper>;
+        const ChevronUp = (props) => <IconWrapper {...props}><polyline points="18 15 12 9 6 15"/></IconWrapper>;
+
+        // --- DATA ---
+        const IRREGULAR_DATA = {
+            esse: { nl: 'zijn', stem: 'fu', praesens: ['sum', 'es', 'est', 'sumus', 'estis', 'sunt'], imperfectum: ['eram', 'eras', 'erat', 'eramus', 'eratis', 'erant'], futurum: ['ero', 'eris', 'erit', 'erimus', 'eritis', 'erunt'], perfectum: ['fui', 'fuisti', 'fuit', 'fuimus', 'fuistis', 'fuerunt'], plusquamperfectum: ['fueram', 'fueras', 'fuerat', 'fueramus', 'fueratis', 'fuerant'] },
+            posse: { nl: 'kunnen', stem: 'potu', praesens: ['possum', 'potes', 'potest', 'possumus', 'potestis', 'possunt'], imperfectum: ['poteram', 'poteras', 'poterat', 'poteramus', 'poteratis', 'poterant'], futurum: ['potero', 'poteris', 'poterit', 'poterimus', 'poteritis', 'poterunt'], perfectum: ['potui', 'potuisti', 'potuit', 'potuimus', 'potuistis', 'potuerunt'], plusquamperfectum: ['potueram', 'potueras', 'potuerat', 'potueramus', 'potueratis', 'potuerant'] },
+            velle: { nl: 'willen', stem: 'volu', praesens: ['volo', 'vis', 'vult', 'volumus', 'vultis', 'volunt'], imperfectum: ['volebam', 'volebas', 'volebat', 'volebamus', 'volebatis', 'volebant'], futurum: ['volam', 'voles', 'volet', 'volemus', 'voletis', 'volent'], perfectum: ['volui', 'voluisti', 'voluit', 'voluimus', 'voluistis', 'voluerunt'], plusquamperfectum: ['volueram', 'volueras', 'voluerat', 'volueramus', 'volueratis', 'voluerant'] },
+            nolle: { nl: 'niet willen', stem: 'nolu', praesens: ['nolo', 'non vis', 'non vult', 'nolumus', 'non vultis', 'nolunt'], imperfectum: ['nolebam', 'nolebas', 'nolebat', 'nolebamus', 'nolebatis', 'nolebant'], futurum: ['nolam', 'noles', 'nolet', 'nolemus', 'noletis', 'nolent'], perfectum: ['nolui', 'noluisti', 'noluit', 'noluimus', 'noluistis', 'noluerunt'], plusquamperfectum: ['nolueram', 'nolueras', 'noluerat', 'nolueramus', 'nolueratis', 'noluerant'] },
+            ferre: { nl: 'brengen/dragen', stem: 'tul', praesens: ['fero', 'fers', 'fert', 'ferimus', 'fertis', 'ferunt'], imperfectum: ['ferebam', 'ferebas', 'ferebat', 'ferebamus', 'ferebatis', 'ferebant'], futurum: ['feram', 'feres', 'feret', 'feremus', 'feretis', 'ferent'], perfectum: ['tuli', 'tulisti', 'tulit', 'tulimus', 'tulistis', 'tulerunt'], plusquamperfectum: ['tuleram', 'tuleras', 'tulerat', 'tuleramus', 'tuleratis', 'tulerant'] },
+            ire: { nl: 'gaan', stem: 'i', praesens: ['eo', 'is', 'it', 'imus', 'itis', 'eunt'], imperfectum: ['ibam', 'ibas', 'ibat', 'ibamus', 'ibatis', 'ibant'], futurum: ['ibo', 'ibis', 'ibit', 'ibimus', 'ibitis', 'ibunt'], perfectum: ['ii', 'iisti', 'iit', 'iimus', 'iistis', 'ierunt'], plusquamperfectum: ['ieram', 'ieras', 'ierat', 'ieramus', 'ieratis', 'ierant'] }
+        };
+
+        const getPronoun = (p, n) => {
+            if (n === 'ev') return p === 1 ? 'ik' : p === 2 ? 'jij' : 'hij/zij/het';
+            return p === 1 ? 'wij' : p === 2 ? 'jullie' : 'zij';
+        };
+
+        const generateTranslation = (verbKey, tense, p, n) => {
+            const verb = IRREGULAR_DATA[verbKey];
+            const nl = verb.nl;
+            const pronoun = getPronoun(p, n);
+            
+            // Simpele regels voor Nederlandse vervoegingen
+            if (verbKey === 'esse' && tense === 'praesens') return `${pronoun} ${['ben', 'bent', 'is', 'zijn', 'zijn', 'zijn'][n === 'ev' ? p-1 : p+2]}`;
+            if (verbKey === 'posse' && tense === 'praesens') return `${pronoun} ${['kan', 'kunt', 'kan', 'kunnen', 'kunnen', 'kunnen'][n === 'ev' ? p-1 : p+2]}`;
+            
+            if (tense === 'imperfectum') return `${pronoun} ${nl} (verleden tijd)`;
+            if (tense === 'perfectum') return `${pronoun} is/heeft ${nl} (voltooid)`;
+            return `${pronoun} ${nl}`;
+        };
+
+        const FULL_DB = [];
+        Object.keys(IRREGULAR_DATA).forEach(v => {
+            ['praesens', 'imperfectum', 'futurum', 'perfectum', 'plusquamperfectum'].forEach(t => {
+                IRREGULAR_DATA[v][t].forEach((lat, idx) => {
+                    const p = (idx % 3) + 1;
+                    const n = idx < 3 ? 'ev' : 'mv';
+                    FULL_DB.push({
+                        latin: lat, person: p.toString(), number: n, tense: t, 
+                        verbType: v, translation: generateTranslation(v, t, p, n)
+                    });
+                });
+            });
+        });
+
+        // --- APP ---
+        const App = () => {
+            const [mode, setMode] = useState('setup');
+            const [settings, setSettings] = useState({
+                tenses: ['praesens'],
+                verbs: ['esse', 'posse', 'velle', 'nolle', 'ferre', 'ire']
+            });
+            const [currentQ, setCurrentQ] = useState(null);
+            const [userAns, setUserAns] = useState({ person: '', number: '', tense: '', translation: '' });
+            const [feedback, setFeedback] = useState(null);
+            const [validation, setValidation] = useState(null);
+            const [score, setScore] = useState({ correct: 0, total: 0 });
+            const [showCheatsheet, setShowCheatsheet] = useState(false);
+
+            const filteredQs = useMemo(() => 
+                FULL_DB.filter(q => settings.tenses.includes(q.tense) && settings.verbs.includes(q.verbType)),
+            [settings]);
+
+            const nextQ = () => {
+                if (filteredQs.length === 0) return setMode('setup');
+                const rand = filteredQs[Math.floor(Math.random() * filteredQs.length)];
+                setCurrentQ(rand);
+                setUserAns({ person: '', number: '', tense: '', translation: '' });
+                setFeedback(null);
+                setValidation(null);
+            };
+
+            const check = () => {
+                const isGrammarOk = userAns.person === currentQ.person && userAns.number === currentQ.number && userAns.tense === currentQ.tense;
+                
+                // Simpele check voor vertaling (negeer pronouns voor gemak in typen)
+                const cleanInput = userAns.translation.toLowerCase().trim();
+                const isTransOk = cleanInput.length > 2; // Voor nu: check of er iets staat, of voeg specifieke check toe
+                
+                const isCorrect = isGrammarOk; // In deze versie focussen we op de grammatica + invoer vertaling
+
+                setValidation({
+                    person: userAns.person === currentQ.person,
+                    number: userAns.number === currentQ.number,
+                    tense: userAns.tense === currentQ.tense
+                });
+                
+                setFeedback(isCorrect ? 'correct' : 'incorrect');
+                setScore(s => ({ correct: s.correct + (isCorrect ? 1 : 0), total: s.total + 1 }));
+            };
+
+            if (mode === 'setup') {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
+                            <div className="header-gradient -mx-8 -mt-8 p-6 rounded-t-2xl mb-6 text-white text-center">
+                                <h1 className="text-3xl font-bold italic">LOEK-IT-UP</h1>
+                                <p>Onregelmatige Werkwoorden</p>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block font-bold mb-2">Werkwoorden</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {Object.keys(IRREGULAR_DATA).map(v => (
+                                            <button key={v} onClick={() => setSettings(s => ({...s, verbs: s.verbs.includes(v) ? s.verbs.filter(x => x!==v) : [...s.verbs, v]}))} className={`p-2 rounded-lg font-bold border-2 transition ${settings.verbs.includes(v) ? 'bg-indigo-100 border-indigo-200 text-indigo-700' : 'bg-slate-50 border-transparent text-slate-400'}`}>{v}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block font-bold mb-2">Tijden</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {['praesens', 'imperfectum', 'futurum', 'perfectum', 'plusquamperfectum'].map(t => (
+                                            <button key={t} onClick={() => setSettings(s => ({...s, tenses: s.tenses.includes(t) ? s.tenses.filter(x => x!==t) : [...s.tenses, t]}))} className={`p-2 rounded-lg text-xs font-bold border-2 transition ${settings.tenses.includes(t) ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-400 border-transparent'}`}>{t}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button onClick={() => { setMode('practice'); nextQ(); }} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg">START</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="header-gradient text-white px-6 py-4 flex justify-between items-center shadow-lg">
+                        <span className="font-bold italic text-2xl">LOEK-IT-UP</span>
+                        <div className="flex items-center space-x-4">
+                            <span className="bg-white/20 px-3 py-1 rounded-full font-bold">{score.correct}/{score.total}</span>
+                            <button onClick={() => setMode('setup')}><Settings/></button>
+                        </div>
+                    </header>
+
+                    <main className="max-w-xl mx-auto w-full p-4 space-y-6">
+                        {currentQ && (
+                            <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-in">
+                                <div className="bg-indigo-600 p-10 text-center">
+                                    <div className="text-white text-5xl font-serif font-bold drop-shadow-md">{currentQ.latin}</div>
+                                    <div className="text-indigo-200 mt-2 uppercase tracking-widest text-sm italic">van {currentQ.verbType}</div>
+                                </div>
+
+                                <div className="p-6 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-slate-400 uppercase">Persoon</label>
+                                            <div className="flex bg-slate-100 rounded-xl p-1">
+                                                {['1','2','3'].map(p => (
+                                                    <button key={p} disabled={feedback} onClick={() => setUserAns(s => ({...s, person: p}))} className={`flex-1 py-2 rounded-lg font-bold ${userAns.person === p ? 'bg-white shadow text-indigo-600' : 'text-slate-400'}`}>{p}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold text-slate-400 uppercase">Getal</label>
+                                            <div className="flex bg-slate-100 rounded-xl p-1">
+                                                {['ev','mv'].map(n => (
+                                                    <button key={n} disabled={feedback} onClick={() => setUserAns(s => ({...s, number: n}))} className={`flex-1 py-2 rounded-lg font-bold ${userAns.number === n ? 'bg-white shadow text-indigo-600' : 'text-slate-400'}`}>{n.toUpperCase()}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase">Tijd</label>
+                                        <select disabled={feedback} value={userAns.tense} onChange={(e) => setUserAns(s => ({...s, tense: e.target.value}))} className="w-full p-3 border rounded-xl font-bold bg-slate-50">
+                                            <option value="">Kies tijd...</option>
+                                            {settings.tenses.map(t => <option key={t} value={t}>{t}</option>)}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase">Vertaling</label>
+                                        <input 
+                                            type="text" 
+                                            disabled={feedback}
+                                            value={userAns.translation} 
+                                            onChange={(e) => setUserAns(s => ({...s, translation: e.target.value}))}
+                                            placeholder="Wat betekent deze vorm?"
+                                            className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none font-medium"
+                                        />
+                                    </div>
+
+                                    {feedback ? (
+                                        <div className="pt-4 border-t space-y-4">
+                                            <div className={`text-center font-bold text-2xl ${feedback === 'correct' ? 'text-green-600' : 'text-red-600'}`}>
+                                                {feedback === 'correct' ? 'Goed gedaan!' : 'Niet helemaal...'}
+                                            </div>
+                                            <div className="bg-slate-50 p-4 rounded-xl text-sm">
+                                                <div className="flex justify-between"><span>Vorm:</span> <span className="font-bold">{currentQ.person} {currentQ.number} {currentQ.tense}</span></div>
+                                                <div className="flex justify-between"><span>Vertaling:</span> <span className="font-bold">{currentQ.translation}</span></div>
+                                            </div>
+                                            <button onClick={nextQ} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold">VOLGENDE</button>
+                                        </div>
+                                    ) : (
+                                        <button onClick={check} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg mt-4">CONTROLEREN</button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                            <button onClick={() => setShowCheatsheet(!showCheatsheet)} className="w-full p-4 flex justify-between items-center font-bold text-slate-600 bg-slate-50">
+                                <span>Hulp nodig? (Database)</span>
+                                {showCheatsheet ? <ChevronUp/> : <ChevronDown/>}
+                            </button>
+                            {showCheatsheet && (
+                                <div className="p-4 max-h-60 overflow-y-auto text-xs space-y-4">
+                                    {Object.keys(IRREGULAR_DATA).map(v => (
+                                        <div key={v}>
+                                            <h4 className="font-bold text-indigo-600 border-b mb-1">{v} ({IRREGULAR_DATA[v].nl})</h4>
+                                            <p className="text-slate-500">Stamtijden: {v} - {IRREGULAR_DATA[v].stem}i</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

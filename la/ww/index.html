@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latijn Werwoorden Oefenen</title>
+    
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel (voor JSX support in browser) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Extra styling voor animaties die Tailwind soms mist in CDN build */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.95); } to { transform: scale(1); } }
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        .zoom-in { animation: zoomIn 0.3s ease-out; }
+        .slide-in-from-top-2 { animation: slideDown 0.2s ease-out; }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- ICONEN (Handmatig gedefinieerd om externe dependencies te vermijden in dit bestand) ---
+        
+        const IconWrapper = ({ children, size = 24, className = "" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width={size} 
+                height={size} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const BookOpen = (props) => <IconWrapper {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconWrapper>;
+        const Settings = (props) => <IconWrapper {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconWrapper>;
+        const Check = (props) => <IconWrapper {...props}><polyline points="20 6 9 17 4 12"/></IconWrapper>;
+        const X = (props) => <IconWrapper {...props}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></IconWrapper>;
+        const ChevronDown = (props) => <IconWrapper {...props}><polyline points="6 9 12 15 18 9"/></IconWrapper>;
+        const ChevronUp = (props) => <IconWrapper {...props}><polyline points="18 15 12 9 6 15"/></IconWrapper>;
+        const RefreshCw = (props) => <IconWrapper {...props}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></IconWrapper>;
+        const Type = (props) => <IconWrapper {...props}><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></IconWrapper>;
+        const List = (props) => <IconWrapper {...props}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></IconWrapper>;
+        const ArrowLeft = (props) => <IconWrapper {...props}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></IconWrapper>;
+        const Play = (props) => <IconWrapper {...props}><polygon points="5 3 19 12 5 21 5 3"/></IconWrapper>;
+
+        // --- DATA EN WOORDENLIJSTEN ---
+
+        const SYNONYMS = {
+            person: {
+                '1': ['1', '1e', 'een', 'eerste', 'i', 'ik', 'wij'],
+                '2': ['2', '2e', 'twee', 'tweede', 'ii', 'jij', 'jullie'],
+                '3': ['3', '3e', 'drie', 'derde', 'iii', 'hij', 'zij', 'het']
+            },
+            number: {
+                'ev': ['ev', 'enkelvoud', 'enkel', 'sg', 'singularis'],
+                'mv': ['mv', 'meervoud', 'meer', 'pl', 'pluralis']
+            },
+            tense: {
+                'praesens': ['praesens', 'praes', 'pres', 'pr', 'ott'],
+                'imperfectum': ['imperfectum', 'impf', 'imp', 'ovt', 'verleden'],
+                'futurum': ['futurum', 'fut', 'ft', 'toekomst', 'ottt'],
+                'perfectum': ['perfectum', 'perf', 'pf', 'vtt'],
+                'plusquamperfectum': ['plusquamperfectum', 'plqpf', 'pqpf', 'plusquampf', 'plus', 'vvt']
+            },
+            voice: {
+                'actief': ['actief', 'active', 'act', 'ac'],
+                'passief': ['passief', 'passive', 'pas', 'ps']
+            }
+        };
+
+        // Stammen data
+        const STAMMEN = {
+            a: { naam: 'a-stam', inf: 'vocare', stam: 'voca', nederlands: 'roepen' },
+            e: { naam: 'e-stam', inf: 'timere', stam: 'time', nederlands: 'vrezen' },
+            i: { naam: 'i-stam', inf: 'audire', stam: 'audi', nederlands: 'horen' },
+            mk: { naam: 'mk-stam', inf: 'regere', stam: 'rege', nederlands: 'regeren' },
+            esse: { naam: 'esse', inf: 'esse', stam: '', nederlands: 'zijn' },
+            posse: { naam: 'posse', inf: 'posse', stam: '', nederlands: 'kunnen' }
+        };
+
+        const createVerbForm = (latin, person, number, tense, voice, translation, verbType) => ({
+            latin,
+            person: person.toString(),
+            number,
+            tense,
+            voice,
+            translation,
+            verbType
+        });
+
+        // --- DATABASE GENERATIE ---
+        const generateDatabase = () => {
+            const forms = [];
+            
+            // Helper arrays
+            const persons = [1, 2, 3];
+            const numbers = ['ev', 'mv'];
+            const types = ['a', 'e', 'i', 'mk']; // Regelmatige types
+
+            // 1. PRAESENS ACTIEF
+            const praesActForms = {
+                a: ['voco', 'vocas', 'vocat', 'vocamus', 'vocatis', 'vocant'],
+                e: ['timeo', 'times', 'timet', 'timemus', 'timetis', 'timent'],
+                i: ['audio', 'audis', 'audit', 'audimus', 'auditis', 'audiunt'],
+                mk: ['rego', 'regis', 'regit', 'regimus', 'regitis', 'regunt'],
+                esse: ['sum', 'es', 'est', 'sumus', 'estis', 'sunt'],
+                posse: ['possum', 'potes', 'potest', 'possumus', 'potestis', 'possunt']
+            };
+
+            Object.keys(praesActForms).forEach(type => {
+                praesActForms[type].forEach((form, idx) => {
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                const nlWw = STAMMEN[type].nederlands;
+                let vertaling = `${getPronoun(p,n)} ${nlWw}${getNLEnding(p,n)}`;
+                if (type === 'esse') vertaling = `${getPronoun(p,n)} ${['ben','bent','is','zijn','zijn','zijn'][idx]}`;
+                if (type === 'posse') vertaling = `${getPronoun(p,n)} ${['kan','kunt','kan','kunnen','kunnen','kunnen'][idx]}`;
+                
+                forms.push(createVerbForm(form, p, n, 'praesens', 'actief', vertaling, type));
+                });
+            });
+
+            // 2. PRAESENS PASSIEF
+            const praesPasForms = {
+                a: ['vocor', 'vocaris', 'vocatur', 'vocamur', 'vocamini', 'vocantur'],
+                e: ['timeor', 'timeris', 'timetur', 'timemur', 'timemini', 'timentur'], 
+                i: ['audior', 'audiris', 'auditur', 'audimur', 'audimini', 'audiuntur'],
+                mk: ['regor', 'regeris', 'regitur', 'regimur', 'regimini', 'reguntur']
+            };
+
+            Object.keys(praesPasForms).forEach(type => {
+                praesPasForms[type].forEach((form, idx) => {
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                forms.push(createVerbForm(form, p, n, 'praesens', 'passief', `${getPronoun(p,n)} word${p===2&&n==='ev'?'t':''} ${getParticiple(type)}`, type));
+                });
+            });
+
+            // 3. IMPERFECTUM ACTIEF
+            const impActForms = {
+                a: 'vocabam', e: 'timebam', i: 'audiebam', mk: 'regebam',
+                esse: 'eram', posse: 'poteram'
+            };
+            const impEnds = ['m', 's', 't', 'mus', 'tis', 'nt'];
+            
+            Object.keys(impActForms).forEach(type => {
+                const base = impActForms[type].slice(0, -1); 
+                impEnds.forEach((end, idx) => {
+                const form = base + end;
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                let vert = type === 'esse' ? 'was' : type === 'posse' ? 'kon' : '...';
+                forms.push(createVerbForm(form, p, n, 'imperfectum', 'actief', `${getPronoun(p,n)} ${vert} / verleden tijd`, type));
+                });
+            });
+
+            // 4. IMPERFECTUM PASSIEF
+            const impPasEnds = ['r', 'ris', 'tur', 'mur', 'mini', 'ntur'];
+            const impPasStems = { a: 'vocaba', e: 'timeba', i: 'audieba', mk: 'regeba' };
+            Object.keys(impPasStems).forEach(type => {
+                impPasEnds.forEach((end, idx) => {
+                    const p = (idx % 3) + 1;
+                    const n = idx < 3 ? 'ev' : 'mv';
+                    forms.push(createVerbForm(impPasStems[type] + end, p, n, 'imperfectum', 'passief', `${getPronoun(p,n)} werd ${getParticiple(type)}`, type));
+                });
+            });
+
+            // 5. FUTURUM ACTIEF
+            const futActStems = { 
+                a: { stem: 'voca', type: 'bo' }, 
+                e: { stem: 'time', type: 'bo' }, 
+                i: { stem: 'audi', type: 'am' }, 
+                mk: { stem: 'reg', type: 'am' },
+                esse: { stem: 'er', type: 'o' }, 
+                posse: { stem: 'poter', type: 'o' } 
+            };
+
+            Object.keys(futActStems).forEach(type => {
+                const conf = futActStems[type];
+                let endings = [];
+                if (conf.type === 'bo') endings = ['bo', 'bis', 'bit', 'bimus', 'bitis', 'bunt'];
+                else if (conf.type === 'am') endings = ['am', 'es', 'et', 'emus', 'etis', 'ent'];
+                else endings = ['o', 'is', 'it', 'imus', 'itis', 'unt']; 
+
+                endings.forEach((end, idx) => {
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                forms.push(createVerbForm(conf.stem + end, p, n, 'futurum', 'actief', `${getPronoun(p,n)} zal ...`, type));
+                });
+            });
+
+            // 6. FUTURUM PASSIEF
+            const futPasStems = {
+                a: { stem: 'voca', type: 'bor' },
+                e: { stem: 'time', type: 'bor' },
+                i: { stem: 'audi', type: 'ar' },
+                mk: { stem: 'reg', type: 'ar' }
+            };
+            Object.keys(futPasStems).forEach(type => {
+                const conf = futPasStems[type];
+                let endings = [];
+                if (conf.type === 'bor') endings = ['bor', 'beris', 'bitur', 'bimur', 'bimini', 'buntur'];
+                else endings = ['ar', 'eris', 'etur', 'emur', 'emini', 'entur'];
+
+                endings.forEach((end, idx) => {
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                forms.push(createVerbForm(conf.stem + end, p, n, 'futurum', 'passief', `${getPronoun(p,n)} zal worden ${getParticiple(type)}`, type));
+                });
+            });
+
+            // 7. PERFECTUM ACTIEF
+            const perfStems = { a: 'vocav', e: 'timu', i: 'audiv', mk: 'rex', esse: 'fu', posse: 'potu' };
+            const perfEnds = ['i', 'isti', 'it', 'imus', 'istis', 'erunt'];
+            Object.keys(perfStems).forEach(type => {
+                perfEnds.forEach((end, idx) => {
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                forms.push(createVerbForm(perfStems[type] + end, p, n, 'perfectum', 'actief', `${getPronoun(p,n)} heeft ...`, type));
+                });
+            });
+
+            // 8. PERFECTUM PASSIEF
+            const ppp = { a: 'vocatus', e: 'timitus', i: 'auditus', mk: 'rectus' };
+            const sum = ['sum', 'es', 'est', 'sumus', 'estis', 'sunt'];
+            Object.keys(ppp).forEach(type => {
+                sum.forEach((aux, idx) => {
+                    const isPlural = idx >= 3;
+                    const part = isPlural ? ppp[type].replace('us', 'i') : ppp[type];
+                    const p = (idx % 3) + 1;
+                    const n = idx < 3 ? 'ev' : 'mv';
+                    forms.push(createVerbForm(`${part} ${aux}`, p, n, 'perfectum', 'passief', `${getPronoun(p,n)} is ${getParticiple(type)}`, type));
+                });
+            });
+
+            // 9. PLUSQUAMPERFECTUM ACTIEF
+            const plqEndings = ['eram', 'eras', 'erat', 'eramus', 'eratis', 'erant'];
+            Object.keys(perfStems).forEach(type => {
+                plqEndings.forEach((end, idx) => {
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                forms.push(createVerbForm(perfStems[type] + end, p, n, 'plusquamperfectum', 'actief', `${getPronoun(p,n)} had ...`, type));
+                });
+            });
+
+            // 10. PLUSQUAMPERFECTUM PASSIEF
+            Object.keys(ppp).forEach(type => {
+                plqEndings.forEach((aux, idx) => {
+                const isPlural = idx >= 3;
+                const part = isPlural ? ppp[type].replace('us', 'i') : ppp[type];
+                const p = (idx % 3) + 1;
+                const n = idx < 3 ? 'ev' : 'mv';
+                forms.push(createVerbForm(`${part} ${aux}`, p, n, 'plusquamperfectum', 'passief', `${getPronoun(p,n)} was ${getParticiple(type)}`, type));
+                });
+            });
+
+            return forms;
+        };
+
+        // Helper functions
+        const getPronoun = (p, n) => {
+            if (n === 'ev') return p === 1 ? 'ik' : p === 2 ? 'jij' : 'hij/zij/het';
+            return p === 1 ? 'wij' : p === 2 ? 'jullie' : 'zij';
+        };
+        const getNLEnding = (p, n) => {
+            if (n === 'mv') return 'en';
+            if (p === 1) return '';
+            return 't';
+        };
+        const getParticiple = (type) => {
+            if (type === 'a') return 'geroepen';
+            if (type === 'e') return 'gevreesd';
+            if (type === 'i') return 'gehoord';
+            if (type === 'mk') return 'geregeerd';
+            return '';
+        };
+
+        const FULL_DB = generateDatabase();
+
+        // --- APP COMPONENT ---
+
+        const App = () => {
+            const [hasStarted, setHasStarted] = useState(false);
+            const [mode, setMode] = useState('setup'); 
+            
+            // Persistent Settings
+            const [settings, setSettings] = useState(() => {
+                const saved = localStorage.getItem('latinSettings');
+                return saved ? JSON.parse(saved) : {
+                tenses: ['praesens', 'imperfectum'],
+                voices: ['actief', 'passief'],
+                inputMethod: 'buttons',
+                practiceMode: 'determine'
+                };
+            });
+
+            useEffect(() => {
+                localStorage.setItem('latinSettings', JSON.stringify(settings));
+            }, [settings]);
+            
+            const [currentQuestion, setCurrentQuestion] = useState(null);
+            const [userAnswer, setUserAnswer] = useState({ person: '', number: '', tense: '', voice: '' });
+            const [textInput, setTextInput] = useState('');
+            const [score, setScore] = useState({ correct: 0, total: 0 });
+            const [feedback, setFeedback] = useState(null);
+            const [validation, setValidation] = useState(null);
+            const [cheatsheetPeeked, setCheatsheetPeeked] = useState(false);
+            const [showCheatsheet, setShowCheatsheet] = useState(false);
+            const [overridden, setOverridden] = useState(false);
+            
+            const [expandedTenses, setExpandedTenses] = useState({});
+
+            const headerRef = useRef(null);
+
+            const filteredQuestions = useMemo(() => {
+                return FULL_DB.filter(q => 
+                settings.tenses.includes(q.tense) && 
+                settings.voices.includes(q.voice)
+                );
+            }, [settings]);
+
+            const generateQuestion = () => {
+                if (filteredQuestions.length === 0) return;
+                const randomIdx = Math.floor(Math.random() * filteredQuestions.length);
+                setCurrentQuestion(filteredQuestions[randomIdx]);
+                setUserAnswer({ person: '', number: '', tense: '', voice: '' });
+                setTextInput('');
+                setFeedback(null);
+                setValidation(null);
+                setCheatsheetPeeked(false);
+                setShowCheatsheet(false);
+                setOverridden(false);
+                setExpandedTenses({}); 
+            };
+
+            const handleStart = (isNewSession = true) => {
+                setMode('practice');
+                setHasStarted(true);
+                if (isNewSession) {
+                setScore({ correct: 0, total: 0 });
+                generateQuestion();
+                }
+            };
+
+            const handleMarkAsCorrect = () => {
+                if (feedback === 'incorrect' && !overridden) {
+                setScore(s => ({ correct: s.correct + 1, total: s.total }));
+                setFeedback('correct');
+                setOverridden(true);
+                }
+            };
+
+            const checkTextAnswer = () => {
+                if (!textInput.trim()) return;
+
+                const q = currentQuestion;
+                const input = textInput.toLowerCase().replace(/[.,]/g, ' ');
+                const tokens = input.split(/\s+/);
+
+                const hasMatch = (categoryDict, targetValue) => {
+                const validSynonyms = categoryDict[targetValue];
+                if (!validSynonyms) return false;
+                return tokens.some(token => validSynonyms.includes(token));
+                };
+
+                const pCorrect = hasMatch(SYNONYMS.person, q.person);
+                const nCorrect = hasMatch(SYNONYMS.number, q.number);
+                const tCorrect = hasMatch(SYNONYMS.tense, q.tense);
+                const vCorrect = hasMatch(SYNONYMS.voice, q.voice);
+
+                const isCorrect = pCorrect && nCorrect && tCorrect && vCorrect;
+                processResult(isCorrect);
+            };
+
+            const checkTranslationAnswer = () => {
+                const input = textInput.toLowerCase().trim();
+                if (!input) return;
+                const target = currentQuestion.translation.toLowerCase();
+                const coreInput = input.replace(/ik|jij|hij|zij|wij|jullie|het/g, '').trim();
+                const isCorrect = target.includes(input) || (input.length > 4 && target.includes(coreInput));
+                processResult(isCorrect);
+            };
+
+            const checkButtonAnswer = () => {
+                const q = currentQuestion;
+                const v = {
+                    person: userAnswer.person === q.person,
+                    number: userAnswer.number === q.number,
+                    tense: userAnswer.tense === q.tense,
+                    voice: userAnswer.voice === q.voice
+                };
+                
+                setValidation(v);
+                
+                const isCorrect = v.person && v.number && v.tense && v.voice;
+                
+                if (isCorrect && !cheatsheetPeeked) {
+                    setScore(s => ({ ...s, correct: s.correct + 1, total: s.total }));
+                } else {
+                    setScore(s => ({ ...s, total: s.total + 1 }));
+                }
+            };
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                if (mode !== 'practice' || !currentQuestion || feedback) return;
+                
+                if (e.key === 'Enter') {
+                    if (settings.practiceMode === 'translate' || settings.inputMethod === 'text') {
+                    if (settings.practiceMode === 'translate') checkTranslationAnswer();
+                    else checkTextAnswer();
+                    } else {
+                    if (userAnswer.person && userAnswer.number && userAnswer.tense && userAnswer.voice) {
+                        checkButtonAnswer();
+                    }
+                    }
+                }
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [mode, currentQuestion, feedback, settings, userAnswer, textInput]);
+
+            const processResult = (isCorrect) => {
+                setFeedback(isCorrect ? 'correct' : 'incorrect');
+                if (isCorrect && !cheatsheetPeeked) {
+                setScore(s => ({ ...s, correct: s.correct + 1, total: s.total }));
+                } else {
+                setScore(s => ({ ...s, total: s.total + 1 }));
+                }
+            };
+
+            const toggleTense = (tense) => {
+                setExpandedTenses(prev => ({
+                    ...prev,
+                    [tense]: !prev[tense]
+                }));
+            };
+
+            const renderCheatsheet = () => {
+                const orderedTenses = ['praesens', 'imperfectum', 'futurum', 'perfectum', 'plusquamperfectum'];
+                const orderedTypes = ['a', 'e', 'i', 'mk', 'esse', 'posse'];
+
+                return (
+                <div className="space-y-4">
+                    {orderedTenses.map(tense => (
+                    <div key={tense} className="border border-slate-200 rounded-xl overflow-hidden">
+                        <button 
+                            onClick={() => toggleTense(tense)}
+                            className="w-full flex justify-between items-center p-4 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                        >
+                            <h3 className="font-bold text-indigo-800 capitalize flex items-center">
+                                {tense}
+                            </h3>
+                            {expandedTenses[tense] ? <ChevronUp className="text-indigo-600" size={18} /> : <ChevronDown className="text-indigo-400" size={18} />}
+                        </button>
+                        
+                        {expandedTenses[tense] && (
+                            <div className="p-4 bg-white animate-in slide-in-from-top-2 duration-200">
+                            {['actief', 'passief'].map(voice => {
+                                const sample = FULL_DB.find(f => f.tense === tense && f.voice === voice);
+                                if (!sample) return null;
+
+                                return (
+                                <div key={voice} className="mb-6 last:mb-0">
+                                    <h4 className="font-semibold text-slate-500 mb-2 uppercase text-xs tracking-wider border-b border-slate-100 pb-1">{voice}</h4>
+                                    <div className="overflow-x-auto">
+                                    <table className="w-full text-xs sm:text-sm text-left border-collapse whitespace-nowrap">
+                                        <thead>
+                                        <tr className="bg-slate-50 text-slate-500">
+                                            <th className="p-2 border-b w-16">Pers</th>
+                                            {orderedTypes.map(type => (
+                                                (voice === 'passief' && (type === 'esse' || type === 'posse')) ? null :
+                                                <th key={type} className="p-2 border-b font-bold min-w-[80px]">{type === 'mk' ? 'mk-stam' : type + (type.length < 3 ? '-stam' : '')}</th>
+                                            ))}
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {[1,2,3].map(p => (
+                                            ['ev','mv'].map(n => {
+                                                const rowLabel = `${p} ${n}`;
+                                                return (
+                                                <tr key={rowLabel} className="border-b border-slate-100 hover:bg-slate-50">
+                                                    <td className="p-2 text-slate-400 font-mono text-xs">{rowLabel}</td>
+                                                    {orderedTypes.map(type => {
+                                                    if (voice === 'passief' && (type === 'esse' || type === 'posse')) return null;
+                                                    const form = FULL_DB.find(f => f.tense === tense && f.voice === voice && f.verbType === type && f.person == p && f.number === n);
+                                                    return <td key={type} className="p-2 text-slate-700">{form ? form.latin : '-'}</td>
+                                                    })}
+                                                </tr>
+                                                )
+                                            })
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                    </div>
+                                </div>
+                                )
+                            })}
+                            </div>
+                        )}
+                    </div>
+                    ))}
+                </div>
+                );
+            };
+
+            if (mode === 'setup') {
+                return (
+                <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800">
+                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-lg w-full border border-slate-100">
+                    
+                    {hasStarted && (
+                        <button onClick={() => setMode('practice')} className="mb-4 flex items-center text-indigo-600 font-semibold hover:underline">
+                        <ArrowLeft size={16} className="mr-1" /> Terug naar oefening
+                        </button>
+                    )}
+
+                    <div className="flex justify-center mb-6">
+                        <div className="bg-indigo-100 p-3 rounded-full">
+                        <Settings size={32} className="text-indigo-600" />
+                        </div>
+                    </div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-slate-900">Instellingen</h1>
+                    
+                    <div className="space-y-6 mt-8">
+                        
+                        <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Tijden</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {['praesens', 'imperfectum', 'futurum', 'perfectum', 'plusquamperfectum'].map(t => (
+                            <button
+                                key={t}
+                                onClick={() => {
+                                setSettings(s => {
+                                    const newTenses = s.tenses.includes(t) 
+                                    ? s.tenses.filter(x => x !== t)
+                                    : [...s.tenses, t];
+                                    return { ...s, tenses: newTenses.length ? newTenses : ['praesens'] };
+                                });
+                                }}
+                                className={`px-2 py-3 rounded-lg text-xs sm:text-sm transition-all break-words leading-tight flex items-center justify-center text-center h-full ${
+                                settings.tenses.includes(t) 
+                                    ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-200 font-bold shadow-sm' 
+                                    : 'bg-slate-100 text-slate-500 border-2 border-transparent hover:bg-slate-200'
+                                }`}
+                            >
+                                {t.charAt(0).toUpperCase() + t.slice(1)}
+                            </button>
+                            ))}
+                        </div>
+                        </div>
+
+                        <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Vorm</label>
+                        <div className="flex gap-2">
+                            {['actief', 'passief'].map(v => (
+                            <button
+                            key={v}
+                            onClick={() => {
+                                setSettings(s => {
+                                const newVoices = s.voices.includes(v) 
+                                    ? s.voices.filter(x => x !== v)
+                                    : [...s.voices, v];
+                                return { ...s, voices: newVoices.length ? newVoices : ['actief'] };
+                                });
+                            }}
+                            className={`flex-1 px-3 py-3 rounded-lg text-sm transition-all ${
+                                settings.voices.includes(v) 
+                                ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-200 font-bold' 
+                                : 'bg-slate-100 text-slate-500 border-2 border-transparent hover:bg-slate-200'
+                            }`}
+                            >
+                            {v.charAt(0).toUpperCase() + v.slice(1)}
+                            </button>
+                            ))}
+                        </div>
+                        </div>
+
+                        <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Invoermethode</label>
+                        <div className="flex bg-slate-100 p-1 rounded-lg">
+                            <button 
+                            onClick={() => setSettings(s => ({ ...s, inputMethod: 'buttons' }))}
+                            className={`flex-1 flex items-center justify-center py-3 rounded-md text-sm font-bold transition-all ${settings.inputMethod === 'buttons' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+                            >
+                            <List size={16} className="mr-2" /> Menuutjes
+                            </button>
+                            <button 
+                            onClick={() => setSettings(s => ({ ...s, inputMethod: 'text' }))}
+                            className={`flex-1 flex items-center justify-center py-3 rounded-md text-sm font-bold transition-all ${settings.inputMethod === 'text' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+                            >
+                            <Type size={16} className="mr-2" /> Typen
+                            </button>
+                        </div>
+                        </div>
+
+                        <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Oefenmodus</label>
+                        <div className="flex bg-slate-100 p-1 rounded-lg">
+                            <button 
+                            onClick={() => setSettings(s => ({ ...s, practiceMode: 'determine' }))}
+                            className={`flex-1 py-3 rounded-md text-sm font-bold transition-all ${settings.practiceMode === 'determine' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+                            >
+                            Benoemen
+                            </button>
+                            <button 
+                            onClick={() => setSettings(s => ({ ...s, practiceMode: 'translate' }))}
+                            className={`flex-1 py-3 rounded-md text-sm font-bold transition-all ${settings.practiceMode === 'translate' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
+                            >
+                            Vertalen (NL)
+                            </button>
+                        </div>
+                        </div>
+
+                        <button 
+                        onClick={() => handleStart(true)}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition-transform active:scale-95 flex items-center justify-center"
+                        >
+                        {hasStarted ? (
+                            <>
+                                <RefreshCw className="mr-2" size={20} /> Begin opnieuw
+                            </>
+                        ) : "Start Oefening"}
+                        </button>
+                    </div>
+                    </div>
+                </div>
+                );
+            }
+
+            // --- PRACTICE INTERFACE ---
+
+            return (
+                <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col">
+                {/* Header */}
+                <header ref={headerRef} className="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center sticky top-0 z-50 shadow-sm h-[60px]">
+                    <div className="flex items-center space-x-2 text-indigo-700 font-bold">
+                        <a href="../index.html" className="hover:opacity-85 transition-opacity" aria-label="Terug naar hoofdsite">
+                            <img src="../images/icon.png" alt="Latijn Logo" className="h-8 w-auto" />
+                        </a>
+                        <span className="hidden sm:inline">Latijn Werkwoorden Oefening</span>
+                    </div>
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="bg-slate-100 px-3 py-1.5 rounded-full text-sm font-bold border border-slate-200 whitespace-nowrap">
+                        Score: <span className="text-indigo-600">{score.correct}</span> / {score.total}
+                    </div>
+                    <button onClick={() => setMode('setup')} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
+                        <Settings size={20} />
+                    </button>
+                    </div>
+                </header>
+
+                <main className="flex-grow flex flex-col items-center w-full max-w-3xl mx-auto px-4 pb-6 pt-2 sm:pt-4">
+                    
+                    {/* Question Card */}
+                    {currentQuestion && (
+                    <div className="w-full mb-6">
+                        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col">
+                        
+                        {/* Sticky Question Header */}
+                        <div className="bg-indigo-600 py-5 sm:py-6 px-4 text-center relative overflow-hidden sticky top-[0px] sm:top-[0px] z-40 shadow-lg">
+                            <div className="absolute top-0 left-0 w-full h-full bg-white opacity-5 pointer-events-none"></div>
+                            <h2 className="text-indigo-200 text-xs sm:text-sm uppercase tracking-widest font-bold mb-3 relative z-10">
+                            {settings.practiceMode === 'translate' ? 'Vertaal naar Nederlands' : 'Benoem de vorm'}
+                            </h2>
+                            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-3 border border-white/20 shadow-inner transform transition-transform hover:scale-105 duration-300">
+                                <div className="text-3xl sm:text-5xl font-serif text-white font-bold tracking-wide relative z-10 drop-shadow-md break-words">
+                                {currentQuestion.latin}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="bg-white relative z-30 flex-grow">
+                            {feedback ? (
+                            <div className={`text-center flex flex-col items-center animate-in fade-in zoom-in duration-300 ${feedback === 'correct' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                                
+                                <div className="w-full py-8 px-6 sm:px-8 flex flex-col items-center">
+                                <div className="mb-4 p-4 bg-white rounded-full shadow-sm">
+                                    {feedback === 'correct' ? 
+                                    <Check size={48} className="text-green-600" /> : 
+                                    <X size={48} className="text-red-600" />
+                                    }
+                                </div>
+                                
+                                <p className="text-3xl font-bold mb-2">{feedback === 'correct' ? (overridden ? 'Gecorrigeerd!' : 'Goed gedaan!') : 'Helaas!'}</p>
+                                
+                                {feedback === 'incorrect' && (
+                                    <div className="mt-6 w-full max-w-md text-left bg-white p-6 rounded-xl border border-red-100 shadow-sm">
+                                    <div className="text-xs font-bold text-slate-400 uppercase mb-1">Correcte antwoord</div>
+                                    <div className="font-bold text-lg text-slate-800">
+                                        {currentQuestion.person}e pers {currentQuestion.number} {currentQuestion.tense} {currentQuestion.voice}
+                                    </div>
+                                    <div className="text-slate-500 italic mt-1">
+                                        "{currentQuestion.translation}"
+                                    </div>
+                                    
+                                    {(settings.inputMethod === 'text' || settings.practiceMode === 'translate') && (
+                                        <button 
+                                        onClick={handleMarkAsCorrect}
+                                        className="mt-4 w-full py-2 border-2 border-indigo-100 text-indigo-600 font-bold rounded-lg text-sm hover:bg-indigo-50 transition-colors"
+                                        >
+                                        👍 Dat bedoelde ik (reken goed)
+                                        </button>
+                                    )}
+                                    </div>
+                                )}
+
+                                <button 
+                                    onClick={generateQuestion}
+                                    autoFocus
+                                    className={`mt-8 w-full sm:w-auto px-10 py-4 rounded-xl font-bold text-lg shadow-md transition-transform active:scale-95 flex items-center justify-center ${
+                                    feedback === 'correct' 
+                                    ? 'bg-green-600 text-white hover:bg-green-700 shadow-green-200' 
+                                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
+                                    }`}
+                                >
+                                    Volgende <Play size={18} className="ml-2 fill-current" />
+                                </button>
+                                </div>
+                            </div>
+                            ) : (
+                            <div className="p-6 sm:p-8">
+                                {settings.practiceMode === 'translate' ? (
+                                <div className="space-y-4">
+                                    <input 
+                                    type="text" 
+                                    value={textInput}
+                                    onChange={(e) => setTextInput(e.target.value)}
+                                    placeholder="Bijv: ik riep..."
+                                    className="w-full p-4 text-lg border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all font-medium placeholder:text-slate-300"
+                                    autoFocus
+                                    />
+                                    <button onClick={checkTranslationAnswer} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">
+                                    Controleren
+                                    </button>
+                                </div>
+                                ) : (
+                                // Determine Mode
+                                settings.inputMethod === 'text' ? (
+                                    <div className="space-y-4">
+                                    <input 
+                                        type="text" 
+                                        value={textInput}
+                                        onChange={(e) => setTextInput(e.target.value)}
+                                        placeholder="Bijv: 1 ev praesens act"
+                                        className="w-full p-4 text-lg border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all font-medium placeholder:text-slate-300"
+                                        autoFocus
+                                    />
+                                    <p className="text-xs text-slate-400 text-center font-medium">
+                                        Tip: Je mag afkortingen gebruiken (bv. "1 ev pr act")
+                                    </p>
+                                    <button onClick={checkTextAnswer} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">
+                                    Controleren
+                                    </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                        {/* Dropdowns */}
+                                        <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase px-1">Persoon</label>
+                                        <div className="flex rounded-xl bg-slate-100 p-1">
+                                            {['1', '2', '3'].map(opt => {
+                                                let btnClass = `flex-1 py-3 rounded-lg text-lg font-bold transition-all touch-manipulation `;
+                                                if (!validation) {
+                                                    btnClass += userAnswer.person === opt ? 'bg-white shadow-md text-indigo-600 ring-1 ring-indigo-100' : 'text-slate-400 hover:text-slate-600';
+                                                } else {
+                                                    if (userAnswer.person === opt) {
+                                                        btnClass += validation.person ? 'bg-green-100 text-green-700 ring-1 ring-green-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200';
+                                                    } else {
+                                                        btnClass += 'text-slate-300';
+                                                    }
+                                                }
+                                                return (
+                                                <button 
+                                                    key={opt}
+                                                    onClick={() => !validation && setUserAnswer(s => ({ ...s, person: opt }))}
+                                                    disabled={!!validation}
+                                                    className={btnClass}
+                                                >
+                                                    {opt}
+                                                </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {validation && !validation.person && (
+                                            <div className="text-xs text-red-500 font-bold px-1">
+                                                Correct: {currentQuestion.person}
+                                            </div>
+                                        )}
+                                        </div>
+
+                                        <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase px-1">Getal</label>
+                                        <div className="flex rounded-xl bg-slate-100 p-1">
+                                            {['ev', 'mv'].map(opt => {
+                                                let btnClass = `flex-1 py-3 rounded-lg text-base font-bold transition-all touch-manipulation `;
+                                                if (!validation) {
+                                                    btnClass += userAnswer.number === opt ? 'bg-white shadow-md text-indigo-600 ring-1 ring-indigo-100' : 'text-slate-400 hover:text-slate-600';
+                                                } else {
+                                                    if (userAnswer.number === opt) {
+                                                        btnClass += validation.number ? 'bg-green-100 text-green-700 ring-1 ring-green-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200';
+                                                    } else {
+                                                        btnClass += 'text-slate-300';
+                                                    }
+                                                }
+                                                return (
+                                                <button 
+                                                    key={opt}
+                                                    onClick={() => !validation && setUserAnswer(s => ({ ...s, number: opt }))}
+                                                    disabled={!!validation}
+                                                    className={btnClass}
+                                                >
+                                                    {opt.toUpperCase()}
+                                                </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {validation && !validation.number && (
+                                            <div className="text-xs text-red-500 font-bold px-1">
+                                                Correct: {currentQuestion.number.toUpperCase()}
+                                            </div>
+                                        )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase px-1">Tijd</label>
+                                        <select 
+                                            value={userAnswer.tense}
+                                            onChange={(e) => setUserAnswer(s => ({ ...s, tense: e.target.value }))}
+                                            disabled={!!validation}
+                                            className={`w-full p-4 border rounded-xl font-bold focus:outline-none appearance-none ${
+                                                validation 
+                                                ? (validation.tense ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700')
+                                                : 'bg-slate-50 border-slate-200 text-slate-700 focus:border-indigo-500'
+                                            }`}
+                                        >
+                                            <option value="" disabled>Kies tijd...</option>
+                                            {settings.tenses.map(t => (
+                                            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+                                            ))}
+                                        </select>
+                                        {validation && !validation.tense && (
+                                            <div className="text-xs text-red-500 font-bold px-1">
+                                                Correct: {currentQuestion.tense}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-slate-400 uppercase px-1">Vorm</label>
+                                        <div className="flex rounded-xl bg-slate-100 p-1">
+                                            {['actief', 'passief'].map(opt => {
+                                                let btnClass = `flex-1 py-3 rounded-lg text-sm font-bold transition-all touch-manipulation `;
+                                                if (!validation) {
+                                                    btnClass += userAnswer.voice === opt ? 'bg-white shadow-md text-indigo-600 ring-1 ring-indigo-100' : 'text-slate-400 hover:text-slate-600';
+                                                } else {
+                                                    if (userAnswer.voice === opt) {
+                                                        btnClass += validation.voice ? 'bg-green-100 text-green-700 ring-1 ring-green-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200';
+                                                    } else {
+                                                        btnClass += 'text-slate-300';
+                                                    }
+                                                }
+                                                return (
+                                                <button 
+                                                    key={opt}
+                                                    onClick={() => !validation && setUserAnswer(s => ({ ...s, voice: opt }))}
+                                                    disabled={!!validation}
+                                                    className={btnClass}
+                                                >
+                                                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                                                </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {validation && !validation.voice && (
+                                            <div className="text-xs text-red-500 font-bold px-1">
+                                                Correct: {currentQuestion.voice}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button 
+                                        onClick={validation ? generateQuestion : checkButtonAnswer}
+                                        disabled={!validation && (!userAnswer.person || !userAnswer.number || !userAnswer.tense || !userAnswer.voice)}
+                                        className={`w-full mt-4 py-4 text-white font-bold rounded-xl transition-colors shadow-lg disabled:shadow-none ${
+                                            validation 
+                                            ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
+                                            : 'bg-indigo-600 disabled:bg-slate-200 disabled:text-slate-400 hover:bg-indigo-700 shadow-indigo-100'
+                                        }`}
+                                    >
+                                    {validation ? (
+                                        <span className="flex items-center justify-center">
+                                            Volgende <Play size={18} className="ml-2 fill-current" />
+                                        </span>
+                                    ) : "Controleren"}
+                                    </button>
+                                    </div>
+                                )
+                                )}
+                            </div>
+                            )}
+                        </div>
+                        </div>
+                    </div>
+                    )}
+
+                    {/* Cheatsheet Accordion */}
+                    <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <button 
+                        onClick={() => {
+                        setShowCheatsheet(!showCheatsheet);
+                        if (!feedback) setCheatsheetPeeked(true); // Penalty trigger
+                        }}
+                        className={`w-full p-4 flex justify-between items-center text-sm font-bold transition-colors ${
+                        cheatsheetPeeked && !feedback 
+                        ? 'bg-orange-50 text-orange-600' 
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                        }`}
+                    >
+                        <span className="flex items-center">
+                        {cheatsheetPeeked && !feedback ? '⚠️ Spiekbriefje (Vraag telt niet mee)' : 'Spiekbriefje (Volledige Database)'}
+                        </span>
+                        {showCheatsheet ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </button>
+                    
+                    {showCheatsheet && (
+                        <div className="p-4 sm:p-6 bg-white max-h-[60vh] overflow-y-auto">
+                        {renderCheatsheet()}
+                        </div>
+                    )}
+                    </div>
+
+                </main>
+                </div>
+            );
+        };
+
+        // Render de app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

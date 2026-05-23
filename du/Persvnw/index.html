@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duits Persoonlijk Voornaamwoord Oefening</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <style>
+        /* Globale stijlen voor de pagina en elementen */
+        body { font-family: 'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif; }
+
+        /* Standaard Tailwind kleuren aanpassen */
+        :root {
+            --primary-color: #0070c0; /* Een diep blauw */
+            --secondary-color: #f7f9fb; /* Lichtgrijze achtergrond */
+            --success-color: #10b981; /* Groen */
+            --error-color: #ef4444; /* Rood */
+            --text-color: #1f2937; /* Donkergrijs */
+        }
+
+        .bg-primary { background-color: var(--primary-color); }
+        .bg-secondary { background-color: var(--secondary-color); }
+        .text-primary { color: var(--primary-color); }
+        .border-success { border-color: var(--success-color) !important; }
+        .border-error { border-color: var(--error-color) !important; }
+        
+        /* Stijl voor antwoord feedback (letter-voor-letter animatie) */
+        #explanation-text .char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.05s ease-out, transform 0.05s ease-out;
+        }
+        #explanation-text.visible .char {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* --- CURSOR STIJLEN (De precieze CSS van de React Component) --- */
+        .target-cursor-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+            z-index: 9999;
+            /* mix-blend-mode: difference zorgt ervoor dat de witte cursor zichtbaar is op elke achtergrond */
+            mix-blend-mode: difference; 
+            transform: translate(-50%, -50%);
+            /* Verberg de cursor initieel totdat muisbeweging start */
+            opacity: 0; 
+        }
+
+        .target-cursor-dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            will-change: transform;
+        }
+
+        .target-cursor-corner {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 12px;
+            height: 12px;
+            border: 3px solid #fff;
+            will-change: transform;
+        }
+
+        .corner-tl { transform: translate(-150%, -150%); border-right: none; border-bottom: none; }
+        .corner-tr { transform: translate(50%, -150%); border-left: none; border-bottom: none; }
+        .corner-br { transform: translate(50%, 50%); border-left: none; border-top: none; }
+        .corner-bl { transform: translate(-150%, 50%); border-right: none; border-top: none; }
+
+        /* Verberg standaard cursor op interactieve elementen en de body */
+        body, .cursor-target { 
+            cursor: none !important; 
+        }
+
+        /* Dwing de standaard cursor af als de input actief is */
+        #answer-input:focus {
+            cursor: text !important;
+        }
+        
+    </style>
+    <script>
+        // Data voor de oefening
+        const questions = [
+            // Group 1: ich
+            {
+                sentence: "Nach der langen Reise bin ___ sehr müde.",
+                placeholder: "ich",
+                correct: "ich",
+                nl_pronoun: "ik",
+                reason: "Nominativus, 1e persoon enkelvoud (onderwerp).",
+                translation: "Na de lange reis ben ik erg moe."
+            },
+            {
+                sentence: "Weil ich nichts gegessen habe, habe ___ nu grote honger.",
+                placeholder: "ik",
+                correct: "ik",
+                nl_pronoun: "ik",
+                reason: "Nominativus, 1e persoon enkelvoud (onderwerp).",
+                translation: "Omdat ik niets gegeten heb, heb ik nu grote honger."
+            },
+            {
+                sentence: "Ich verstehe diese Aufgabe nicht; kannst du ___ bitte helpen?",
+                placeholder: "mir",
+                correct: "mir",
+                nl_pronoun: "mij",
+                reason: "Dativus, 1e persoon enkelvoud. 'Helfen' vereist Dativus.",
+                translation: "Ik begrijp deze opdracht niet; kun je mij alsjeblieft helpen?"
+            },
+            {
+                sentence: "Dieses Buch gehört ___, ich habe es gestern gekauft.",
+                placeholder: "mir",
+                correct: "mir",
+                nl_pronoun: "mij",
+                reason: "Dativus, 1e persoon enkelvoud. 'Gehören' vereist Dativus.",
+                translation: "Dit boek is van mij, ik heb het gisteren gekocht."
+            },
+            {
+                sentence: "Ich stehe direkt vor ihm, aber er sieht ___ niet.",
+                placeholder: "mich",
+                correct: "mich",
+                nl_pronoun: "mij",
+                reason: "Akkusativ, 1e persoon enkelvoud. 'Sehen' vereist Akkusativ.",
+                translation: "Ik sta vlak voor hem, maar hij ziet mij niet."
+            },
+            {
+                sentence: "Sag mir die Wahrheit: Liebst du ___ wirklich?",
+                placeholder: "mich",
+                correct: "mich",
+                nl_pronoun: "mij",
+                reason: "Akkusativ, 1e persoon enkelvoud. 'Lieben' vereist Akkusativ.",
+                translation: "Vertel me de waarheid: Houd je echt van mij?"
+            },
+
+            // Group 2: du
+            {
+                sentence: "Ich rufe dich an. Bist ___ gerade zu Hause?",
+                placeholder: "du",
+                correct: "du",
+                nl_pronoun: "jij",
+                reason: "Nominativus, 2e persoon enkelvoud (onderwerp).",
+                translation: "Ik bel je op. Ben jij op dit moment thuis?"
+            },
+            {
+                sentence: "Wenn du gute Noten willst, musst ___ meer leren.",
+                placeholder: "du",
+                correct: "du",
+                nl_pronoun: "jij",
+                reason: "Nominativus, 2e persoon enkelvoud (onderwerp).",
+                translation: "Als je goede cijfers wilt, moet jij meer leren."
+            },
+            {
+                sentence: "Da du Geburtstag hast, gebe ich ___ dit spannende boek.",
+                placeholder: "dir",
+                correct: "dir",
+                nl_pronoun: "jou",
+                reason: "Dativus, 2e persoon enkelvoud (meewerkend voorwerp).",
+                translation: "Omdat je jarig bent, geef ik jou dit spannende boek."
+            },
+            {
+                sentence: "Hallo Sarah, lange niet gezien! Wie gaat het met ___?",
+                placeholder: "dir",
+                correct: "dir",
+                nl_pronoun: "jou",
+                reason: "Dativus, 2e persoon enkelvoud. 'Wie gaat het met' vereist Dativus.",
+                translation: "Hallo Sarah, lang niet gezien! Hoe gaat het met jou?"
+            },
+            {
+                sentence: "Warte kurz, ich rufe ___ later nog eens aan.",
+                placeholder: "dich",
+                correct: "dich",
+                nl_pronoun: "jou",
+                reason: "Akkusativ, 2e persoon enkelvoud. 'Anrufen' vereist Akkusativ.",
+                translation: "Wacht even, ik bel jou later nog eens op."
+            },
+            {
+                sentence: "Wenn wir in Berlin zijn, bezoeken wij ___ zeker.",
+                placeholder: "dich",
+                correct: "dich",
+                nl_pronoun: "jou",
+                reason: "Akkusativ, 2e persoon enkelvoud. 'Besuchen' vereist Akkusativ.",
+                translation: "Als we in Berlijn zijn, bezoeken we jou zeker."
+            },
+
+            // Group 3: er
+            {
+                sentence: "Das ist Peter. ___ ist schon seit Jahren mein bester Freund.",
+                placeholder: "er",
+                correct: "er",
+                nl_pronoun: "hij",
+                reason: "Nominativus, 3e persoon mannelijk (onderwerp).",
+                translation: "Dat is Peter. Hij is al jaren mijn beste vriend."
+            },
+            {
+                sentence: "Ich suche Herrn Müller. Wissen Sie, wo ___ wohnt?",
+                placeholder: "er",
+                correct: "er",
+                nl_pronoun: "hij",
+                reason: "Nominativus, 3e persoon mannelijk (onderwerp).",
+                translation: "Ik zoek meneer Müller. Weet u waar hij woont?"
+            },
+            {
+                sentence: "Mein Bruder wird 18, deshalb schenke ich ___ ein Auto.",
+                placeholder: "ihm",
+                correct: "ihm",
+                nl_pronoun: "hem",
+                reason: "Dativus, 3e persoon mannelijk (meewerkend voorwerp).",
+                translation: "Mijn broer wordt 18, daarom schenk ik hem een auto."
+            },
+            {
+                sentence: "Er möchte das Haus kaufen, denn es gefällt ___ sehr gut.",
+                placeholder: "ihm",
+                correct: "ihm",
+                nl_pronoun: "hem",
+                reason: "Dativus, 3e persoon mannelijk. 'Gefallen' vereist Dativus.",
+                translation: "Hij wil het huis kopen, want het bevalt hem erg goed."
+            },
+            {
+                sentence: "Das ist mein Nachbar. Ich kenne ___ schon sehr lange.",
+                placeholder: "ihn",
+                correct: "ihn",
+                nl_pronoun: "hem",
+                reason: "Akkusativ, 3e persoon mannelijk (lijdend voorwerp).",
+                translation: "Dat is mijn buurman. Ik ken hem al heel lang."
+            },
+            {
+                sentence: "Dort drüben steht Markus. Siehst du ___ ook?",
+                placeholder: "ihn",
+                correct: "ihn",
+                nl_pronoun: "hem",
+                reason: "Akkusativ, 3e persoon mannelijk. 'Sehen' vereist Akkusativ.",
+                translation: "Daar ginds staat Markus. Zie jij hem ook?"
+            },
+
+            // Group 4: sie (sg)
+            {
+                sentence: "Maria ist im Chor. ___ singt wirklich sehr schön.",
+                placeholder: "sie",
+                correct: "sie",
+                nl_pronoun: "zij",
+                reason: "Nominativus, 3e persoon vrouwelijk (onderwerp).",
+                translation: "Maria zit in het koor. Zij zingt echt heel mooi."
+            },
+            {
+                sentence: "Ich warte auf Anna. Weißt du, ob ___ heute nog kommt?",
+                placeholder: "sie",
+                correct: "sie",
+                nl_pronoun: "zij",
+                reason: "Nominativus, 3e persoon vrouwelijk (onderwerp).",
+                translation: "Ik wacht op Anna. Weet jij of zij vandaag nog komt?"
+            },
+            {
+                sentence: "Sie hat mir eine E-Mail geschrieben en ich antworte ___ sofort.",
+                placeholder: "ihr",
+                correct: "ihr",
+                nl_pronoun: "haar",
+                reason: "Dativus, 3e persoon vrouwelijk. 'Antworten' vereist Dativus.",
+                translation: "Ze heeft me een e-mail gestuurd en ik antwoord haar meteen."
+            },
+            {
+                sentence: "Das ist Julias Hund. Er gehört ___ schon seit zwei Jahren.",
+                placeholder: "ihr",
+                correct: "ihr",
+                nl_pronoun: "haar",
+                reason: "Dativus, 3e persoon vrouwelijk. 'Gehören' vereist Dativus.",
+                translation: "Dat is Julia's hond. Hij is al twee jaar van haar."
+            },
+            {
+                sentence: "Meine Schwester ist toll. Ich mag ___ sehr.",
+                placeholder: "sie",
+                correct: "sie",
+                nl_pronoun: "haar",
+                reason: "Akkusativ, 3e persoon vrouwelijk (lijdend voorwerp).",
+                translation: "Mijn zus is geweldig. Ik mag haar erg graag."
+            },
+            {
+                sentence: "Sie hat Geburtstag, also laden wir ___ zu einer Party ein.",
+                placeholder: "sie",
+                correct: "sie",
+                nl_pronoun: "haar",
+                reason: "Akkusativ, 3e persoon vrouwelijk. 'Einladen' vereist Akkusativ.",
+                translation: "Ze is jarig, dus nodigen we haar uit voor een feestje."
+            },
+
+            // Group 5: es
+            {
+                sentence: "Nimm einen Regenschirm mit, denn ___ regnet heute den ganzen Tag.",
+                placeholder: "es",
+                correct: "es",
+                nl_pronoun: "het",
+                reason: "Nominativus, 3e persoon onzijdig (onderwerp).",
+                translation: "Neem een paraplu mee, want het regent vandaag de hele dag."
+            },
+            {
+                sentence: "Wo ist das kleine Kind? Ach, ___ speelt im Garten.",
+                placeholder: "es",
+                correct: "es",
+                nl_pronoun: "het",
+                reason: "Nominativus, 3e persoon onzijdig (verwijst naar 'das Kind').",
+                translation: "Waar is het kleine kind? Ach, het speelt in de tuin."
+            },
+            {
+                sentence: "Das kleine Kind weint laut. Ich gehe hin en helfe ___.",
+                placeholder: "ihm",
+                correct: "ihm",
+                nl_pronoun: "hem/het",
+                reason: "Dativus, 3e persoon onzijdig. 'Helfen' vereist Dativus.",
+                translation: "Het kleine kind huilt hard. Ik ga erheen en help het."
+            },
+            {
+                sentence: "Dem Baby ist kalt. Bitte gib ___ schnell eine warme Decke.",
+                placeholder: "ihm",
+                correct: "ihm",
+                nl_pronoun: "hem/het",
+                reason: "Dativus, 3e persoon onzijdig (meewerkend voorwerp).",
+                translation: "De baby heeft het koud. Geef het alsjeblieft snel een warme deken."
+            },
+            {
+                sentence: "Das Brot ist frisch en lecker. Ich esse ___ sehr gerne.",
+                placeholder: "es",
+                correct: "es",
+                nl_pronoun: "het",
+                reason: "Akkusativ, 3e persoon onzijdig (lijdend voorwerp).",
+                translation: "Het brood is vers en lekker. Ik eet het heel graag."
+            },
+            {
+                sentence: "Ich habe ein neues Buch gekauft en lese ___ jeden Abend.",
+                placeholder: "es",
+                correct: "es",
+                nl_pronoun: "het",
+                reason: "Akkusativ, 3e persoon onzijdig (lijdend voorwerp).",
+                translation: "Ik heb een nieuw boek gekocht en lees het elke avond."
+            },
+
+            // Group 6: wir
+            {
+                sentence: "Heute Abend haben wir Zeit, also gehen ___ zusammen ins Kino.",
+                placeholder: "wir",
+                correct: "wir",
+                nl_pronoun: "wij",
+                reason: "Nominativus, 1e persoon meervoud (onderwerp).",
+                translation: "Vanavond hebben we tijd, dus gaan wij samen naar de bioscoop."
+            },
+            {
+                sentence: "Wir arbeiten schon lange. Sind ___ endlich fertig?",
+                placeholder: "wir",
+                correct: "wir",
+                nl_pronoun: "wij",
+                reason: "Nominativus, 1e persoon meervoud (onderwerp).",
+                translation: "We werken al lang. Zijn wij eindelijk klaar?"
+            },
+            {
+                sentence: "Das ist unser Haus. Es gehört ___ schon seit zehn Jahren.",
+                placeholder: "uns",
+                correct: "uns",
+                nl_pronoun: "ons",
+                reason: "Dativus, 1e persoon meervoud. 'Gehören' vereist Dativus.",
+                translation: "Dat is ons huis. Het is al tien jaar van ons."
+            },
+            {
+                sentence: "Wir haben ein Problem, aber unser Lehrer hilft ___ sicher.",
+                placeholder: "uns",
+                correct: "uns",
+                nl_pronoun: "ons",
+                reason: "Dativus, 1e persoon meervoud. 'Helfen' vereist Dativus.",
+                translation: "We hebben een probleem, maar onze leraar helpt ons vast."
+            },
+            {
+                sentence: "Wir stehen auf der Bühne en alle Leute zien ___.",
+                placeholder: "uns",
+                correct: "uns",
+                nl_pronoun: "ons",
+                reason: "Akkusativ, 1e persoon meervoud (lijdend voorwerp).",
+                translation: "Wij staan op het podium en alle mensen zien ons."
+            },
+            {
+                sentence: "Unser Onkel kommt morgen en besucht ___ voor een week.",
+                placeholder: "uns",
+                correct: "uns",
+                nl_pronoun: "ons",
+                reason: "Akkusativ, 1e persoon meervoud. 'Besuchen' vereist Akkusativ.",
+                translation: "Onze oom komt morgen en bezoekt ons voor een week."
+            },
+
+            // Group 7: ihr
+            {
+                sentence: "Ich möchte mit euch sprechen. Habt ___ kurz Zeit?",
+                placeholder: "ihr",
+                correct: "ihr",
+                nl_pronoun: "jullie",
+                reason: "Nominativus, 2e persoon meervoud (onderwerp).",
+                translation: "Ik wil met jullie praten. Hebben jullie even tijd?"
+            },
+            {
+                sentence: "Der Bus fährt gleich ab! Seid ___ alle bereit?",
+                placeholder: "ihr",
+                correct: "ihr",
+                nl_pronoun: "jullie",
+                reason: "Nominativus, 2e persoon meervoud (onderwerp).",
+                translation: "De bus vertrekt zo! Zijn jullie allemaal klaar?"
+            },
+            {
+                sentence: "Ihr habt mir sehr geholfen. Ich danke ___ veelmals.",
+                placeholder: "euch",
+                correct: "euch",
+                nl_pronoun: "jullie",
+                reason: "Dativus, 2e persoon meervoud. 'Danken' vereist Dativus.",
+                translation: "Jullie hebben me erg geholpen. Ik dank jullie hartelijk."
+            },
+            {
+                sentence: "Ist das euer Auto? Gehört das ___?",
+                placeholder: "euch",
+                correct: "euch",
+                nl_pronoun: "jullie",
+                reason: "Dativus, 2e persoon meervoud. 'Gehören' vereist Dativus.",
+                translation: "Is dat jullie auto? Is die van jullie?"
+            },
+            {
+                sentence: "Seid bitte leise! Ich höre ___ bis hierher.",
+                placeholder: "euch",
+                correct: "euch",
+                nl_pronoun: "jullie",
+                reason: "Akkusativ, 2e persoon meervoud (lijdend voorwerp).",
+                translation: "Wees alsjeblieft stil! Ik hoor jullie tot hier."
+            },
+            {
+                sentence: "Wo habt ihr euch versteckt? Wir suchen ___ schon overal.",
+                placeholder: "euch",
+                correct: "euch",
+                nl_pronoun: "jullie",
+                reason: "Akkusativ, 2e persoon meervoud. 'Suchen' vereist Akkusativ.",
+                translation: "Waar hebben jullie je verstopt? Wij zoeken jullie al overal."
+            },
+
+            // Group 8: sie (pl) / Sie (formal)
+            {
+                sentence: "Die Kinder sind draußen. ___ spielen Fußball im Park.",
+                placeholder: "sie",
+                correct: "sie",
+                nl_pronoun: "zij (mv)",
+                reason: "Nominativus, 3e persoon meervoud (onderwerp).",
+                translation: "De kinderen zijn buiten. Zij spelen voetbal in het park."
+            },
+            {
+                sentence: "Entschuldigung, Herr Müller, kommen ___ oorspronkelijk aus Berlin?",
+                placeholder: "Sie",
+                correct: "Sie",
+                nl_pronoun: "u",
+                reason: "Nominativus, beleefdheidsvorm (onderwerp).",
+                translation: "Pardon, meneer Müller, komt u oorspronkelijk uit Berlijn?"
+            },
+            {
+                sentence: "Meine Freunde brauchen Hilfe. Ich helfe ___ natuurlijk graag.",
+                placeholder: "ihnen",
+                correct: "ihnen",
+                nl_pronoun: "hen",
+                reason: "Dativus, 3e persoon meervoud. 'Helfen' vereist Dativus.",
+                translation: "Mijn vrienden hebben hulp nodig. Ik help hen natuurlijk graag."
+            },
+            {
+                sentence: "Guten Tag, Frau Meier. Wie gaat het met ___ vandaag?",
+                placeholder: "Ihnen",
+                correct: "Ihnen",
+                nl_pronoun: "u",
+                reason: "Dativus, beleefdheidsvorm. 'Wie gaat het met' vereist Dativus.",
+                translation: "Goedendag, mevrouw Meier. Hoe gaat het vandaag met u?"
+            },
+            {
+                sentence: "Wo sind meine Brillen? Ach, ich sehe ___ dort auf dem Tisch.",
+                placeholder: "sie",
+                correct: "sie",
+                nl_pronoun: "hen/ze",
+                reason: "Akkusativ, 3e persoon meervoud (lijdend voorwerp).",
+                translation: "Waar is mijn bril? Ach, ik zie ze daar op tafel."
+            },
+            {
+                sentence: "Können Sie das wiederholen? Ich verstehe ___ leider niet, Frau Schmidt.",
+                placeholder: "Sie",
+                correct: "Sie",
+                nl_pronoun: "u",
+                reason: "Akkusativ, beleefdheidsvorm (lijdend voorwerp).",
+                translation: "Kunt u dat herhalen? Ik begrijp u helaas niet, mevrouw Schmidt."
+            }
+        ];
+
+        // Shuffle array in-place
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Lijst van persoonlijke voornaamwoorden (wordt gebruikt voor de hinttabel)
+        const pronounTableData = [
+            { case: "1e Nominativ (Onderwerp)", ich: "ich", du: "du", er: "er", sie: "sie", es: "es", wir: "wir", ihr: "ihr", sie_Sie: "sie / Sie" },
+            { case: "3e Dativ (Meewerkend voorwerp)", ich: "mir", du: "dir", er: "ihm", sie: "ihr", es: "ihm", wir: "uns", ihr: "euch", sie_Sie: "ihnen / Ihnen" },
+            { case: "4e Akkusativ (Lijdend voorwerp)", ich: "mich", du: "dich", er: "ihn", sie: "sie", es: "es", wir: "uns", ihr: "euch", sie_Sie: "sie / Sie" }   
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let scramblerInstance = null; // Voor de tekstscrambler
+
+        // -------------------------------------------------------------
+        // HULPFUNCTIES
+        // -------------------------------------------------------------
+
+        // Text Scrambler Klasse (voor het leuke effect bij nieuwe zinnen)
+        class TextScrambler {
+            constructor(element) {
+                this.element = element;
+                this.originalText = element.textContent;
+                this.chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{};\':"\\|,./<>?';
+                this.frame = 0;
+                this.update = this.update.bind(this);
+            }
+
+            scramble(newText) {
+                this.originalText = newText;
+                this.frame = 0;
+                this.queue = [];
+                for (let i = 0; i < this.originalText.length; i++) {
+                    const from = this.element.textContent[i] || '';
+                    const to = this.originalText[i];
+                    const start = Math.floor(Math.random() * 40); // Startvertraging
+                    const end = start + Math.floor(Math.random() * 40); // Einde van scrambling
+                    this.queue.push({ from, to, start, end });
+                }
+                cancelAnimationFrame(this.frameRequest);
+                this.frameRequest = requestAnimationFrame(this.update);
+            }
+
+            update(time) {
+                let output = '';
+                let complete = 0;
+                this.frame++;
+
+                for (let i = 0, n = this.queue.length; i < n; i++) {
+                    let { from, to, start, end } = this.queue[i];
+
+                    if (this.frame >= end) {
+                        complete++;
+                        output += to;
+                    } else if (this.frame >= start) {
+                        // Scramble fase
+                        if (to !== ' ') {
+                            output += this.chars[Math.floor(Math.random() * this.chars.length)];
+                        } else {
+                            output += ' ';
+                        }
+                    } else {
+                        // Wachtfase
+                        output += from;
+                    }
+                }
+
+                this.element.textContent = output;
+
+                if (complete !== this.queue.length) {
+                    this.frameRequest = requestAnimationFrame(this.update);
+                }
+            }
+        }
+
+        function getQuestion() {
+            return questions[currentQuestionIndex];
+        }
+
+        function loadQuestion() {
+            const q = getQuestion();
+            // Cruciale check toegevoegd: als de vragenlijst leeg is, stop dan
+            if (!q) {
+                console.error("Geen vragen meer beschikbaar of vragenlijst is leeg.");
+                return;
+            }
+            
+            const sentenceEl = document.getElementById('german-sentence');
+            const inputEl = document.getElementById('answer-input');
+            const nlContextEl = document.getElementById('nl-context-hint'); // Element voor de NL hint
+
+            // Zet de input weer leeg en disable de Check knop
+            inputEl.value = '';
+            // Reset randkleur
+            inputEl.classList.remove('border-success', 'border-error', 'border-gray-300');
+            inputEl.classList.add('border-gray-300');
+
+            document.getElementById('check-button').disabled = false;
+            document.getElementById('check-button').classList.remove('opacity-50');
+            document.getElementById('next-button').disabled = true;
+            document.getElementById('next-button').classList.add('opacity-50');
+            document.getElementById('explanation-text').classList.remove('visible');
+            document.getElementById('explanation-text').textContent = '';
+            
+            // Focus op de input voor Enter-besturing
+            inputEl.focus();
+
+            // Toon de NL hint ZONDER de uitleg
+            nlContextEl.textContent = `NL Persoons-vnw: ${q.nl_pronoun}`;
+
+            // Activeer de scrambler. We tonen nu de kale vraag met '___'.
+            scramblerInstance.scramble(q.sentence); 
+        }
+
+        function checkAnswer() {
+            const q = getQuestion();
+            if (!q) return;
+
+            const inputEl = document.getElementById('answer-input');
+            const answer = inputEl.value.trim().toLowerCase();
+            const correctAnswers = Array.isArray(q.correct) ? q.correct.map(a => a.toLowerCase()) : [q.correct.toLowerCase()];
+            const isCorrect = correctAnswers.includes(answer);
+            
+            // Laat de ingevulde juiste zin zien (met scrambler)
+            scramblerInstance.scramble(q.sentence.replace('___', q.correct));
+
+
+            document.getElementById('check-button').disabled = true;
+            document.getElementById('check-button').classList.add('opacity-50');
+            document.getElementById('next-button').disabled = false;
+            document.getElementById('next-button').classList.remove('opacity-50');
+            
+            // Verlies focus zodat de custom cursor weer verschijnt als men niet typt
+            inputEl.blur();
+
+            if (isCorrect) {
+                // Succes: Groene rand
+                inputEl.classList.add('border-success');
+                inputEl.classList.remove('border-error', 'border-gray-300');
+                
+                // Toon de Nederlandse vertaling en beknopte feedback
+                showExplanation(`Juist! De zin betekent: ${q.translation}`, true);
+                score++;
+                // Animatie voor de score
+                gsap.to('#score-display', { scale: 1.2, duration: 0.1, yoyo: true, repeat: 1, onComplete: updateScoreDisplay });
+                
+                // Activeer Confetti/Star Overlay
+                activateStarOverlay(true);
+            } else {
+                // Fout: Rode rand en screenshake
+                inputEl.classList.add('border-error');
+                inputEl.classList.remove('border-success', 'border-gray-300');
+
+                // Toon de juiste vorm én de volledige reden (Naamval en uitleg)
+                showExplanation(`Fout. De juiste vorm is "${q.correct}". Uitleg: ${q.reason}`, false);
+                activateStarOverlay(false); // Sterren overlay uit voor foute antwoorden
+                triggerScreenshake(); // SCHUDDEN BIJ FOUT ANTWOORD
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex = (currentQuestionIndex + 1) % questions.length;
+            loadQuestion();
+        }
+
+        // Functie voor Enter-besturing
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                const checkButton = document.getElementById('check-button');
+                const nextButton = document.getElementById('next-button');
+                
+                if (!checkButton.disabled) {
+                    // Check button is actief
+                    checkAnswer();
+                } else if (!nextButton.disabled) {
+                    // Next button is actief
+                    nextQuestion();
+                }
+            }
+        }
+
+        function showExplanation(text, isCorrect) {
+            const explanationEl = document.getElementById('explanation-text');
+            explanationEl.innerHTML = ''; // Maak leeg
+            explanationEl.classList.remove('text-success', 'text-error');
+            explanationEl.classList.add(isCorrect ? 'text-success' : 'text-error');
+
+            // Verdeel de tekst in karakters
+            const characters = text.split('');
+            characters.forEach((char, index) => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.classList.add('char');
+                explanationEl.appendChild(span);
+            });
+
+            // Activeer de animatie voor de karakters
+            requestAnimationFrame(() => {
+                explanationEl.classList.add('visible');
+                explanationEl.querySelectorAll('.char').forEach((charEl, index) => {
+                    charEl.style.transitionDelay = `${index * 0.02}s`;
+                });
+            });
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-display').textContent = `Score: ${score}`;
+        }
+
+        function populatePronounTable() {
+            const tbody = document.getElementById('pronoun-table-body');
+            tbody.innerHTML = ''; // Maak leeg
+
+            pronounTableData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-2 font-bold bg-gray-50 text-text-color border border-gray-200">${row.case}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.ich}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.du}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.er}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.sie}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.es}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.wir}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.ihr}</td>
+                    <td class="px-4 py-2 border border-gray-200">${row.sie_Sie}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function togglePronounTable() {
+            const tableContainer = document.getElementById('pronoun-table-container');
+            const button = document.getElementById('toggle-table-button');
+            const isHidden = tableContainer.classList.contains('hidden');
+
+            if (isHidden) {
+                gsap.fromTo(tableContainer, 
+                    { opacity: 0, height: 0, scaleY: 0.8 }, 
+                    { opacity: 1, height: 'auto', scaleY: 1, duration: 0.4, ease: "power2.out", onStart: () => tableContainer.classList.remove('hidden') }
+                );
+                button.textContent = 'Verberg Hulptabel';
+            } else {
+                gsap.to(tableContainer, 
+                    { opacity: 0, height: 0, scaleY: 0.8, duration: 0.3, ease: "power2.in", onComplete: () => tableContainer.classList.add('hidden') }
+                );
+                button.textContent = 'Toon Hulptabel (Personalia)';
+            }
+        }
+
+        // Functie voor de sterren overlay animatie
+        function activateStarOverlay(isSuccess) {
+            const overlay = document.getElementById('star-overlay');
+            overlay.innerHTML = ''; 
+            
+            if (!isSuccess) return;
+
+            const color = isSuccess ? '#ffc700' : '#0070c0'; // Goud/Geel voor succes
+            const starCount = isSuccess ? 15 : 5;
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.width = '8px';
+                star.style.height = '8px';
+                star.style.backgroundColor = color;
+                star.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.opacity = 0;
+                overlay.appendChild(star);
+
+                gsap.fromTo(star, 
+                    { y: 0, opacity: 1, scale: 0.5, rotation: Math.random() * 360 }, 
+                    { 
+                        y: Math.random() * 200 - 100, // vertical move
+                        x: Math.random() * 200 - 100, // horizontal move
+                        opacity: 0, 
+                        scale: 1.5,
+                        duration: 1.5 + Math.random() * 1,
+                        ease: "power2.out",
+                        onComplete: () => star.remove()
+                    }
+                );
+            }
+        }
+
+        // Aangepaste functie: Screenshake op de input box
+        function triggerScreenshake() {
+            const inputEl = document.getElementById('answer-input');
+            if (inputEl) {
+                // Gebruik de input zelf als target voor de schud-animatie
+                gsap.to(inputEl, {
+                    x: 4, // Horizontale shake (iets kleiner voor de input)
+                    duration: 0.05,
+                    ease: "power1.inOut",
+                    repeat: 5, // Meer herhalingen voor een duidelijk effect
+                    yoyo: true, 
+                    clearProps: "x" // Reset de positie na de animatie
+                });
+            }
+        }
+        
+        // -------------------------------------------------------------
+        // DE COMPLEXE CURSOR LOGICA (Van React naar Vanilla JS met GSAP)
+        // -------------------------------------------------------------
+
+        function initTargetCursor() {
+            // Constanten uit de React code
+            const targetSelector = '.cursor-target';
+            const spinDuration = 2;
+            const constants = {
+                borderWidth: 3,
+                cornerSize: 12,
+                parallaxStrength: 0.00005
+            };
+
+            // Elementen selecteren
+            const cursor = document.getElementById('custom-cursor-wrapper');
+            const dot = document.getElementById('cursor-dot');
+            const corners = document.querySelectorAll('.target-cursor-corner');
+
+            // Status variabelen (vervangt useRef/useState)
+            let activeTarget = null;
+            let currentTargetMove = null;
+            let currentLeaveHandler = null;
+            let isAnimatingToTarget = false;
+            let resumeTimeout = null;
+            let spinTl = null;
+            let isCursorHidden = false; // Nieuwe status
+
+            // Functie om cursor te tonen/verbergen
+            const toggleCursorVisibility = (visible) => {
+                if (!cursor) return;
+                isCursorHidden = !visible;
+                gsap.to(cursor, { opacity: visible ? 1 : 0, duration: 0.3 });
+            };
+
+            // 1. Cursor Verplaatsing (Vervangt moveCursor useCallback)
+            const moveCursor = (x, y) => {
+                if (!cursor) return;
+                gsap.to(cursor, {
+                    x,
+                    y,
+                    duration: 0.1,
+                    ease: 'power3.out'
+                });
+                 // Zorg ervoor dat de cursor zichtbaar is na de eerste beweging (als niet verborgen door input)
+                if (!isCursorHidden) {
+                    gsap.to(cursor, { opacity: 1, duration: 0.3 });
+                }
+            };
+
+            // 2. Tijdlijn voor Rotatie (Vervangt createSpinTimeline)
+            const createSpinTimeline = () => {
+                if (spinTl) {
+                    spinTl.kill();
+                }
+                spinTl = gsap
+                    .timeline({ repeat: -1 })
+                    .to(cursor, { rotation: '+=360', duration: spinDuration, ease: 'none' });
+            };
+
+            // Initialiseer de spin
+            createSpinTimeline();
+
+            // Initiele positionering (zoals in React's useEffect)
+            gsap.set(cursor, {
+                xPercent: -50,
+                yPercent: -50,
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2
+            });
+
+            // 3. Update Hoeken Functie (Kernlogica voor target hover)
+            const updateCorners = (mouseX, mouseY, target) => {
+                if (!target || !cursor) return;
+                
+                const rect = target.getBoundingClientRect();
+                const cursorRect = cursor.getBoundingClientRect();
+
+                const cursorCenterX = cursorRect.left + cursorRect.width / 2;
+                const cursorCenterY = cursorRect.top + cursorRect.height / 2;
+
+                const [tlc, trc, brc, blc] = Array.from(corners);
+
+                const { borderWidth, cornerSize, parallaxStrength } = constants;
+
+                // Bereken de basis offset om de hoeken op de target te plaatsen
+                let tlOffset = {
+                    x: rect.left - cursorCenterX - borderWidth,
+                    y: rect.top - cursorCenterY - borderWidth
+                };
+                let trOffset = {
+                    x: rect.right - cursorCenterX + borderWidth - cornerSize,
+                    y: rect.top - cursorCenterY - borderWidth
+                };
+                let brOffset = {
+                    x: rect.right - cursorCenterX + borderWidth - cornerSize,
+                    y: rect.bottom - cursorCenterY + borderWidth - cornerSize
+                };
+                let blOffset = {
+                    x: rect.left - cursorCenterX - borderWidth,
+                    y: rect.bottom - cursorCenterY + borderWidth - cornerSize
+                };
+                
+                // Parallax berekening (als muispositie is gegeven)
+                if (mouseX !== undefined && mouseY !== undefined) {
+                    const targetCenterX = rect.left + rect.width / 2;
+                    const targetCenterY = rect.top + rect.height / 2;
+                    const mouseOffsetX = (mouseX - targetCenterX) * parallaxStrength * 1000; // Vermeerderd voor zichtbaar effect
+                    const mouseOffsetY = (mouseY - targetCenterY) * parallaxStrength * 1000;
+
+                    tlOffset.x += mouseOffsetX; tlOffset.y += mouseOffsetY;
+                    trOffset.x += mouseOffsetX; trOffset.y += mouseOffsetY;
+                    brOffset.x += mouseOffsetX; brOffset.y += mouseOffsetY;
+                    blOffset.x += mouseOffsetX; blOffset.y += mouseOffsetY;
+                }
+
+                const tl = gsap.timeline();
+                const cornersArray = [tlc, trc, brc, blc];
+                const offsets = [tlOffset, trOffset, brOffset, blOffset];
+
+                cornersArray.forEach((corner, index) => {
+                    tl.to(
+                        corner,
+                        {
+                            x: offsets[index].x,
+                            y: offsets[index].y,
+                            duration: 0.2,
+                            ease: 'power2.out'
+                        },
+                        0
+                    );
+                });
+            };
+            
+            // 4. Cleanup Functie
+            const cleanupTarget = target => {
+                if (currentTargetMove) {
+                    target.removeEventListener('mousemove', currentTargetMove);
+                }
+                if (currentLeaveHandler) {
+                    target.removeEventListener('mouseleave', currentLeaveHandler);
+                }
+                currentTargetMove = null;
+                currentLeaveHandler = null;
+            };
+
+            // 5. Leave Handler (Van target naar idle)
+            const handleLeave = (target) => () => {
+                activeTarget = null;
+                isAnimatingToTarget = false;
+
+                if (corners) {
+                    // Stuur de hoeken terug naar hun oorspronkelijke positie
+                    const positions = [
+                        { x: -constants.cornerSize * 1.5, y: -constants.cornerSize * 1.5 },
+                        { x: constants.cornerSize * 0.5, y: -constants.cornerSize * 1.5 },
+                        { x: constants.cornerSize * 0.5, y: constants.cornerSize * 0.5 },
+                        { x: -constants.cornerSize * 1.5, y: constants.cornerSize * 0.5 }
+                    ];
+
+                    const tl = gsap.timeline();
+                    Array.from(corners).forEach((corner, index) => {
+                        gsap.killTweensOf(corner);
+                        tl.to(
+                            corner,
+                            {
+                                x: positions[index].x,
+                                y: positions[index].y,
+                                duration: 0.3,
+                                ease: 'power3.out'
+                            },
+                            0
+                        );
+                    });
+                }
+
+                // Hervat de rotatie na een korte vertraging
+                resumeTimeout = setTimeout(() => {
+                    if (!activeTarget && cursor && spinTl) {
+                        const currentRotation = gsap.getProperty(cursor, 'rotation');
+                        const normalizedRotation = currentRotation % 360;
+
+                        spinTl.kill(); // Dood de oude eindeloze timeline
+                        
+                        // Zorg voor een soepele overgang naar de continue rotatie
+                        gsap.to(cursor, {
+                            rotation: normalizedRotation + 360,
+                            duration: spinDuration * (1 - normalizedRotation / 360),
+                            ease: 'none',
+                            onComplete: () => {
+                                // Start de eindeloze spin opnieuw
+                                spinTl = gsap.timeline({ repeat: -1 })
+                                    .to(cursor, { rotation: '+=360', duration: spinDuration, ease: 'none' });
+                            }
+                        });
+                    }
+                    resumeTimeout = null;
+                }, 50);
+
+                cleanupTarget(target);
+            };
+
+            // 6. Enter Handler (De hoofd event listener)
+            const enterHandler = e => {
+                // Gebruik .closest om het werkelijke target (de button/input) te vinden
+                const target = e.target.closest(targetSelector);
+                if (!target || activeTarget === target) return;
+
+                if (activeTarget) {
+                    // Verlaat het vorige actieve target
+                    if (currentLeaveHandler) {
+                        currentLeaveHandler();
+                    }
+                    cleanupTarget(activeTarget);
+                }
+
+                if (resumeTimeout) {
+                    clearTimeout(resumeTimeout);
+                    resumeTimeout = null;
+                }
+
+                activeTarget = target;
+                
+                // Stop de rotatie en reset naar 0
+                gsap.killTweensOf(cursor, 'rotation');
+                if (spinTl) spinTl.pause();
+                gsap.set(cursor, { rotation: 0 });
+
+                // Vlieg de hoeken naar de startpositie
+                isAnimatingToTarget = true;
+                updateCorners(e.clientX, e.clientY, target);
+
+                setTimeout(() => {
+                    isAnimatingToTarget = false;
+                }, 200); // 200ms is de duur van de updateCorners animatie
+
+                // Throttle de mousemove voor parallax update
+                let moveThrottle = null;
+                const targetMove = ev => {
+                    if (moveThrottle || isAnimatingToTarget) return;
+                    moveThrottle = requestAnimationFrame(() => {
+                        updateCorners(ev.clientX, ev.clientY, target);
+                        moveThrottle = null;
+                    });
+                };
+
+                const leaveHandler = handleLeave(target);
+
+                currentTargetMove = targetMove;
+                currentLeaveHandler = leaveHandler;
+
+                target.addEventListener('mousemove', targetMove);
+                target.addEventListener('mouseleave', leaveHandler);
+            };
+            
+            // 7. Klik animatie
+            const mouseDownHandler = () => {
+                if (!dot) return;
+                gsap.to(dot, { scale: 0.7, duration: 0.3 });
+                gsap.to(cursor, { scale: 0.9, duration: 0.2 });
+            };
+
+            const mouseUpHandler = () => {
+                if (!dot) return;
+                gsap.to(dot, { scale: 1, duration: 0.3 });
+                gsap.to(cursor, { scale: 1, duration: 0.2 });
+            };
+
+            // Input Focus en Blur Handlers (om custom cursor te verbergen/tonen)
+            const inputFocusHandler = () => {
+                toggleCursorVisibility(false); // Verberg custom cursor
+            };
+
+            const inputBlurHandler = () => {
+                if (!activeTarget) {
+                    toggleCursorVisibility(true); // Toon custom cursor als er geen ander target is
+                }
+            };
+
+
+            // Globale listeners
+            const moveHandler = e => moveCursor(e.clientX, e.clientY);
+            window.addEventListener('mousemove', moveHandler);
+            window.addEventListener('mouseover', enterHandler); // Gebruik over, niet mouseenter
+            window.addEventListener('mousedown', mouseDownHandler);
+            window.addEventListener('mouseup', mouseUpHandler);
+            
+            // Listener voor Enter-besturing
+            document.addEventListener('keydown', handleEnterKey);
+
+
+            // Cleanup bij verlaten van het venster
+            document.addEventListener('mouseleave', () => {
+                gsap.to(cursor, { opacity: 0, duration: 0.3 });
+            });
+            
+            // Attach input handlers
+            const inputEl = document.getElementById('answer-input');
+            if (inputEl) {
+                inputEl.addEventListener('focus', inputFocusHandler);
+                inputEl.addEventListener('blur', inputBlurHandler);
+            }
+        }
+        
+        // Initialiseer de game bij het laden van de pagina
+        window.onload = function() {
+            // ... (Bestaande app initialisatie)
+            populatePronounTable();
+            shuffleArray(questions);
+            // Zorg ervoor dat de elementen bestaan voordat scramblerInstance wordt gemaakt
+            if (document.getElementById('german-sentence')) {
+                scramblerInstance = new TextScrambler(document.getElementById('german-sentence'));
+            } else {
+                // Valback voor het geval de HTML structuur nog niet 100% geladen is
+                console.error("Duitse zins-element niet gevonden.");
+                // Zorg ervoor dat we de init doorzetten, essentieel voor de cursor
+            }
+            loadQuestion();
+            updateScoreDisplay(); // Initialiseer score display
+            
+            // -----------------------------------------------------------------
+            // START DE COMPLEXE CUSTOM CURSOR
+            // -----------------------------------------------------------------
+            initTargetCursor();
+        };
+
+    </script>
+</head>
+<body class="bg-secondary min-h-screen flex flex-col items-center p-4 font-sans">
+
+    <!-- Home Button -->
+    <a href="../index.html" class="fixed top-5 right-5 z-50 bg-primary hover:bg-opacity-90 text-white rounded-full p-3 shadow-lg transition duration-200" title="Terug naar home">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+    </a>
+
+<div class="target-cursor-wrapper" id="custom-cursor-wrapper">
+        <div class="target-cursor-dot" id="cursor-dot"></div>
+        <div class="target-cursor-corner corner-tl"></div>
+        <div class="target-cursor-corner corner-tr"></div>
+        <div class="target-cursor-corner corner-br"></div>
+        <div class="target-cursor-corner corner-bl"></div>
+    </div>
+
+
+    <div id="star-overlay" class="fixed inset-0 pointer-events-none overflow-hidden z-10"></div>
+
+    
+
+<div id="main-content-wrapper" class="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-10 z-20">
+        <h1 class="text-4xl font-extrabold text-primary mb-2 text-center">Duitse Persoonlijke Voornaamwoorden</h1>
+        <p id="score-display" class="text-lg text-gray-600 font-semibold mb-6 text-center">Score: 0</p>
+        
+        
+
+<div class="bg-gray-100 p-6 rounded-xl mb-6 shadow-inner">
+            <p class="text-sm font-semibold text-gray-500 mb-2">Opdracht: Vul het juiste persoonlijke voornaamwoord in</p>
+            <div class="text-3xl font-bold text-text-color mb-4 min-h-[40px]" id="german-sentence">...</div>
+            
+            
+
+<p id="nl-context-hint" class="text-base text-gray-600 font-medium pt-3 mt-3 border-t border-gray-300"></p>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+            <input type="text" id="answer-input" placeholder="Je antwoord (bijv. mich, ihm, euch)" class="cursor-target flex-grow p-3 border-2 border-gray-300 rounded-lg focus:border-primary outline-none transition duration-200">
+            
+            <button id="check-button" onclick="checkAnswer()" class="cursor-target px-6 py-3 bg-primary text-white font-bold rounded-lg shadow-md hover:bg-opacity-90 transition duration-200 disabled:opacity-50 disabled:cursor-none">
+                Controleer
+            </button>
+            <button id="next-button" onclick="nextQuestion()" disabled class="cursor-target px-6 py-3 bg-gray-600 text-white font-bold rounded-lg shadow-md hover:bg-gray-700 transition duration-200 disabled:opacity-50 disabled:cursor-none">
+                Volgende
+            </button>
+        </div>
+
+        
+
+<div class="min-h-[50px] mb-6">
+            <p id="explanation-text" class="text-lg font-semibold whitespace-pre-wrap"></p>
+        </div>
+
+        <button id="toggle-table-button" onclick="togglePronounTable()" class="cursor-target w-full px-4 py-2 bg-yellow-500 text-white font-bold rounded-lg shadow-md hover:bg-yellow-600 transition duration-200 mb-4">
+            Toon Hulptabel (Personalia)
+        </button>
+
+        
+
+<div id="pronoun-table-container" class="hidden overflow-x-auto">
+            <h3 class="text-xl font-bold text-text-color mb-3">Persoonlijke Voornaamwoorden (Pronomina)</h3>
+            <table class="min-w-full bg-white rounded-lg shadow-lg border border-gray-200">
+                <thead>
+                    <tr class="bg-gray-200 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        <th class="px-4 py-3 border-b-2 border-gray-300 text-left">Naamval</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Ik</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Jij</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Hij</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Zij (enkelv.)</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Het</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Wij</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Jullie</th>
+                        <th class="px-4 py-3 border-b-2 border-gray-300">Zij/U (meerv./beleefd)</th>
+                    </tr>
+                </thead>
+                <tbody id="pronoun-table-body" class="text-sm text-gray-800">
+                    
+
+</tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duitse Naamval Trainer</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <!-- Tailwind CSS laden -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Lucide Icons voor een moderne look -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        /* Aangepaste configuratie voor Tailwind en de font */
+        :root {
+            --color-primary: #1D4ED8; /* Blue-700 */
+            --color-accent: #FBBF24; /* Amber-500 */
+        }
+        body {
+            font-family: 'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f3f4f6; /* Lichtgrijze achtergrond */
+        }
+        .card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .correct-animation {
+            animation: correct-pulse 0.5s ease-out;
+        }
+        .incorrect-animation {
+            animation: incorrect-shake 0.5s ease-out;
+        }
+        @keyframes correct-pulse {
+            0% { transform: scale(1); background-color: #f3f4f6; }
+            50% { transform: scale(1.02); background-color: #D1FAE5; /* Green-100 */ }
+            100% { transform: scale(1); background-color: #f3f4f6; }
+        }
+        @keyframes incorrect-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .table-naamval th, .table-naamval td {
+            padding: 8px 12px;
+            text-align: center;
+        }
+        .table-naamval th {
+            background-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 flex items-center justify-center">
+
+    <!-- Home Button -->
+    <a href="../index.html" class="fixed top-5 right-5 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg transition duration-200" title="Terug naar home">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+    </a>
+
+    <div id="app" class="w-full max-w-2xl">
+        <!-- Titel en Scorebord -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2 flex items-center justify-center">
+                <i data-lucide="gemini" class="w-8 h-8 mr-2 text-blue-600"></i>
+                Duitse Naamval Trainer
+            </h1>
+            <p class="text-gray-600">Oefen de <strong>der-</strong> en <strong>ein-groep</strong> in de 1e, 3e en 4e naamval.</p>
+            <div class="mt-4 flex justify-center space-x-6 text-lg font-semibold">
+                <div class="text-green-600 flex items-center">
+                    <i data-lucide="check-circle" class="w-5 h-5 mr-1"></i> Correct: <span id="score-correct" class="ml-1">0</span>
+                </div>
+                <div class="text-red-600 flex items-center">
+                    <i data-lucide="x-circle" class="w-5 h-5 mr-1"></i> Fout: <span id="score-incorrect" class="ml-1">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Oefengebied (Kaart) -->
+        <div id="question-card" class="card bg-white p-6 sm:p-8 rounded-xl transition duration-300">
+            
+            <!-- Vraagsectie -->
+            <div class="mb-6">
+                <!-- Aangepast: Toont welk woordtype ingevuld moet worden -->
+                <p id="context-info" class="text-base font-bold text-gray-700 mb-4 border-b pb-2"></p>
+                <div class="text-2xl sm:text-3xl font-bold text-gray-800 leading-relaxed" id="question-sentence">
+                    Laden van de vraag...
+                </div>
+            </div>
+
+            <!-- Hint en Antwoordsectie -->
+            <div class="space-y-4">
+                <input type="text" id="user-input" placeholder="Vul hier de juiste Duitse vorm in (bijv. dem, eine, keinen)"
+                       class="w-full p-3 border-2 border-gray-300 rounded-lg text-lg focus:border-blue-500 focus:ring-blue-500 transition"
+                       autocomplete="off" disabled>
+                
+                <div id="feedback-container" class="min-h-6 text-center text-red-600 font-semibold transition-opacity"></div>
+                
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                    <button id="check-button" onclick="checkAnswer()" disabled
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 disabled:bg-gray-400">
+                        Controleer
+                    </button>
+                    <button id="next-button" onclick="nextQuestion()" disabled
+                            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition duration-200 focus:outline-none focus:ring-4 focus:ring-gray-300/50">
+                        Volgende Vraag
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Collapsible Uitlegsectie met Straf (NIEUW) -->
+        <details class="mt-8 bg-white p-4 rounded-xl shadow-md border border-gray-200" onclick="cheatPenalty()">
+            <summary class="font-bold text-lg text-gray-800 cursor-pointer flex items-center">
+                <i data-lucide="book-open" class="w-5 h-5 mr-2 text-red-500"></i>
+                Uitleg en Vervoegingen (Spieken = Fout!)
+            </summary>
+            <div class="pt-4 text-sm text-gray-700 border-t mt-3">
+                
+                <h4 class="font-bold text-base mt-3 mb-2">1. De der-groep (Der, Die, Das)</h4>
+                <div class="overflow-x-auto">
+                    <table class="table-naamval w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th>Naamval</th>
+                                <th>M (der)</th>
+                                <th>V (die)</th>
+                                <th>O (das)</th>
+                                <th>MV (die)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>1e (Nominatief)</strong></td><td>der</td><td>die</td><td>das</td><td>die</td></tr>
+                            <tr class="bg-blue-50"><td><strong>3e (Datief)</strong></td><td><strong>dem</strong></td><td><strong>der</strong></td><td><strong>dem</strong></td><td><strong>den</strong> (+n)</td></tr>
+                            <tr><td><strong>4e (Accusatief)</strong></td><td><strong>den</strong></td><td>die</td><td>das</td><td>die</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4 class="font-bold text-base mt-4 mb-2">2. De ein-groep (Ein, Mein, Kein, etc.)</h4>
+                <div class="overflow-x-auto">
+                    <table class="table-naamval w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th>Naamval</th>
+                                <th>M (ein)</th>
+                                <th>V (eine)</th>
+                                <th>O (ein)</th>
+                                <th>MV (keine)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>1e (Nominatief)</strong></td><td>ein</td><td>eine</td><td>ein</td><td>keine</td></tr>
+                            <tr class="bg-blue-50"><td><strong>3e (Datief)</strong></td><td><strong>einem</strong></td><td><strong>einer</strong></td><td><strong>einem</strong></td><td><strong>keinen</strong> (+n)</td></tr>
+                            <tr><td><strong>4e (Accusatief)</strong></td><td><strong>einen</strong></td><td>eine</td><td>ein</td><td>keine</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4 class="font-bold text-base mt-4 mb-2">3. Overzicht Voorzetsels</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li><strong>Altijd 3e naamval (Datief):</strong> *aus, bei, mit, nach, seit, von, zu, ans, außer, gegenüber*</li>
+                    <li><strong>Altijd 4e naamval (Accusatief):</strong> *durch, für, gegen, ohne, um.*</li>
+                </ul>
+            </div>
+        </details>
+    </div>
+
+    <script>
+        // Data voor de Duitse Naamval Trainer
+        const nouns = [
+            { word: "Tisch", gender: "m", article: "der", meaning: "tafel" },
+            { word: "Brief", gender: "m", article: "der", meaning: "brief" },
+            { word: "Hund", gender: "m", article: "der", meaning: "hond" },
+            { word: "Frau", gender: "f", article: "die", meaning: "vrouw" },
+            { word: "Sonne", gender: "f", article: "die", meaning: "zon" },
+            { word: "Katze", gender: "f", article: "die", meaning: "kat" },
+            { word: "Kind", gender: "o", article: "das", meaning: "kind" },
+            { word: "Auto", gender: "o", article: "das", meaning: "auto" },
+            { word: "Haus", gender: "o", article: "das", meaning: "huis" },
+            { word: "Eltern", gender: "mv", article: "die", meaning: "ouders" },
+            { word: "Kinder", gender: "mv", article: "die", meaning: "kinderen" }
+        ];
+
+        // Der-groep (Der, dieser, jeder, welcher, alle)
+        const derGroup = {
+            'm': { 1: "der", 3: "dem", 4: "den" },
+            'f': { 1: "die", 3: "der", 4: "die" },
+            'o': { 1: "das", 3: "dem", 4: "das" },
+            'mv': { 1: "die", 3: "den", 4: "die" } // Noun needs -n in Dativ MV (handled later)
+        };
+
+        // Ein-groep (Ein, kein, mein, dein, sein, ihr, unser, euer, ihr)
+        const einGroup = {
+            'm': { 1: "ein", 3: "einem", 4: "einen" },
+            'f': { 1: "eine", 3: "einer", 4: "eine" },
+            'o': { 1: "ein", 3: "einem", 4: "ein" },
+            'mv': { 1: "keine", 3: "keinen", 4: "keine" } // Gebruik 'kein' als voorbeeld voor uitgangen
+        };
+
+        const prepositions3 = ["mit", "von", "zu", "nach", "bei", "aus"];
+        const prepositions4 = ["für", "durch", "ohne", "gegen", "um"];
+        
+        // Globale status
+        let currentQuestion = {};
+        let score = { correct: 0, incorrect: 0 };
+
+        // UI Elementen
+        const questionCard = document.getElementById('question-card');
+        const questionSentenceEl = document.getElementById('question-sentence');
+        const contextInfoEl = document.getElementById('context-info');
+        const userInputEl = document.getElementById('user-input');
+        const feedbackContainerEl = document.getElementById('feedback-container');
+        const checkButton = document.getElementById('check-button');
+        const nextButton = document.getElementById('next-button');
+        const scoreCorrectEl = document.getElementById('score-correct');
+        const scoreIncorrectEl = document.getElementById('score-incorrect');
+
+        // --- Helper Functies ---
+
+        /** Krijgt het juiste lidwoord/voornaamwoord voor de gevraagde naamval en groep */
+        function getCorrectForm(caseNum, group, gender) {
+            const map = group === 'der' ? derGroup : einGroup;
+            const form = map[gender][caseNum];
+            return form;
+        }
+
+        /** Past het zelfstandig naamwoord aan voor 3e naamval meervoud */
+        function adjustNounForCase(word, caseNum, gender) {
+            // Regel: In de 3e naamval meervoud krijgt het zelfstandig naamwoord een -n (tenzij al -n of -s)
+            if (caseNum === 3 && gender === 'mv' && !word.endsWith('n') && !word.endsWith('s')) {
+                return word + "n";
+            }
+            return word;
+        }
+
+        /** Haalt een willekeurig element uit een array */
+        function getRandom(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // --- Game Logica ---
+
+        function generateQuestion() {
+            // 1. Kies een willekeurig zelfstandig naamwoord
+            const nounData = getRandom(nouns);
+            const { word, gender, meaning, article } = nounData;
+
+            // 2. Kies de groep (Der of Ein)
+            const group = Math.random() < 0.5 ? 'der' : 'ein';
+
+            // --- HINT: WELK WOORD TYPE INVULLEN (DE/HET, EEN, GEEN) ---
+            let fillInType;
+            if (group === 'der') {
+                fillInType = "de/het (Der-groep)";
+            } else if (gender === 'mv') {
+                fillInType = "geen (Kein-groep)";
+            } else {
+                fillInType = "een (Ein-groep)";
+            }
+            // Aangepaste context: toon het geslacht (m/v/o/mv) i.p.v. de Nederlandse vertaling
+            const context = `Vul in: ${fillInType} | Geslacht: ${gender.toUpperCase()}`;
+            // --------------------------------------------------------
+            
+            // 3. Kies de naamval en scenario (1, 3, of 4)
+            let caseNum, preposition, sentenceTemplate, correctForm, caseReason, genderDutch;
+
+            genderDutch = gender === 'm' ? 'mannelijk' : gender === 'f' ? 'vrouwelijk' : gender === 'o' ? 'onzijdig' : 'meervoud';
+
+            // Gebruik een gewogen willekeurige selectie voor het type vraag
+            const scenario = Math.random();
+
+            if (scenario < 0.3) { // 30%: Nominatief (1e naamval)
+                caseNum = 1;
+                caseReason = "1e Naamval (Nominatief). Het is het onderwerp (wie/wat?) van de zin.";
+                sentenceTemplate = `... ${word} ist schön.`;
+                correctForm = getCorrectForm(1, group, gender);
+
+            } else if (scenario < 0.6) { // 30%: 3e naamval (door voorzetsel)
+                caseNum = 3;
+                preposition = getRandom(prepositions3);
+                const adjustedWord = adjustNounForCase(word, 3, gender);
+                caseReason = `3e Naamval (Datief). Dit wordt **altijd** bepaald door het voorzetsel '${preposition}'.`;
+                sentenceTemplate = `Ich spreche ${preposition} ... ${adjustedWord}.`;
+                correctForm = getCorrectForm(3, group, gender);
+
+            } else { // 40%: 4e naamval (door voorzetsel OF lijdend voorwerp)
+                if (Math.random() < 0.6) { // 60% kans op 4e naamval voorzetsel
+                    caseNum = 4;
+                    preposition = getRandom(prepositions4);
+                    caseReason = `4e Naamval (Accusatief). Dit wordt **altijd** bepaald door het voorzetsel '${preposition}'.`;
+                    sentenceTemplate = `Der Kuchen ist ${preposition} ... ${word}.`;
+                } else { // 40% kans op 4e naamval als lijdend voorwerp (zien/hebben/etc.)
+                    caseNum = 4;
+                    caseReason = "4e Naamval (Accusatief). Het is het lijdend voorwerp (wie/wat?) van de zin.";
+                    // Pas zinstemplate aan op basis van geslacht (om afwisseling te geven)
+                    if (gender === 'f' || gender === 'o' || gender === 'mv') {
+                        sentenceTemplate = `Ich habe ... ${word} gezien.`;
+                    } else {
+                        sentenceTemplate = `Wir suchen ... ${word}.`;
+                    }
+                }
+                correctForm = getCorrectForm(4, group, gender);
+            }
+
+            // 4. Maak de zinsopmaak (eerste letter hoofdletter)
+            const sentence = sentenceTemplate.charAt(0).toUpperCase() + sentenceTemplate.slice(1);
+            
+            // 5. Genereer de volledige uitleg
+            const fullExplanation = `
+                <strong class="text-blue-700">Gedetailleerde Uitleg:</strong>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>**Naamval:** ${caseReason}</li>
+                    <li>**Geslacht:** Het Duitse woord is *${word}* (**${article}**). Dit is **${genderDutch}**.</li>
+                    <li>**Groep:** De **${group === 'der' ? 'Der-groep' : 'Ein/Kein-groep'}** is gevraagd.</li>
+                    <li>**Vorm:** De juiste vervoeging voor de ${caseNum}e naamval (${gender}) is: <strong class="text-green-700">${correctForm}</strong>.</li>
+                </ul>
+            `;
+
+            return {
+                sentence: sentence,
+                correct: correctForm,
+                context: context,
+                explanation: fullExplanation
+            };
+        }
+
+        function displayQuestion() {
+            questionCard.classList.remove('correct-animation', 'incorrect-animation');
+            currentQuestion = generateQuestion();
+            questionSentenceEl.innerHTML = currentQuestion.sentence.replace('...', `<span class="text-blue-600 underline decoration-dashed decoration-2">.......</span>`);
+            contextInfoEl.textContent = currentQuestion.context;
+
+            userInputEl.value = '';
+            userInputEl.disabled = false;
+            userInputEl.focus();
+            checkButton.disabled = false;
+            nextButton.disabled = true;
+            feedbackContainerEl.innerHTML = ''; // Gebruik innerHTML voor de nieuwe uitleg
+        }
+
+        function checkAnswer() {
+            // Check of de vraag al beantwoord is (voorkomt dubbel klikken na penalty)
+            if (checkButton.disabled && !feedbackContainerEl.textContent.includes('Oefening afgebroken')) return;
+
+            const userText = userInputEl.value.trim().toLowerCase();
+            const correctText = currentQuestion.correct.toLowerCase();
+
+            if (!userText) {
+                feedbackContainerEl.textContent = "Voer eerst een antwoord in!";
+                return;
+            }
+
+            const isCorrect = userText === correctText;
+            
+            checkButton.disabled = true;
+            userInputEl.disabled = true;
+            nextButton.disabled = false;
+            
+            if (isCorrect) {
+                score.correct++;
+                feedbackContainerEl.innerHTML = `<p class="font-bold text-green-600 text-lg">✅ Juist! Het is "${currentQuestion.correct}".</p>`;
+                feedbackContainerEl.innerHTML += `<div class="mt-2 p-3 bg-green-100 rounded-lg text-left text-sm text-gray-800">${currentQuestion.explanation}</div>`;
+                questionCard.classList.add('correct-animation');
+            } else {
+                score.incorrect++;
+                feedbackContainerEl.innerHTML = `<p class="font-bold text-red-600 text-lg">❌ Fout! Je antwoord was "${userInputEl.value}", maar het moest "${currentQuestion.correct}" zijn.</p>`;
+                feedbackContainerEl.innerHTML += `<div class="mt-2 p-3 bg-red-100 rounded-lg text-left text-sm text-gray-800">${currentQuestion.explanation}</div>`;
+                questionCard.classList.add('incorrect-animation');
+            }
+
+            updateScoreboard();
+        }
+
+        /** Wordt aangeroepen als de gebruiker de uitlegsectie opent */
+        function cheatPenalty() {
+            const detailsElement = document.querySelector('details');
+            
+            // Check of de details open is EN de vraag nog actief is
+            if (detailsElement.open && !checkButton.disabled) {
+                score.incorrect++;
+                updateScoreboard();
+                
+                // Toon de waarschuwing
+                feedbackContainerEl.innerHTML = `<p class="font-bold text-red-600 text-lg">⚠️ Oefening afgebroken! Je hebt gespiekt.</p>`;
+                
+                // Beëindig de huidige vraag
+                checkButton.disabled = true;
+                userInputEl.disabled = true;
+                nextButton.disabled = false;
+                
+                questionCard.classList.add('incorrect-animation');
+            }
+        }
+
+
+        function nextQuestion() {
+             // Zorg dat de animatie klaar is voor de volgende vraag
+            questionCard.classList.remove('correct-animation', 'incorrect-animation');
+            displayQuestion();
+        }
+        
+        function updateScoreboard() {
+            scoreCorrectEl.textContent = score.correct;
+            scoreIncorrectEl.textContent = score.incorrect;
+        }
+
+        // --- Event Listeners ---
+
+        function handleKeyPress(event) {
+            // Als de Enter-toets wordt ingedrukt
+            if (event.key === 'Enter') {
+                if (!checkButton.disabled) {
+                    checkAnswer();
+                } else if (!nextButton.disabled) {
+                    nextQuestion();
+                }
+            }
+        }
+        
+        // Initialisatie
+        window.onload = function() {
+            // Initialiseer Lucide icons
+            lucide.createIcons();
+            
+            // Start de eerste vraag
+            displayQuestion();
+            
+            // Voeg Enter-toets functionaliteit toe
+            document.addEventListener('keypress', handleKeyPress);
+        };
+
+    </script>
+</body>
+</html>
