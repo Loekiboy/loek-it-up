@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duits Leren: De Konjunktiv Masterclass</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
     <!-- Tailwind CSS voor responsive design -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React & ReactDOM -->
@@ -811,12 +812,8 @@
                             <div className="py-8 space-y-6 animate-fade-in">
                                 {/* Header met score */}
                                 <div className="text-center space-y-4">
-                                    <div className="inline-flex p-4 bg-green-50 text-green-600 rounded-full border border-green-100 mb-2">
-                                        <i data-lucide="party-popper" className="w-12 h-12"></i>
-                                    </div>
-                                    
                                     <div>
-                                        <h3 className="text-3xl font-black text-slate-900 tracking-tight">Gefeliciteerd! 🎉</h3>
+                                        <h3 className="text-3xl font-black text-slate-900 tracking-tight">Resultaat</h3>
                                         <p className="text-slate-500 text-sm mt-1">Je hebt de Duitse Konjunktiv Toets afgerond.</p>
                                     </div>
 
@@ -839,18 +836,17 @@
                                     {/* Feedback zin */}
                                     <p className="text-slate-600 text-sm leading-relaxed px-4">
                                         {parseFloat(getCijfer()) >= 8.0 
-                                            ? "Sensationell! Je kent de Konjunktiv als een echte Duitse native speaker! 🚀" 
+                                            ? "Uitstekend resultaat. Je beheerst de Konjunktiv zeer goed." 
                                             : parseFloat(getCijfer()) >= 5.5 
-                                                ? "Prima gedaan! Je bent geslaagd en snapt de regels uitstekend. 👍" 
-                                                : "Nog even oefenen! Bekijk de theorie nog eens goed en let op de uitzonderingen van 'hebben' en 'zijn'. 🇩🇪"}
+                                                ? "Goed resultaat. Je beheerst de regels voldoende." 
+                                                : "Nog even oefenen. Bekijk de theorie nog eens en let op de uitzonderingen van 'haben' en 'sein'."}
                                     </p>
                                 </div>
 
                                 {/* Antwoorden Review */}
                                 <div className="border-t border-slate-100 pt-6">
-                                    <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                        <i data-lucide="list-checks" className="w-5 h-5"></i>
-                                        Jouw Antwoorden
+                                    <h4 className="text-lg font-bold text-slate-800 mb-4">
+                                        Jouw antwoorden
                                     </h4>
                                     
                                     <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -868,12 +864,12 @@
                                                     }`}
                                                 >
                                                     <div className="flex items-start gap-3">
-                                                        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${
+                                                        <div className={`flex-shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
                                                             isCorrect 
-                                                                ? 'bg-green-500 text-white' 
-                                                                : 'bg-red-500 text-white'
+                                                                ? 'bg-green-100 text-green-700 border-green-200' 
+                                                                : 'bg-red-100 text-red-700 border-red-200'
                                                         }`}>
-                                                            {isCorrect ? '✓' : '✗'}
+                                                            {isCorrect ? 'Goed' : 'Fout'}
                                                         </div>
                                                         
                                                         <div className="flex-1 min-w-0">
@@ -898,7 +894,7 @@
                                                                         {q.correct}
                                                                     </p>
                                                                     <p className="text-xs text-slate-600 mt-2 italic">
-                                                                        💡 {q.hint}
+                                                                        Tip: {q.hint}
                                                                     </p>
                                                                 </div>
                                                             )}
