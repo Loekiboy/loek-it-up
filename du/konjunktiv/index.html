@@ -808,43 +808,110 @@
                             </>
                         ) : (
                             /* PRACHTIG CONFETTI EN SUCCESS SCHERM */
-                            <div className="text-center py-8 space-y-6 animate-fade-in max-w-lg mx-auto">
-                                <div className="inline-flex p-4 bg-green-50 text-green-600 rounded-full border border-green-100 mb-2">
-                                    <i data-lucide="party-popper" className="w-12 h-12"></i>
-                                </div>
-                                
-                                <div>
-                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Gefeliciteerd! 🎉</h3>
-                                    <p className="text-slate-500 text-sm mt-1">Je hebt de Duitse Konjunktiv Toets afgerond.</p>
+                            <div className="py-8 space-y-6 animate-fade-in">
+                                {/* Header met score */}
+                                <div className="text-center space-y-4">
+                                    <div className="inline-flex p-4 bg-green-50 text-green-600 rounded-full border border-green-100 mb-2">
+                                        <i data-lucide="party-popper" className="w-12 h-12"></i>
+                                    </div>
+                                    
+                                    <div>
+                                        <h3 className="text-3xl font-black text-slate-900 tracking-tight">Gefeliciteerd! 🎉</h3>
+                                        <p className="text-slate-500 text-sm mt-1">Je hebt de Duitse Konjunktiv Toets afgerond.</p>
+                                    </div>
+
+                                    {/* Score board */}
+                                    <div className="bg-slate-50 border border-slate-100 p-6 rounded-2xl grid grid-cols-2 gap-4 divide-x divide-slate-200 max-w-md mx-auto">
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Jouw Cijfer</span>
+                                            <span className={`text-4xl font-black block mt-1 ${parseFloat(getCijfer()) >= 5.5 ? 'text-green-600' : 'text-red-500'}`}>
+                                                {getCijfer()}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Goede Antwoorden</span>
+                                            <span className="text-4xl font-black text-slate-800 block mt-1">
+                                                {getScore()} / {selectedQuestions.length}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Feedback zin */}
+                                    <p className="text-slate-600 text-sm leading-relaxed px-4">
+                                        {parseFloat(getCijfer()) >= 8.0 
+                                            ? "Sensationell! Je kent de Konjunktiv als een echte Duitse native speaker! 🚀" 
+                                            : parseFloat(getCijfer()) >= 5.5 
+                                                ? "Prima gedaan! Je bent geslaagd en snapt de regels uitstekend. 👍" 
+                                                : "Nog even oefenen! Bekijk de theorie nog eens goed en let op de uitzonderingen van 'hebben' en 'zijn'. 🇩🇪"}
+                                    </p>
                                 </div>
 
-                                {/* Score board */}
-                                <div className="bg-slate-50 border border-slate-100 p-6 rounded-2xl grid grid-cols-2 gap-4 divide-x divide-slate-200">
-                                    <div>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Jouw Cijfer</span>
-                                        <span className={`text-4xl font-black block mt-1 ${parseFloat(getCijfer()) >= 5.5 ? 'text-green-600' : 'text-red-500'}`}>
-                                            {getCijfer()}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Goede Antwoorden</span>
-                                        <span className="text-4xl font-black text-slate-800 block mt-1">
-                                            {getScore()} / {selectedQuestions.length}
-                                        </span>
+                                {/* Antwoorden Review */}
+                                <div className="border-t border-slate-100 pt-6">
+                                    <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                        <i data-lucide="list-checks" className="w-5 h-5"></i>
+                                        Jouw Antwoorden
+                                    </h4>
+                                    
+                                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                                        {selectedQuestions.map((q, idx) => {
+                                            const userAnswer = (userInputs[q.id] || '').trim().toLowerCase();
+                                            const isCorrect = userAnswer === q.correct.toLowerCase();
+                                            
+                                            return (
+                                                <div 
+                                                    key={q.id} 
+                                                    className={`p-4 rounded-xl border-2 transition-all ${
+                                                        isCorrect 
+                                                            ? 'bg-green-50 border-green-200' 
+                                                            : 'bg-red-50 border-red-200'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${
+                                                            isCorrect 
+                                                                ? 'bg-green-500 text-white' 
+                                                                : 'bg-red-500 text-white'
+                                                        }`}>
+                                                            {isCorrect ? '✓' : '✗'}
+                                                        </div>
+                                                        
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                                                Vraag {idx + 1}
+                                                            </p>
+                                                            
+                                                            <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                                                                <span>{q.before}</span>
+                                                                <span className={`font-bold mx-1 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                                                    {userAnswer || '(leeg)'}
+                                                                </span>
+                                                                <span>{q.after}</span>
+                                                            </p>
+                                                            
+                                                            {!isCorrect && (
+                                                                <div className="bg-white rounded-lg p-3 border border-red-100 mt-2">
+                                                                    <p className="text-xs text-slate-600 mb-1">
+                                                                        <span className="font-bold text-slate-800">Juiste antwoord:</span>
+                                                                    </p>
+                                                                    <p className="text-sm font-bold text-green-700">
+                                                                        {q.correct}
+                                                                    </p>
+                                                                    <p className="text-xs text-slate-600 mt-2 italic">
+                                                                        💡 {q.hint}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-
-                                {/* Feedback zin */}
-                                <p className="text-slate-600 text-sm leading-relaxed px-4">
-                                    {parseFloat(getCijfer()) >= 8.0 
-                                        ? "Sensationell! Je kent de Konjunktiv als een echte Duitse native speaker! 🚀" 
-                                        : parseFloat(getCijfer()) >= 5.5 
-                                            ? "Prima gedaan! Je bent geslaagd en snapt de regels uitstekend. 👍" 
-                                            : "Nog even oefenen! Bekijk de theorie nog eens goed en let op de uitzonderingen van 'haben' en 'sein'. 🇩🇪"}
-                                </p>
 
                                 {/* Grote Actieknoppen */}
-                                <div className="flex flex-col gap-3 pt-4">
+                                <div className="flex flex-col gap-3 pt-6 border-t border-slate-100">
                                     <a 
                                         href="https://loek.oerlemans.tv/loek-it-up/"
                                         target="_blank"
