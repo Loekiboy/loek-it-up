@@ -33,7 +33,7 @@
     # Staat toe: eigen domein, Tailwind, Font Awesome (CDN), Supabase, QR code API
     Header always set Content-Security-Policy "\
         default-src 'self'; \
-        script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com 'unsafe-inline'; \
+        script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com 'unsafe-inline' 'unsafe-eval'; \
         style-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com 'unsafe-inline'; \
         font-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com; \
         img-src 'self' data: https://api.qrserver.com https://*.supabase.co; \
