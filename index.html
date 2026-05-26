@@ -109,6 +109,19 @@
             </div>
         </header>
 
+        <aside class="y2k-sidebar">
+            <div class="y2k-sidebar-inner">
+                <div class="y2k-sidebar-title" data-i18n="y2k_menu_title">Menu</div>
+                <table class="y2k-menu-table" role="presentation">
+                    <tr><td><a href="#" onclick="showHome(); return false;" data-i18n="y2k_menu_home">Home</a></td></tr>
+                    <tr><td><a href="#" onclick="showCreateList(); return false;" data-i18n="y2k_menu_new">Nieuwe lijst</a></td></tr>
+                    <tr><td><a href="#" onclick="openAppSettings(); return false;" data-i18n="y2k_menu_settings">Instellingen</a></td></tr>
+                    <tr><td><a href="#" onclick="showStatsView(); return false;" data-i18n="y2k_menu_stats">Stats</a></td></tr>
+                    <tr><td><a href="#" onclick="showSearchView(); return false;" data-i18n="y2k_menu_search">Zoeken</a></td></tr>
+                </table>
+            </div>
+        </aside>
+
         <!-- Main Content -->
         <main class="main-content" id="main-content">
             <!-- Home View -->
@@ -134,9 +147,13 @@
                             </g>
                         </svg>
                     </div>
-                    <h1><span data-i18n="home_welcome">Welkom bij</span> <span class="highlight">Loek it Up</span></h1>
-                    <p data-i18n="home_subtitle">De slimste manier om woordjes te leren!</p>
+                    <h1 class="y2k-wordart" data-split-text><span data-i18n="home_welcome">Welkom bij</span> <span class="highlight">Loek it Up</span></h1>
+                    <p data-i18n="home_subtitle" data-split-text>De slimste manier om woordjes te leren!</p>
                 </div>
+                <div class="y2k-marquee" aria-hidden="true">
+                    <span data-i18n="y2k_marquee">★ WELKOM IN 2000'S MODE ★ GLITTER ★ MARQUEE ★ ANIMATIES ★</span>
+                </div>
+                <pre class="y2k-ascii" data-text="LOEK IT UP"></pre>
 
                 <!-- BULK_IMPORT_FEATURE: Undo banner after bulk import -->
                 <div id="bulk-import-undo-banner" class="bulk-import-undo-banner hidden" role="status">
@@ -759,6 +776,17 @@
                             <div class="accordion-body">
                                 <div class="settings-item-row">
                                     <label class="toggle-label">
+                                        <input type="checkbox" id="y2k-mode-toggle" onchange="setY2KModeEnabled(this.checked)">
+                                        <span class="toggle-switch"><span class="toggle-slider"></span></span>
+                                        <span class="toggle-text">
+                                            <strong data-i18n="y2k_mode_label">2000's mode</strong>
+                                            <span class="toggle-hint" data-i18n="y2k_mode_hint">Retro 2000's look met glitter, felle kleuren en animaties. Schakelt dark mode en accentkleur uit.</span>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div class="settings-item-row">
+                                    <label class="toggle-label">
                                         <input type="checkbox" id="dark-mode-toggle" onchange="setDarkModeEnabled(this.checked)">
                                         <span class="toggle-switch"><span class="toggle-slider"></span></span>
                                         <span class="toggle-text">
@@ -779,14 +807,17 @@
                                     </label>
                                 </div>
 
-                                <div class="settings-section-label" data-i18n="accent_color_section">Accentkleur</div>
-                                <div id="preset-colors" class="preset-colors-grid"></div>
-                                <div class="color-picker-row">
-                                    <input type="color" id="accent-color-picker" value="#FFD93D" data-i18n-aria-label="accent_color_picker_aria" aria-label="Accentkleur kiezen">
-                                    <input type="text" id="accent-color-input" value="#FFD93D" maxlength="7" data-i18n-aria-label="accent_color_hex_aria" aria-label="Accentkleur hex">
-                                    <button class="btn btn-secondary btn-small" onclick="resetAccentColor()" data-i18n="accent_color_reset">Standaard</button>
+                                <div id="accent-color-controls" class="accent-color-controls">
+                                    <div class="settings-section-label" data-i18n="accent_color_section">Accentkleur</div>
+                                    <div id="preset-colors" class="preset-colors-grid"></div>
+                                    <div class="color-picker-row">
+                                        <input type="color" id="accent-color-picker" value="#FFD93D" data-i18n-aria-label="accent_color_picker_aria" aria-label="Accentkleur kiezen">
+                                        <input type="text" id="accent-color-input" value="#FFD93D" maxlength="7" data-i18n-aria-label="accent_color_hex_aria" aria-label="Accentkleur hex">
+                                        <button class="btn btn-secondary btn-small" id="accent-color-reset" onclick="resetAccentColor()" data-i18n="accent_color_reset">Standaard</button>
+                                    </div>
+                                    <p class="setting-hint" data-i18n="accent_color_hint">Kies een kleur om het uiterlijk aan te passen.</p>
+                                    <p id="y2k-lock-hint" class="setting-hint hidden" data-i18n="y2k_lock_hint">2000's mode is actief: dark mode en accentkleur zijn tijdelijk uitgeschakeld.</p>
                                 </div>
-                                <p class="setting-hint" data-i18n="accent_color_hint">Kies een kleur om het uiterlijk aan te passen.</p>
                             </div>
                         </div>
 
@@ -833,6 +864,7 @@
                     </div>
                 </div>
             </div>
+
 
             <!-- Bulk Import Modal -->
             <!-- BULK_IMPORT_FEATURE: Remove this entire block to disable bulk import -->

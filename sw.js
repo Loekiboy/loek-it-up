@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loek-it-up-v8';
+const CACHE_NAME = 'loek-it-up-v10';
 
 // Lokale assets — moeten slagen voor install
 const LOCAL_ASSETS = [
@@ -64,24 +64,64 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const isExternal = url.origin !== self.location.origin;
   const isFontAwesome = FA_WEBFONT_PATTERN.test(url.href);
+  const isNavigationRequest = event.request.mode === 'navigate';
 
   // Skip non-GET requests and Supabase API calls
   if (event.request.method !== 'GET' || url.hostname.includes('supabase.co')) {
     return;
   }
 
+  // HTML navigaties: altijd eerst netwerk om witte pagina's door verouderde cache te voorkomen.
+  // Bij netwerkfout valt hij terug op cache.
+  if (isNavigationRequest) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+          });
+        })
+    );
+    return;
+  }
+
+  // Externe resources (zoals CDN scripts/CSS): eerst netwerk.
+  // Zo vermijden we dat verouderde of corrupte cache styling/JS breekt.
+  if (isExternal) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && (response.status === 200 || response.type === 'opaque')) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            return Response.error();
+          });
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       if (cachedResponse) {
-        // Stale-while-revalidate voor externe assets (Font Awesome, etc.)
-        if (isExternal) {
-          fetch(event.request).then(networkResponse => {
-            if (networkResponse && networkResponse.ok) {
-              const clone = networkResponse.clone();
-              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-            }
-          }).catch(() => { /* achtergrond update mislukt, geen probleem */ });
-        }
         return cachedResponse;
       }
 
@@ -91,20 +131,8 @@ self.addEventListener('fetch', event => {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
         }
-        // Cache ook cross-origin responses voor Font Awesome (CSS + woff2 fonts) en andere CDN resources
-        if (response && (response.status === 200 || response.type === 'opaque') && isExternal) {
-          // Cache Font Awesome fonts (woff2, etc.) en CSS altijd
-          if (isFontAwesome || response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
-          }
-        }
         return response;
       }).catch(() => {
-        // Als fetch mislukt en geen cache beschikbaar, geef een lege response voor externe resources
-        if (isExternal) {
-          return new Response('', { status: 408, statusText: 'Offline' });
-        }
         return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
       });
     })

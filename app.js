@@ -108,6 +108,7 @@ const TRANSLATIONS = {
         // Home
         home_welcome: 'Welkom bij',
         home_subtitle: 'De slimste manier om woordjes te leren!',
+        y2k_marquee: '★ WELKOM IN 2000\'S MODE ★ GLITTER ★ MARQUEE ★ ANIMATIES ★',
         bulk_undo_action: 'Ongedaan maken',
         close_btn: 'Sluiten',
         feedback_cta_title: 'Heb je een idee of bug gevonden?',
@@ -266,6 +267,8 @@ const TRANSLATIONS = {
         // App settings modal
         app_settings_title: 'App Instellingen',
         appearance_accordion: 'Uiterlijk',
+        y2k_mode_label: '2000\'s mode',
+        y2k_mode_hint: 'Retro 2000\'s look met glitter, felle kleuren en animaties. Schakelt dark mode en accentkleur uit.',
         dark_mode_label: 'Dark mode',
         dark_mode_hint: 'Donker thema voor de hele app',
         dynamic_logo_label: 'Logo kleur aanpassen',
@@ -275,6 +278,13 @@ const TRANSLATIONS = {
         accent_color_hex_aria: 'Accentkleur hex',
         accent_color_reset: 'Standaard',
         accent_color_hint: 'Kies een kleur om het uiterlijk aan te passen.',
+        y2k_lock_hint: '2000\'s mode is actief: dark mode en accentkleur zijn tijdelijk uitgeschakeld.',
+        y2k_menu_title: 'Menu',
+        y2k_menu_home: 'Home',
+        y2k_menu_new: 'Nieuwe lijst',
+        y2k_menu_settings: 'Instellingen',
+        y2k_menu_stats: 'Stats',
+        y2k_menu_search: 'Zoeken',
         cloud_accordion: 'Cloud & Synchronisatie',
         cloud_toggle_label: 'Cloud functies inschakelen',
         cloud_toggle_hint: 'Inloggen, openbare lijsten en online sync',
@@ -460,6 +470,7 @@ const TRANSLATIONS = {
         // Home
         home_welcome: 'Welcome to',
         home_subtitle: 'The smartest way to learn vocabulary!',
+        y2k_marquee: '★ WELCOME TO 2000\'S MODE ★ GLITTER ★ MARQUEE ★ ANIMATIONS ★',
         bulk_undo_action: 'Undo',
         close_btn: 'Close',
         feedback_cta_title: 'Have an idea or found a bug?',
@@ -618,6 +629,8 @@ const TRANSLATIONS = {
         // App settings modal
         app_settings_title: 'App Settings',
         appearance_accordion: 'Appearance',
+        y2k_mode_label: '2000\'s mode',
+        y2k_mode_hint: 'Retro 2000\'s look with glitter, bold colors and animations. Disables dark mode and accent color.',
         dark_mode_label: 'Dark mode',
         dark_mode_hint: 'Dark theme for the entire app',
         dynamic_logo_label: 'Adjust logo color',
@@ -627,6 +640,13 @@ const TRANSLATIONS = {
         accent_color_hex_aria: 'Accent color hex',
         accent_color_reset: 'Default',
         accent_color_hint: 'Choose a color to customize the appearance.',
+        y2k_lock_hint: '2000\'s mode is active: dark mode and accent color are temporarily disabled.',
+        y2k_menu_title: 'Menu',
+        y2k_menu_home: 'Home',
+        y2k_menu_new: 'New list',
+        y2k_menu_settings: 'Settings',
+        y2k_menu_stats: 'Stats',
+        y2k_menu_search: 'Search',
         cloud_accordion: 'Cloud & Sync',
         cloud_toggle_label: 'Enable cloud features',
         cloud_toggle_hint: 'Login, public lists and online sync',
@@ -891,6 +911,8 @@ function applyTranslations() {
     // Sync language selector value in settings
     const langSelect = document.getElementById('app-language-select');
     if (langSelect) langSelect.value = lang;
+
+    setupY2KTextEffects();
 }
 
 /**
@@ -1032,11 +1054,14 @@ const CLOUD_SETTINGS_KEY = 'cloudEnabled';
 const DARK_MODE_SETTINGS_KEY = 'darkModeEnabled';
 const DYNAMIC_LOGO_SETTINGS_KEY = 'dynamicLogoEnabled';
 const ACCENT_COLOR_SETTINGS_KEY = 'accentColor';
+const Y2K_MODE_SETTINGS_KEY = 'y2kModeEnabled';
+const Y2K_PREV_DARK_MODE_KEY = 'y2kPrevDarkMode';
 const LAST_SETTINGS_TAB_KEY = 'lastSettingsTab';
 const LAST_VIEW_KEY = 'lastView';
 const LAST_LIST_ID_KEY = 'lastListId';
 const LAST_STUDY_MODE_KEY = 'lastStudyMode';
 const DEFAULT_ACCENT_COLOR = '#FFD93D';
+const Y2K_ACCENT_COLOR = '#FF4FD8';
 const PRESET_COLORS = [
     '#FFD93D', // Geel (default)
     '#FF6B6B', // Rood
@@ -1050,6 +1075,7 @@ const PRESET_COLORS = [
 
 // Stores the current question's word ID and correct answer to avoid apostrophe-in-onclick bugs
 let currentCheckContext = { wordId: null, correct: null };
+let lastY2KSparkleAt = 0;
 
 // Study session state
 let studySession = {
@@ -2928,6 +2954,8 @@ function openAppSettings() {
     const modal = document.getElementById('app-settings-modal');
     const toggle = document.getElementById('cloud-enabled-toggle');
     if (toggle) toggle.checked = isCloudEnabled();
+    const y2kToggle = document.getElementById('y2k-mode-toggle');
+    if (y2kToggle) y2kToggle.checked = isY2KModeEnabled();
     const darkToggle = document.getElementById('dark-mode-toggle');
     if (darkToggle) darkToggle.checked = isDarkModeEnabled();
     const logoToggle = document.getElementById('dynamic-logo-toggle');
@@ -2938,6 +2966,7 @@ function openAppSettings() {
     if (colorPicker) colorPicker.value = accent;
     if (colorInput) colorInput.value = accent;
     renderPresetColors();
+    updateAppearanceControls();
 
     const subjectContainer = document.getElementById('settings-subjects-container');
     if (subjectContainer) {
@@ -3000,6 +3029,28 @@ function toggleAccordion(id) {
     el.classList.toggle('open');
 }
 
+function isY2KModeEnabled() {
+    return localStorage.getItem(Y2K_MODE_SETTINGS_KEY) === 'true';
+}
+
+function setY2KModeEnabled(enabled) {
+    if (enabled) {
+        if (localStorage.getItem(Y2K_PREV_DARK_MODE_KEY) === null) {
+            localStorage.setItem(Y2K_PREV_DARK_MODE_KEY, localStorage.getItem(DARK_MODE_SETTINGS_KEY) ?? 'false');
+        }
+        localStorage.setItem(DARK_MODE_SETTINGS_KEY, 'false');
+    } else {
+        const prevDark = localStorage.getItem(Y2K_PREV_DARK_MODE_KEY);
+        if (prevDark !== null) {
+            localStorage.setItem(DARK_MODE_SETTINGS_KEY, prevDark);
+            localStorage.removeItem(Y2K_PREV_DARK_MODE_KEY);
+        }
+    }
+    localStorage.setItem(Y2K_MODE_SETTINGS_KEY, enabled ? 'true' : 'false');
+    applyTheme();
+    updateAppearanceControls();
+}
+
 function isDarkModeEnabled() {
     return localStorage.getItem(DARK_MODE_SETTINGS_KEY) === 'true';
 }
@@ -3021,11 +3072,163 @@ function setDynamicLogoEnabled(enabled) {
 }
 
 function applyTheme() {
-    const enabled = isDarkModeEnabled();
+    const y2kEnabled = isY2KModeEnabled();
+    const enabled = isDarkModeEnabled() && !y2kEnabled;
     const dynamicLogo = isDynamicLogoEnabled();
+    document.body.classList.toggle('mode-2000s', y2kEnabled);
     document.body.classList.toggle('dark', enabled);
     document.body.classList.toggle('dynamic-logo-enabled', dynamicLogo);
-    applyAccentColor(getAccentColor());
+    const accentColor = y2kEnabled ? Y2K_ACCENT_COLOR : getAccentColor();
+    applyAccentColor(accentColor);
+}
+
+function updateAppearanceControls() {
+    const y2kEnabled = isY2KModeEnabled();
+    const y2kToggle = document.getElementById('y2k-mode-toggle');
+    if (y2kToggle) y2kToggle.checked = y2kEnabled;
+    const darkToggle = document.getElementById('dark-mode-toggle');
+    if (darkToggle) {
+        darkToggle.checked = isDarkModeEnabled();
+        darkToggle.disabled = y2kEnabled;
+        const label = darkToggle.closest('.toggle-label');
+        if (label) label.classList.toggle('is-disabled', y2kEnabled);
+    }
+    const colorPicker = document.getElementById('accent-color-picker');
+    const colorInput = document.getElementById('accent-color-input');
+    const resetBtn = document.getElementById('accent-color-reset');
+    if (colorPicker) colorPicker.disabled = y2kEnabled;
+    if (colorInput) colorInput.disabled = y2kEnabled;
+    if (resetBtn) resetBtn.disabled = y2kEnabled;
+    const controls = document.getElementById('accent-color-controls');
+    if (controls) controls.classList.toggle('is-disabled', y2kEnabled);
+    const lockHint = document.getElementById('y2k-lock-hint');
+    if (lockHint) lockHint.classList.toggle('hidden', !y2kEnabled);
+    document.querySelectorAll('#preset-colors .preset-color-btn').forEach(btn => {
+        btn.disabled = y2kEnabled;
+        btn.classList.toggle('is-disabled', y2kEnabled);
+    });
+}
+
+function setupY2KInteractions() {
+    document.addEventListener('mousemove', (event) => {
+        if (!isY2KModeEnabled()) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const now = Date.now();
+        if (now - lastY2KSparkleAt < 45) return;
+        lastY2KSparkleAt = now;
+        createY2KSparkle(event.clientX, event.clientY);
+    });
+}
+
+function createY2KSparkle(x, y) {
+    const sparkle = document.createElement('span');
+    const colors = ['#ff4fd8', '#00e5ff', '#aaff00', '#fff6b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    sparkle.className = 'y2k-sparkle';
+    sparkle.style.left = `${x}px`;
+    sparkle.style.top = `${y}px`;
+    sparkle.style.setProperty('--sparkle-color', color);
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 800);
+}
+
+function setupY2KTextEffects() {
+    initY2KCircularText();
+    initY2KSplitText();
+    initY2KAsciiText();
+}
+
+function initY2KCircularText() {
+    document.querySelectorAll('.y2k-circular-text').forEach(el => {
+        const text = (el.dataset.text || el.textContent || '').trim();
+        if (!text) return;
+        el.innerHTML = '';
+        const letters = Array.from(text);
+        const radius = 78;
+        const step = 360 / letters.length;
+        letters.forEach((letter, i) => {
+            const span = document.createElement('span');
+            span.textContent = letter;
+            const angle = step * i;
+            span.style.transform = `rotate(${angle}deg) translate(${radius}px) rotate(${angle * -1}deg)`;
+            span.style.animationDelay = `${i * 0.04}s`;
+            el.appendChild(span);
+        });
+    });
+}
+
+function initY2KSplitText() {
+    document.querySelectorAll('[data-split-text]').forEach(el => {
+        if (el.children.length > 0) return;
+        const rawText = el.textContent || '';
+        const source = rawText.trim();
+        if (!source) return;
+        const last = el.dataset.splitSource;
+        if (last === source && el.querySelector('.y2k-split-char')) return;
+        el.dataset.splitSource = source;
+        el.innerHTML = '';
+        Array.from(rawText).forEach((char, index) => {
+            const span = document.createElement('span');
+            span.className = 'y2k-split-char';
+            span.textContent = char === ' ' ? '\u00A0' : char;
+            span.style.animationDelay = `${index * 0.05}s`;
+            el.appendChild(span);
+        });
+    });
+}
+
+function initY2KAsciiText() {
+    const map = {
+        'A': ['  ## ', ' #  #', '####', '#  #', '#  #'],
+        'B': ['### ', '#  #', '### ', '#  #', '### '],
+        'C': [' ###', '#   ', '#   ', '#   ', ' ###'],
+        'D': ['### ', '#  #', '#  #', '#  #', '### '],
+        'E': ['####', '#   ', '### ', '#   ', '####'],
+        'F': ['####', '#   ', '### ', '#   ', '#   '],
+        'G': [' ###', '#   ', '# ##', '#  #', ' ###'],
+        'H': ['#  #', '#  #', '####', '#  #', '#  #'],
+        'I': ['####', ' ## ', ' ## ', ' ## ', '####'],
+        'J': ['  ##', '   #', '   #', '#  #', ' ## '],
+        'K': ['#  #', '# # ', '##  ', '# # ', '#  #'],
+        'L': ['#   ', '#   ', '#   ', '#   ', '####'],
+        'M': ['#  #', '####', '# ##', '#  #', '#  #'],
+        'N': ['#  #', '## #', '# ##', '#  #', '#  #'],
+        'O': [' ## ', '#  #', '#  #', '#  #', ' ## '],
+        'P': ['### ', '#  #', '### ', '#   ', '#   '],
+        'Q': [' ## ', '#  #', '#  #', '# ##', ' ###'],
+        'R': ['### ', '#  #', '### ', '# # ', '#  #'],
+        'S': [' ###', '#   ', ' ## ', '   #', '### '],
+        'T': ['####', ' ## ', ' ## ', ' ## ', ' ## '],
+        'U': ['#  #', '#  #', '#  #', '#  #', ' ## '],
+        'V': ['#  #', '#  #', '#  #', ' ## ', ' ## '],
+        'W': ['#  #', '#  #', '# ##', '####', '#  #'],
+        'X': ['#  #', ' ## ', ' ## ', ' ## ', '#  #'],
+        'Y': ['#  #', ' ## ', ' ## ', ' ## ', ' ## '],
+        'Z': ['####', '  # ', ' ## ', '#   ', '####'],
+        '0': [' ## ', '#  #', '#  #', '#  #', ' ## '],
+        '1': [' ## ', '### ', ' ## ', ' ## ', '####'],
+        '2': ['### ', '   #', ' ## ', '#   ', '####'],
+        '3': ['### ', '   #', ' ## ', '   #', '### '],
+        '4': ['#  #', '#  #', '####', '   #', '   #'],
+        '5': ['####', '#   ', '### ', '   #', '### '],
+        '6': [' ###', '#   ', '### ', '#  #', ' ## '],
+        '7': ['####', '   #', '  # ', ' #  ', ' #  '],
+        '8': [' ## ', '#  #', ' ## ', '#  #', ' ## '],
+        '9': [' ## ', '#  #', ' ###', '   #', ' ## '],
+        ' ': ['    ', '    ', '    ', '    ', '    ']
+    };
+    document.querySelectorAll('.y2k-ascii').forEach(el => {
+        const text = (el.dataset.text || el.textContent || '').toUpperCase();
+        if (!text) return;
+        const lines = ['', '', '', '', ''];
+        Array.from(text).forEach(char => {
+            const glyph = map[char] || map[' '];
+            for (let i = 0; i < lines.length; i++) {
+                lines[i] += `${glyph[i]} `;
+            }
+        });
+        el.textContent = lines.join('\n');
+    });
 }
 
 function updateFavicon(primary, dark) {
@@ -3238,10 +3441,12 @@ function renderPresetColors() {
     const container = document.getElementById('preset-colors');
     if (!container) return;
     const currentColor = getAccentColor();
+    const y2kEnabled = isY2KModeEnabled();
     container.innerHTML = PRESET_COLORS.map(color => `
-        <button class="preset-color-btn ${color === currentColor ? 'active' : ''}" 
+        <button class="preset-color-btn ${color === currentColor ? 'active' : ''} ${y2kEnabled ? 'is-disabled' : ''}" 
                 style="background-color: ${color};"
                 onclick="selectPresetColor('${color}')"
+                ${y2kEnabled ? 'disabled' : ''}
                 aria-label="Kleur ${color}">
             ${color === currentColor ? '<i class="fas fa-check"></i>' : ''}
         </button>
@@ -3249,6 +3454,7 @@ function renderPresetColors() {
 }
 
 function selectPresetColor(color) {
+    if (isY2KModeEnabled()) return;
     const normalized = normalizeHexColor(color) || DEFAULT_ACCENT_COLOR;
     setAccentColor(normalized);
     const colorPicker = document.getElementById('accent-color-picker');
@@ -6323,11 +6529,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyTheme();
     applyCloudState();
+    updateAppearanceControls();
+    setupY2KInteractions();
+    setupY2KTextEffects();
 
     const colorPicker = document.getElementById('accent-color-picker');
     const colorInput = document.getElementById('accent-color-input');
     if (colorPicker && colorInput) {
         const syncAccentInputs = (value, save = false) => {
+            if (isY2KModeEnabled()) return;
             const normalized = normalizeHexColor(value) || getAccentColor();
             colorPicker.value = normalized;
             colorInput.value = normalized;
