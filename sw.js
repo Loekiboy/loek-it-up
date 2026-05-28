@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loek-it-up-v10';
+const CACHE_NAME = 'loek-it-up-v11';
 
 // Lokale assets — moeten slagen voor install
 const LOCAL_ASSETS = [
@@ -120,19 +120,18 @@ self.addEventListener('fetch', event => {
   }
 
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        return cachedResponse;
+    fetch(event.request).then(response => {
+      // Netwerk first voor lokale assets, zodat we altijd de nieuwste versie hebben
+      if (response && response.status === 200 && response.type === 'basic') {
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
       }
-
-      return fetch(event.request).then(response => {
-        // Cache same-origin responses
-        if (response && response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+      return response;
+    }).catch(() => {
+      return caches.match(event.request).then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
-        return response;
-      }).catch(() => {
         return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
       });
     })
