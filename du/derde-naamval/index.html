@@ -349,7 +349,16 @@
                 <h2>Goed gedaan!</h2>
                 <p>Je hebt <strong>${score}</strong> van de <strong>${questions.length}</strong> vragen correct beantwoord (${percentage}%).</p>
                 <p>${message}</p>
-                <button class="action-button" onclick="restartQuiz()">Opnieuw Beginnen</button>
+                <button class="action-button" onclick="restartQuiz()" style="margin-bottom: 12px;">Opnieuw Beginnen</button>
+                <a href="https://loek.oerlemans.tv/loek-it-up/" target="_blank" rel="noopener noreferrer" 
+                    style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 16px 24px; background-color: #fdc204; color: #0f172a; border: 2px solid #0f172a; border-bottom-width: 4px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 14px; box-sizing: border-box; transition: all 0.2s;"
+                    onmousedown="this.style.borderBottomWidth='2px'; this.style.transform='translateY(2px)';"
+                    onmouseup="this.style.borderBottomWidth='4px'; this.style.transform='translateY(0px)';"
+                    onmouseleave="this.style.borderBottomWidth='4px'; this.style.transform='translateY(0px)';"
+                >
+                    <img src="../../images/logo.svg" alt="Loek-It-Up Logo" style="width: 28px; height: 28px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));" />
+                    <span>Oefen sneller met Loek-it-up!</span>
+                </a>
             `;
             completionMessage.style.display = 'block';
 

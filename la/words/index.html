@@ -391,10 +391,20 @@
                         )}
 
                         <div className="w-full max-w-sm flex flex-col gap-4">
+                            <a 
+                                href="https://loek.oerlemans.tv/loek-it-up/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-5 bg-[#fdc204] hover:bg-[#e8b200] text-slate-900 border-2 border-slate-900 border-b-4 active:border-b-2 active:translate-y-[2px] font-extrabold rounded-2xl text-xl transition-all shadow-md flex items-center justify-center gap-3 animate-bounce"
+                            >
+                                <img src="../../images/logo.svg" alt="Loek-It-Up Logo" className="w-7 h-7 drop-shadow-sm" />
+                                <span>Oefen sneller met Loek-it-up!</span>
+                            </a>
                             {wrongAnswers.length > 0 && (
                                 <button onClick={() => startLearning(true)} className="py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg hover:bg-indigo-700 transition-all">Herhaal fouten</button>
                             )}
                             <button onClick={() => setView('home')} className="py-5 bg-slate-900 text-white rounded-2xl font-black text-xl hover:bg-slate-800 transition-all">Klaar</button>
+
                         </div>
                     </div>
                 );

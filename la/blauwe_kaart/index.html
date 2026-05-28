@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stamtijden Blauwe Kaart</title>
+    <link rel="icon" href="/loek-it-up/la/images/fav_icon.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Vloeiende overgang voor nieuwe vragen */
+        .fade-in { animation: fadeIn 0.25s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hidden-screen { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <!-- Hoofdcontainer (De Blauwe Kaart) -->
+    <div class="bg-blue-500 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border-4 border-blue-600 relative fade-in">
+        
+        <!-- HEADER -->
+        <div class="bg-blue-600/40 px-6 py-4 border-b border-blue-600/50 flex justify-between items-center text-white">
+            <h1 class="text-xl font-bold uppercase tracking-wider">Stamtijden Quiz</h1>
+            <span id="score-display" class="font-bold bg-slate-900 text-blue-300 px-3 py-1 rounded-full text-sm hidden">Score: 0</span>
+        </div>
+
+        <!-- START SCHERM -->
+        <div id="start-screen" class="p-8 text-center text-white">
+            <div class="mb-6 flex justify-center">
+                <svg class="w-20 h-20 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-extrabold mb-2 text-white">Blauwe Kaart</h2>
+            <p class="text-blue-100 mb-8 font-medium">8 vragen over de infinitivus en 2 over de betekenis.</p>
+            <button onclick="startGame()" class="w-full bg-slate-900 hover:bg-slate-850 text-blue-300 font-bold py-4 px-6 rounded-xl text-lg transition-transform transform hover:scale-[1.02] active:scale-95 shadow-lg">
+                Start de Quiz
+            </button>
+        </div>
+
+        <!-- QUIZ SCHERM -->
+        <div id="quiz-screen" class="p-6 sm:p-8 hidden-screen">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-blue-900 font-bold" id="question-counter">Vraag 1 / 10</span>
+                <div class="w-1/2 bg-blue-400 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-slate-900 h-2.5 rounded-full" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <div id="question-container" class="mb-6 fade-in">
+                <!-- Vraagtekst -->
+                <h3 id="question-text" class="text-2xl font-bold mb-6 text-center text-slate-900 leading-tight"></h3>
+                
+                <!-- Input voor TYPE 1 (Infinitive) -->
+                <div id="type-infinitive" class="hidden-screen">
+                    <form id="answer-form" class="flex flex-col gap-4">
+                        <input type="text" id="answer-input" autocomplete="off" placeholder="Typ de infinitivus..." class="w-full bg-blue-50 border-2 border-blue-700 rounded-xl px-4 py-3 text-lg font-bold focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-950/20 text-center text-slate-900 placeholder:font-normal placeholder:text-blue-400/70">
+                        <button type="submit" class="w-full bg-slate-900 text-blue-300 font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">Controleer</button>
+                    </form>
+                </div>
+
+                <!-- Input voor TYPE 2 (Betekenis) -->
+                <div id="type-meaning" class="hidden-screen">
+                    <form id="meaning-form" class="flex flex-col gap-4">
+                        <input type="text" id="meaning-input" autocomplete="off" placeholder="Typ de betekenis..." class="w-full bg-blue-50 border-2 border-blue-700 rounded-xl px-4 py-3 text-lg font-bold focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-950/20 text-center text-slate-900 placeholder:font-normal placeholder:text-blue-400/70">
+                        <button type="submit" class="w-full bg-slate-900 text-blue-300 font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">Controleer</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Feedback sectie (Correct/Fout) -->
+            <div id="feedback-container" class="hidden-screen p-4 rounded-xl text-center fade-in">
+                <p id="feedback-text" class="font-bold text-lg mb-4 text-slate-900"></p>
+                <button onclick="nextQuestion()" id="next-btn" class="w-full bg-slate-900 text-blue-300 font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">
+                    Volgende Vraag
+                </button>
+            </div>
+        </div>
+
+        <!-- RESULTAAT SCHERM -->
+        <div id="result-screen" class="p-8 text-center text-white hidden-screen">
+            <h2 class="text-3xl font-extrabold mb-4">Einde!</h2>
+            <div class="bg-blue-600/50 rounded-2xl p-6 mb-8 inline-block shadow-inner border border-blue-400">
+                <p class="text-blue-100 font-bold mb-1">Jouw score</p>
+                <p id="final-score" class="text-6xl font-black text-white">8/10</p>
+            </div>
+            <p id="result-message" class="text-lg font-medium mb-8 text-blue-100"></p>
+            <a 
+                href="https://loek.oerlemans.tv/loek-it-up/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-full px-6 py-4 bg-[#fdc204] hover:bg-[#e8b200] text-slate-900 border-2 border-slate-900 border-b-4 active:border-b-2 active:translate-y-[2px] font-extrabold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-3 animate-bounce"
+            >
+                <img src="../../images/logo.svg" alt="Loek-It-Up Logo" class="w-7 h-7 drop-shadow-sm" />
+                <span>Oefen je woordjes sneller met Loek-it-up!</span>
+            </a>
+            <button onclick="startGame()" class="w-full bg-slate-900 text-blue-300 font-bold py-4 mb-3 rounded-xl text-lg hover:bg-slate-800 transition-transform transform hover:scale-[1.02] active:scale-95">
+                Opnieuw Spelen
+            </button>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGICA -->
+    <script>
+        // De complete Blauwe Kaart woordenlijst
+        const verbs = [
+            { inf: "esse", perf: "fui", ppp: "-", mean: "zijn" },
+            { inf: "dicere", perf: "dixi", ppp: "dictum", mean: "zeggen" },
+            { inf: "stare", perf: "steti", ppp: "statum", mean: "staan" },
+            { inf: "videre", perf: "vidi", ppp: "visum", mean: "zien" },
+            { inf: "facere", perf: "feci", ppp: "factum", mean: "doen" },
+            { inf: "posse", perf: "potui", ppp: "-", mean: "kunnen" },
+            { inf: "venire", perf: "veni", ppp: "ventum", mean: "komen" },
+            { inf: "ire", perf: "ii", ppp: "itum", mean: "gaan" },
+            { inf: "ferre", perf: "tuli", ppp: "latum", mean: "dragen, brengen" },
+            { inf: "dare", perf: "dedi", ppp: "datum", mean: "geven" },
+            { inf: "movere", perf: "movi", ppp: "motum", mean: "bewegen" },
+            { inf: "habere", perf: "habui", ppp: "habitum", mean: "hebben" },
+            { inf: "cognoscere", perf: "cognovi", ppp: "cognitum", mean: "leren kennen, inzien" },
+            { inf: "capere", perf: "cepi", ppp: "captum", mean: "(in)nemen, pakken, grijpen, vangen" },
+            { inf: "ducere", perf: "duxi", ppp: "ductum", mean: "leiden, brengen" },
+            { inf: "credere", perf: "credidi", ppp: "creditum", mean: "geloven" },
+            { inf: "tenere", perf: "tenui", ppp: "tentum", mean: "vasthouden, vasthebben, bezetten" },
+            { inf: "adesse", perf: "adfui", ppp: "-", mean: "aanwezig zijn" },
+            { inf: "agere", perf: "egi", ppp: "actum", mean: "brengen, leiden, doen" },
+            { inf: "vivere", perf: "vixi", ppp: "-", mean: "leven" },
+            { inf: "mittere", perf: "misi", ppp: "missum", mean: "sturen, laten gaan" },
+            { inf: "accidere", perf: "accedi", ppp: "-", mean: "gebeuren" },
+            { inf: "ponere", perf: "posui", ppp: "positum", mean: "plaatsen, zetten" },
+            { inf: "trahere", perf: "traxi", ppp: "tractum", mean: "trekken" },
+            { inf: "accipere", perf: "accepi", ppp: "acceptum", mean: "aannemen" },
+            { inf: "adire", perf: "adii", ppp: "aditum", mean: "gaan naar" },
+            { inf: "tollere", perf: "sustuli", ppp: "sublatum", mean: "oppakken" },
+            { inf: "sedere", perf: "sedi", ppp: "sessum", mean: "zitten" },
+            { inf: "regere", perf: "rexi", ppp: "rectum", mean: "regeren, besturen" },
+            { inf: "adiuvare", perf: "adiuvi", ppp: "adiutum", mean: "helpen" },
+            { inf: "iubere", perf: "iussi", ppp: "iussum", mean: "bevelen" },
+            { inf: "currere", perf: "cucurri", ppp: "cursum", mean: "rennen" },
+            { inf: "fugere", perf: "fugi", ppp: "-", mean: "vluchten" },
+            { inf: "timere", perf: "timui", ppp: "-", mean: "vrezen" },
+            { inf: "cadere", perf: "cecidi", ppp: "-", mean: "vallen" },
+            { inf: "consistere", perf: "constiti", ppp: "-", mean: "blijven staan" },
+            { inf: "respondere", perf: "respondi", ppp: "responsum", mean: "antwoorden" },
+            { inf: "quaerere", perf: "quaesivi", ppp: "quaesitum", mean: "zoeken" },
+            { inf: "apparere", perf: "apparui", ppp: "-", mean: "verschijnen" },
+            { inf: "manere", perf: "mansi", ppp: "mansum", mean: "blijven, achten, te wachten staan" },
+            { inf: "nescire", perf: "nescii", ppp: "-", mean: "niet weten" },
+            { inf: "sentire", perf: "sensi", ppp: "sensum", mean: "voelen, merken" },
+            { inf: "relinquere", perf: "reliqui", ppp: "relictum", mean: "verlaten, achterlaten" },
+            { inf: "tegere", perf: "texi", ppp: "tectum", mean: "bedekken" },
+            { inf: "bibere", perf: "bibi", ppp: "-", mean: "drinken" },
+            { inf: "incipere", perf: "incipui", ppp: "inceptum", mean: "beginnen" },
+            { inf: "aperire", perf: "aperui", ppp: "apertum", mean: "openen, openbaren" }
+        ];
+
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let hasAnsweredCurrentQuestion = false;
+
+        // Hulpmiddel om schermen te wisselen
+        function showScreen(screenId) {
+            document.getElementById('start-screen').classList.add('hidden-screen');
+            document.getElementById('quiz-screen').classList.add('hidden-screen');
+            document.getElementById('result-screen').classList.add('hidden-screen');
+            document.getElementById(screenId).classList.remove('hidden-screen');
+        }
+
+        // Hussel-functie (Fisher-Yates)
+        function shuffleArray(array) {
+            let curId = array.length;
+            while (0 !== curId) {
+                let randId = Math.floor(Math.random() * curId);
+                curId -= 1;
+                let tmp = array[curId];
+                array[curId] = array[randId];
+                array[randId] = tmp;
+            }
+            return array;
+        }
+
+        function startGame() {
+            currentIndex = 0;
+            score = 0;
+            hasAnsweredCurrentQuestion = false;
+            document.getElementById('score-display').classList.remove('hidden-screen');
+            document.getElementById('score-display').innerText = 'Score: 0';
+            
+            let shuffledVerbs = shuffleArray([...verbs]);
+            let selectedVerbs = shuffledVerbs.slice(0, 10);
+            
+            currentQuestions = [];
+
+            // 8 stamvorm vragen (welk werkwoord komt deze vorm vandaan?)
+            for(let i=0; i<8; i++) {
+                let v = selectedVerbs[i];
+                let forms = [];
+                if(v.perf !== "-") forms.push(v.perf);
+                if(v.ppp !== "-") forms.push(v.ppp);
+                
+                let chosenForm = forms.length > 0 ? forms[Math.floor(Math.random() * forms.length)] : v.inf;
+                
+                currentQuestions.push({
+                    type: 'infinitive',
+                    verb: v,
+                    questionForm: chosenForm,
+                    answer: v.inf
+                });
+            }
+
+            // 2 vertaal/betekenis vragen (wat is de betekenis?)
+            for(let i=8; i<10; i++) {
+                let v = selectedVerbs[i];
+                let forms = [v.inf];
+                if(v.perf !== "-") forms.push(v.perf);
+                if(v.ppp !== "-") forms.push(v.ppp);
+                let chosenForm = forms[Math.floor(Math.random() * forms.length)];
+
+                currentQuestions.push({
+                    type: 'meaning',
+                    verb: v,
+                    questionForm: chosenForm,
+                    answer: v.mean
+                });
+            }
+
+            // Hussel de complete set van 10 vragen zodat ze door elkaar staan
+            currentQuestions = shuffleArray(currentQuestions);
+
+            showScreen('quiz-screen');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            hasAnsweredCurrentQuestion = false;
+            document.getElementById('feedback-container').classList.add('hidden-screen');
+            document.getElementById('type-infinitive').classList.add('hidden-screen');
+            document.getElementById('type-meaning').classList.add('hidden-screen');
+            
+            // Reset input velden
+            const infInput = document.getElementById('answer-input');
+            infInput.disabled = false;
+            infInput.value = '';
+            document.querySelector('#answer-form button').classList.remove('hidden-screen');
+
+            const meanInput = document.getElementById('meaning-input');
+            meanInput.disabled = false;
+            meanInput.value = '';
+            document.querySelector('#meaning-form button').classList.remove('hidden-screen');
+            
+            let q = currentQuestions[currentIndex];
+            
+            document.getElementById('question-counter').innerText = `Vraag ${currentIndex + 1} / 10`;
+            document.getElementById('progress-bar').style.width = `${((currentIndex) / 10) * 100}%`;
+
+            if (q.type === 'infinitive') {
+                document.getElementById('question-text').innerHTML = `Van welk werkwoord (infinitivus) komt deze vorm?<br><span class="text-4xl text-white block font-extrabold mt-2 filter drop-shadow-sm">${q.questionForm}</span>`;
+                document.getElementById('type-infinitive').classList.remove('hidden-screen');
+                setTimeout(() => infInput.focus(), 50);
+            } else {
+                document.getElementById('question-text').innerHTML = `Wat is de betekenis van deze vorm?<br><span class="text-4xl text-white block font-extrabold mt-2 filter drop-shadow-sm">${q.questionForm}</span>`;
+                document.getElementById('type-meaning').classList.remove('hidden-screen');
+                setTimeout(() => meanInput.focus(), 50);
+            }
+        }
+
+        // Slimme controle voor de vertaalvragen (hanteert synoniemen en eventuele haakjes)
+        function checkMeaning(userInput, correctAnswer) {
+            // Maak de input en het antwoord netjes schoon voor vergelijking
+            const clean = str => str.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
+            const cleanUser = clean(userInput);
+
+            // Splijt antwoorden op komma's (bijv. "dragen, brengen")
+            const parts = correctAnswer.split(',').map(p => p.trim());
+
+            for (let part of parts) {
+                if (clean(part) === cleanUser) return true;
+
+                // Behandel haakjes zoals "(in)nemen" -> "nemen" of "innemen" is beide goed
+                if (part.includes('(') && part.includes(')')) {
+                    const opt1 = part.replace(/\(.*?\)/g, ''); // verwijdert de letters tussen haakjes
+                    const opt2 = part.replace(/[\(\)]/g, '');    // verwijdert de haakjes zelf
+                    if (clean(opt1) === cleanUser || clean(opt2) === cleanUser) return true;
+                }
+            }
+            return false;
+        }
+
+        // Submit Infinitivus Vraag
+        document.getElementById('answer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (hasAnsweredCurrentQuestion) return;
+            
+            let input = document.getElementById('answer-input').value.trim();
+            if(!input) return;
+            
+            let q = currentQuestions[currentIndex];
+            let isCorrect = (input.toLowerCase() === q.answer.toLowerCase());
+            
+            hasAnsweredCurrentQuestion = true;
+            document.getElementById('answer-input').disabled = true;
+            document.querySelector('#answer-form button').classList.add('hidden-screen');
+            
+            showFeedback(isCorrect, q.answer);
+        });
+
+        // Submit Vertaal Vraag
+        document.getElementById('meaning-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (hasAnsweredCurrentQuestion) return;
+
+            let input = document.getElementById('meaning-input').value.trim();
+            if(!input) return;
+
+            let q = currentQuestions[currentIndex];
+            let isCorrect = checkMeaning(input, q.answer);
+
+            hasAnsweredCurrentQuestion = true;
+            document.getElementById('meaning-input').disabled = true;
+            document.querySelector('#meaning-form button').classList.add('hidden-screen');
+
+            showFeedback(isCorrect, q.answer);
+        });
+
+        function showFeedback(isCorrect, correctAnswer) {
+            let fbContainer = document.getElementById('feedback-container');
+            let fbText = document.getElementById('feedback-text');
+            
+            fbContainer.classList.remove('hidden-screen', 'bg-emerald-100', 'bg-rose-100', 'text-emerald-900', 'text-rose-900');
+            
+            if (isCorrect) {
+                score++;
+                document.getElementById('score-display').innerText = `Score: ${score}`;
+                fbContainer.classList.add('bg-emerald-100', 'text-emerald-900', 'border-2', 'border-emerald-500');
+                fbText.innerHTML = "Helemaal goed! 🎉";
+            } else {
+                fbContainer.classList.add('bg-rose-100', 'text-rose-900', 'border-2', 'border-rose-500');
+                fbText.innerHTML = `Niet helemaal juist.<br>Het juiste antwoord is: <span class="font-extrabold text-slate-900">${correctAnswer}</span>`;
+            }
+
+            // Focus op de volgende knop om te zorgen dat de Enter knop direct de volgende activeert
+            setTimeout(() => {
+                document.getElementById('next-btn').focus();
+            }, 50);
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < currentQuestions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('progress-bar').style.width = '100%';
+            setTimeout(() => {
+                showScreen('result-screen');
+                document.getElementById('score-display').classList.add('hidden-screen');
+                document.getElementById('final-score').innerText = `${score}/10`;
+                
+                let msg = document.getElementById('result-message');
+                if (score === 10) {
+                    msg.innerText = "Superblij! Je kent de blauwe kaart helemaal uit je hoofd!";
+                } else if (score >= 7) {
+                    msg.innerText = "Lekker bezig! Je hebt een dikke voldoende.";
+                } else {
+                    msg.innerText = "Nog even oefenen. Je kunt dit!";
+                }
+            }, 250);
+        }
+
+        // GLOBALE KEYBOARD CONTROLS (Geen ingewikkelde rommel, gewoon intuïtief)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                // Startscherm -> start de game
+                const startScreen = document.getElementById('start-screen');
+                if (!startScreen.classList.contains('hidden-screen')) {
+                    e.preventDefault();
+                    startGame();
+                    return;
+                }
+
+                // Resultaatscherm -> start opnieuw
+                const resultScreen = document.getElementById('result-screen');
+                if (!resultScreen.classList.contains('hidden-screen')) {
+                    e.preventDefault();
+                    startGame();
+                    return;
+                }
+
+                // Vraag beantwoord en feedback in beeld -> ga naar volgende vraag
+                const feedbackContainer = document.getElementById('feedback-container');
+                if (!feedbackContainer.classList.contains('hidden-screen')) {
+                    e.preventDefault();
+                    nextQuestion();
+                    return;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
